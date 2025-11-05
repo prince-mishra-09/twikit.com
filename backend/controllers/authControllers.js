@@ -59,9 +59,9 @@ export const loginUser = tryCatch(async (req, res) => {
     const { email, password } = req.body
 
     const user = await User.findOne({ email })
-    console.log(req.body);
-    console.log(req.headers["content-type"]);
-    console.log(req.file);
+    // console.log(req.body);
+    // console.log(req.headers["content-type"]);
+    // console.log(req.file);
 
     if (!user) return res.status(404).json({
         message: "wrong credential",
