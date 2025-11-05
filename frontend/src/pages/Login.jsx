@@ -9,7 +9,7 @@ const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
 
-    const {loginUser} = UserData();
+    const {loginUser,loading} = UserData();
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -18,31 +18,11 @@ const Login = () => {
     };
 
     return (
-        <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-pink-700 to-indigo-800 overflow-hidden">
+        <>
+        {
+            loading?(<h1>loading...</h1>):(<div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-pink-700 to-indigo-800 overflow-hidden">
 
-            {/* Animated Twikit.com Text */}
-            {/* <div className="absolute inset-0">
-                {Array.from({ length: 30 }).map((_, i) => {
-                    const neonColors = ["#ff4d6d", "#ff6ec7", "#8e2de2", "#4a00e0", "#00fff7", "#ff00f7"];
-                    return (
-                        <span
-                            key={i}
-                            className="twikit-text"
-                            style={{
-                                left: `${Math.random() * 100}%`,
-                                fontSize: `${14 + Math.random() * 25}px`,
-                                color: neonColors[Math.floor(Math.random() * neonColors.length)],
-                                animationDuration: `${4 + Math.random() * 6}s`,
-                                animationDelay: `${Math.random() * 5}s`,
-                            }}
-                        >
-                            twikit.com
-                        </span>
-                    );
-                })}
-            </div> */}
-
-            {/* Registration Card */}
+            
             <div className="z-10 max-w-md w-full bg-black/80 rounded-2xl shadow-2xl p-8 space-y-6 backdrop-blur-md border border-purple-400">
                 <h1 className="text-3xl font-bold text-center text-white tracking-wide">
                     Login To Your Account
@@ -99,7 +79,9 @@ const Login = () => {
                     </Link>
                 </p>
             </div>
-        </div>
+        </div>)
+        }
+        </>
     );
   
 }
