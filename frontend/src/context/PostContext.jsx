@@ -9,6 +9,8 @@ export const PostContextProvider = ({ children }) => {
   const [reels, setReels] = useState([]);
   const [loading, setLoading] = useState(true);
 
+
+  
   async function fetchPosts() {
     try {
       const { data } = await axios.get("/api/post/all");
@@ -23,6 +25,8 @@ export const PostContextProvider = ({ children }) => {
   }
 
   const [addLoading, setAddLoading] = useState(false);
+
+
 
   async function addPost(formdata, setFile, setFilePrev, setCaption, type) {
     setAddLoading(true);

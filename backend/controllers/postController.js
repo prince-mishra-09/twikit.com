@@ -143,7 +143,7 @@ export const deleteComment = TryCatch(async (req, res) => {
         return res.status(404).json({
             message: "No Post with this id",
         });
-console.log(req.query.commentId);
+// console.log(req.query.commentId);
 
     if (!req.query.commentId)
         return res.status(404).json({

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./bgAnimation.css"
 import { Link, useNavigate } from "react-router-dom";
+import { PostData } from "../context/PostContext";
 
 const Register = () => {
     const [name, setName] = useState("");
@@ -37,7 +38,7 @@ const Register = () => {
         formdata.append("gender",gender)
         formdata.append("file",file)
 
-        registerUser(formdata,navigate)
+        registerUser(formdata,navigate,fetchPosts)
     };
 
     return (
