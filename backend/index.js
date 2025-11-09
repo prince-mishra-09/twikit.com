@@ -4,6 +4,10 @@ import { connectDB } from "./database/db.js";
 import cloudinary from 'cloudinary'
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js"
+import {io,server,app} from "./socket/socket.js"
+import User from "./models/userModel.js";
+import path from 'path'
+
 dotenv.config();
 
 cloudinary.v2.config({
@@ -12,7 +16,7 @@ cloudinary.v2.config({
     api_secret: process.env.CLOUDINARY_SECRET_KEY,
 })
 
-const app = express();
+
 const port = process.env.PORT;
 
 app.use(cookieParser())
@@ -46,7 +50,7 @@ app.get("/api/messages/chats", isAuth, async (req, res) => {
         })
     }
 })
-import User from "./models/userModel.js";
+
 app.get("/api/user/all", isAuth, async (req, res) => {
     try {
         const search = req.query.search || ""
@@ -77,8 +81,14 @@ app.use("/api/post", postRoutes)
 app.use("/api/auth", authRoutes)
 app.use("/api/messages", messageRoutes)
 
+// const __dirname = path.resolve()
 
-app.listen(port, () => {
+// app.use(express.static(path.join(__dirname,"/frontend/dist")))
+
+// app.get("*",(req,res)=>{
+//     res.sendFile(path.join(__dirname,"frontend","dist","index.html"));
+// })
+server.listen(port, () => {
     console.log(`Server is running http://localhost:${port}`);
     connectDB()
 });

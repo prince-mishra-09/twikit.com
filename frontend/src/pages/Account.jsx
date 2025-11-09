@@ -88,6 +88,8 @@ const Account = ({ user }) => {
   }, [user]);
 
   const [showInput, setShowInput] = useState(false);
+  // console.log(user.name+"----------------------------");
+  
   const [name, setName] = useState(user.name ? user.name : "");
 
   const UpdateName = () => {

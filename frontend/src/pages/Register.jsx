@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import "./bgAnimation.css"
 import { Link, useNavigate } from "react-router-dom";
+import { UserData } from "../context/UserContext";
 import { PostData } from "../context/PostContext";
 
 const Register = () => {
-    const [name, setName] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [gender, setGender] = useState("");
@@ -29,135 +29,106 @@ const Register = () => {
 
   const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const formdata = new FormData()
-        formdata.append("name",name)
-        formdata.append("email",email)
-        formdata.append("password",password)
-        formdata.append("gender",gender)
-        formdata.append("file",file)
+  const submitHandler = (e) => {
+    e.preventDefault();
+    const formdata = new FormData();
 
-        registerUser(formdata,navigate,fetchPosts)
-    };
+    formdata.append("name", name);
+    formdata.append("email", email);
+    formdata.append("password", password);
+    formdata.append("gender", gender);
+    formdata.append("file", file);
 
-    return (
-        <>
-        {
-            loading?(<h1>loading....</h1>):(<div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-pink-700 to-indigo-800 overflow-hidden">
-
-           
-            {/* Registration Card */}
-            <div className="z-10 max-w-md w-full bg-black/80 rounded-2xl shadow-2xl p-8 space-y-6 backdrop-blur-md border border-purple-400">
-                <h1 className="text-3xl font-bold text-center text-white tracking-wide">
-                    Create Your Account
+    registerUser(formdata, navigate, fetchPosts);
+  };
+  return (
+    <>
+      {loading ? (
+        <h1>Loading....</h1>
+      ) : (
+        <div className="flex justify-center">
+          <div className="flex flex-col justify-center items-center md:flex-row shadow-md rounded-xl max-w-7xl w-[90%] md:w-[50%] md:mt-[40px]">
+            <div className="w-full md:w-3/4">
+              <div className="text-xl cursor-pointer flex flex-col justify-center items-center mt-5 md:mt-0 py-4">
+                <h1 className="font-semibold text-xl md:text-3xl text-gray-600 m-2">
+                  Register to social media
                 </h1>
+              </div>
 
-                {/* Social Buttons */}
-                <div className="flex flex-col space-y-3">
-                    {[
-                        { name: "Google", icon: "https://img.icons8.com/color/24/google-logo.png", color: "hover:bg-red-500/20 hover:text-red-400" },
-                        { name: "Facebook", icon: "https://img.icons8.com/color/24/facebook-new.png", color: "hover:bg-blue-500/20 hover:text-blue-400" },
-                        { name: "X", icon: "https://img.icons8.com/ios-glyphs/24/twitter.png", color: "hover:bg-sky-400/20 hover:text-sky-300" },
-                    ].map((btn) => (
-                        <button
-                            key={btn.name}
-                            className={`flex items-center justify-center space-x-2 border border-gray-600 rounded-lg py-2 text-white transition-all duration-300 ${btn.color} hover:scale-105`}
-                        >
-                            <img src={btn.icon} alt={btn.name} />
-                            <span>Sign up with {btn.name}</span>
-                        </button>
-                    ))}
+              <form onSubmit={submitHandler}>
+                <div className="flex flex-col justify-center items-center m-2 space-y-6 md:space-y-8">
+                  {filePrev && (
+                    <img
+                      src={filePrev}
+                      className="w-[180px] h-[180px] rounded-full"
+                      alt=""
+                    />
+                  )}
+                  <input
+                    type="file"
+                    className="custom-input"
+                    onChange={changeFileHandler}
+                    accept="image/*"
+                    required
+                  />
+                  <input
+                    type="text"
+                    className="custom-input"
+                    placeholder="User Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
+                  <input
+                    type="email"
+                    className="custom-input"
+                    placeholder="User Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                  <input
+                    type="password"
+                    className="custom-input"
+                    placeholder="User Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <select
+                    className="custom-input"
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                    required
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
                 </div>
-
-                <div className="flex items-center justify-center space-x-2 text-gray-400 text-sm">
-                    <span className="border-t border-gray-600 flex-1"></span>
-                    <span>or sign up with email</span>
-                    <span className="border-t border-gray-600 flex-1"></span>
+                <div className="text-center mt-7">
+                  <button className="auth-btn">Register</button>
                 </div>
-
-                {/* Registration Form */}
-                <form className="space-y-4" onSubmit={handleSubmit}>
-                    <div>
-                        <input
-                            type="text"
-                            name="username"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Username"
-                            className="w-full px-4 py-2 rounded-lg bg-black/50 border border-purple-400 text-white focus:ring-2 focus:ring-pink-400 focus:outline-none placeholder-gray-300 transition-all duration-300"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <input
-                            type="email"
-                            name="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Email"
-                            className="w-full px-4 py-2 rounded-lg bg-black/50 border border-purple-400 text-white focus:ring-2 focus:ring-pink-400 focus:outline-none placeholder-gray-300 transition-all duration-300"
-                            required
-                        />
-                    </div>
-                    <div className="relative">
-                        <input
-                            type={showPassword ? "text" : "password"}
-                            name="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Password"
-                            className="w-full px-4 py-2 rounded-lg bg-black/50 border border-purple-400 text-white focus:ring-2 focus:ring-pink-400 focus:outline-none placeholder-gray-300 transition-all duration-300"
-                            required
-                        />
-                        <span
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-2/4 -translate-y-2/4 cursor-pointer text-white select-none"
-                        >
-                            {showPassword ? "🙈" : "👁️"}
-                        </span>
-                    </div>
-
-                    <div className="flex items-center space-x-2 text-white text-sm">
-                        <input
-                            type="checkbox"
-                            name="agree"
-                            checked={agree}
-                            onChange={(e) => setAgree(e.target.checked)}
-                            required
-                            className="accent-pink-400"
-                        />
-                        <label>
-                            I agree to the{" "}
-                            <span className="text-pink-400 hover:underline cursor-pointer">
-                                Terms
-                            </span>{" "}
-                            and{" "}
-                            <span className="text-pink-400 hover:underline cursor-pointer">
-                                Privacy Policy
-                            </span>
-                        </label>
-                    </div>
-
-                    <button
-                        type="submit"
-                        className="w-full py-2 rounded-lg text-white bg-gradient-to-r from-pink-500 to-purple-500 shadow-lg hover:scale-105 transition-all duration-300"
-                    >
-                        Sign Up
-                    </button>
-                </form>
-
-                <p className="text-sm text-gray-300 text-center">
-                    Already have an account?{" "}
-                    <Link to="/login" className="text-pink-400 hover:underline">
-                        Log in
-                    </Link>
-                </p>
+              </form>
             </div>
-        </div>)
-        }
-        </>
-    );
+
+            <div className="h-[100%] w-full md:w-1/3 bg-gradient-to-l from-blue-400 to-yellow-400 items-center justify-center flex">
+              <div className="text-white text-base font-semibold text-center my-10 space-y-2 m-2">
+                <h1 className="text-5xl">Have Account?</h1>
+                <h1>Login to Social Media</h1>
+                <Link
+                  to="/login"
+                  className="bg-white rounded-2xl px-4 text-emerald-400 py-1"
+                >
+                  Login
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 };
 
 export default Register;
