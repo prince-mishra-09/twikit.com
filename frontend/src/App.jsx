@@ -12,6 +12,7 @@ import { Loading } from "./components/Loading";
 import UserAccount from "./pages/UserAccount";
 import Search from "./pages/Search";
 import ChatPage from "./pages/ChatPage";
+import TwikitLanding from "./pages/TwikitLanding";
 
 function App() {
   const {loading,isAuth,user} = UserData();
@@ -23,6 +24,7 @@ function App() {
       <Toaster position="top-center" />
       {loading?<Loading/>:<BrowserRouter>
         <Routes>
+          <Route path="/landing" element={<TwikitLanding/>} />
           <Route path="/" element={isAuth?<Home />:<Login/>} />
           <Route path="/reels" element={isAuth?<Reels />:<Login/>} />
           <Route path="/user/:id" element={isAuth?<UserAccount user={user} />:<Login/>} />
