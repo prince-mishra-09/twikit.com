@@ -15,6 +15,8 @@ import ChatPage from "./pages/ChatPage";
 import TwikitLanding from "./pages/TwikitLanding";
 import PostDetail from "./pages/PostDetail";
 import { SocketData } from "./context/SocketContext";
+import { NotificationProvider } from "./context/NotificationContext";
+import Notifications from "./pages/Notifications";
 import { useEffect } from "react";
 
 function App() {
@@ -41,7 +43,7 @@ function App() {
   return (
     <>
       <Toaster position="top-center" />
-      {loading ? <Loading /> : <BrowserRouter>
+      {loading ? <Loading /> : <NotificationProvider><BrowserRouter>
         <Routes>
           <Route path="/landing" element={<TwikitLanding />} />
           <Route path="/" element={isAuth ? <Home /> : <Login />} />
@@ -51,13 +53,14 @@ function App() {
           <Route path="/register" element={!isAuth ? <Register /> : <Home />} />
           <Route path="/search" element={isAuth ? <Search /> : <Login />} />
           <Route path="/chat" element={isAuth ? <ChatPage user={user} /> : <Login />} />
+          <Route path="/notifications" element={isAuth ? <Notifications /> : <Login />} />
           <Route path="/login" element={!isAuth ? <Login /> : <Home />} />
           <Route path="*" element={<NotFound />} />
           <Route path="/post/:id" element={<PostDetail />} />
 
         </Routes>
         {isAuth && <NavigationBar />}
-      </BrowserRouter>}
+      </BrowserRouter></NotificationProvider>}
     </>
   );
 }

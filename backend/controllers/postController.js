@@ -3,6 +3,7 @@ import TryCatch from "../utils/tryCatch.js";
 import getDataUrl from "../utils/urlGenerator.js";
 import cloudinary from "cloudinary";
 import { io } from "../socket/socket.js";
+import { Notification } from "../models/Notification.js";
 
 export const newPost = TryCatch(async (req, res) => {
     //     console.log("req.file:", req.file);
@@ -121,6 +122,19 @@ export const likeUnlikePost = TryCatch(async (req, res) => {
         userId: req.user._id,
     });
 
+    // NOTIFICATION LOGIC
+    if (action === "like" && post.owner.toString() !== req.user._id.toString()) {
+        const notification = await Notification.create({
+            receiver: post.owner,
+            sender: req.user._id,
+            type: "like",
+            postId: post._id,
+        });
+
+        // Real-time Emit
+        io.to(post.owner.toString()).emit("notification:new", notification);
+    }
+
     res.json({
         message: action === "like" ? "Post liked" : "Post unliked",
     });
@@ -148,6 +162,18 @@ export const commentonPost = TryCatch(async (req, res) => {
         postId: post._id,
         comments: post.comments,
     });
+
+    // NOTIFICATION LOGIC
+    if (post.owner.toString() !== req.user._id.toString()) {
+        const notification = await Notification.create({
+            receiver: post.owner,
+            sender: req.user._id,
+            type: "comment",
+            postId: post._id,
+        });
+
+        io.to(post.owner.toString()).emit("notification:new", notification);
+    }
 
     res.json({
         message: "Comment Added",

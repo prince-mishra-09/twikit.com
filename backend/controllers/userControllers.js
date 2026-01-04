@@ -27,6 +27,7 @@ export const userProfile = async (req, res) => {
 
 
 import { io } from "../socket/socket.js";
+import { Notification } from "../models/Notification.js";
 
 export const followAndUnfollowUser = tryCatch(async (req, res) => {
   const user = await User.findById(req.params.id);
@@ -61,6 +62,15 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
 
     await loggedInUser.save();
     await user.save();
+
+    // NOTIFICATION LOGIC
+    const notification = await Notification.create({
+      receiver: user._id,
+      sender: loggedInUser._id,
+      type: "follow",
+    });
+
+    io.to(user._id.toString()).emit("notification:new", notification);
 
     res.json({
       message: "User Followed",

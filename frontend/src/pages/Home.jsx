@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
+import { IoChatbubbleEllipsesOutline, IoNotificationsOutline } from "react-icons/io5";
 import AddPost from "../components/AddPost";
 import PostCard from "../components/PostCard";
 import { PostData } from "../context/PostContext";
+import { NotificationData } from "../context/NotificationContext";
 import { Loading } from "../components/Loading";
 
 const Home = () => {
   const { posts, loading } = PostData();
+  const { unreadCount } = NotificationData();
 
   const [showComposer, setShowComposer] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -53,12 +55,25 @@ const Home = () => {
             <h1 className="text-xl font-bold bg-white/10 px-4 py-1.5 rounded-full backdrop-blur-md border border-white/5 shadow-lg shadow-indigo-500/10 text-white tracking-wide">
               Twikit
             </h1>
-            <Link
-              to="/chat"
-              className="relative bg-white/10 p-2.5 rounded-full backdrop-blur-md border border-white/5 hover:bg-white/20 transition-all duration-300 text-white shadow-lg shadow-indigo-500/10 group"
-            >
-              <IoChatbubbleEllipsesOutline className="text-xl group-hover:scale-110 transition-transform" />
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link
+                to="/notifications"
+                className="relative bg-white/10 p-2.5 rounded-full backdrop-blur-md border border-white/5 hover:bg-white/20 transition-all duration-300 text-white shadow-lg shadow-indigo-500/10 group"
+              >
+                <IoNotificationsOutline className="text-xl group-hover:rotate-12 transition-transform" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[#0B0F14]">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </Link>
+              <Link
+                to="/chat"
+                className="relative bg-white/10 p-2.5 rounded-full backdrop-blur-md border border-white/5 hover:bg-white/20 transition-all duration-300 text-white shadow-lg shadow-indigo-500/10 group"
+              >
+                <IoChatbubbleEllipsesOutline className="text-xl group-hover:scale-110 transition-transform" />
+              </Link>
+            </div>
           </div>
         </div>
 

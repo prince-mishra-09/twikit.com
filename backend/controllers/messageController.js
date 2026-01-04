@@ -1,6 +1,7 @@
 import { Chat } from "../models/chatModel.js";
 import { Messages } from "../models/messagesModel.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
+import { Notification } from "../models/Notification.js";
 import TryCatch from "../utils/tryCatch.js";
 
 export const sendMessage = TryCatch(async (req, res) => {
@@ -49,6 +50,16 @@ export const sendMessage = TryCatch(async (req, res) => {
   if (reciverSocketId) {
     io.to(reciverSocketId).emit("newMessage", newMessage);
   }
+
+  // NOTIFICATION LOGIC
+  const notification = await Notification.create({
+    receiver: recieverId,
+    sender: senderId,
+    type: "message",
+    messageId: newMessage._id,
+  });
+
+  io.to(recieverId.toString()).emit("notification:new", notification);
 
   res.status(201).json(newMessage);
 });
