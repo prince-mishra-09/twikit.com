@@ -8,14 +8,14 @@ import tryCatch from "../utils/tryCatch.js";
 const registerUser = tryCatch(async (req, res) => {
     const { name, email, password, gender } = req.body
 
-    const file = req.file
-    // console.log(file);
+    const file = req.file;
 
-    if (!name || !email || !password || !gender || !file) {
-        return res.status(400).json({
-            message: "Pls give all values"
-        });
-    }
+if (!file) {
+  return res.status(400).json({
+    message: "Profile image is required",
+  });
+}
+
 
     let user = await User.findOne({ email });
 
@@ -82,10 +82,14 @@ export const loginUser = tryCatch(async (req, res) => {
     })
 })
 
-export const logoutUser = tryCatch((req,res)=>{
-    res.cookie('token','',{maxAge:0})
+export const logoutUser = tryCatch((req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: false,
+  });
 
-    res.json({
-        message:"logout successfully"
-    })
-})
+  res.json({
+    message: "logout successfully",
+  });
+});

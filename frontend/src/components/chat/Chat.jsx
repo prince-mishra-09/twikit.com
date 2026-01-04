@@ -6,36 +6,49 @@ const Chat = ({ chat, setSelectedChat, isOnline }) => {
   const { user: loggedInUser } = UserData();
   let user;
   if (chat) user = chat.users[0];
+
   return (
-    <div>
+    <>
       {user && (
         <div
-          className="bg-gray-200 py-2 px-1 rounded-md cursor-pointer mt-3"
           onClick={() => setSelectedChat(chat)}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer
+          bg-[#0B0F14]/60 hover:bg-[#0B0F14] transition border border-white/5"
         >
-          <div className="flex justify-center items-center gap-2">
-            {isOnline && (
-              <div className="text-5xl font-bold text-green-400">.</div>
-            )}
+          {/* Avatar */}
+          <div className="relative">
             <img
               src={user.profilePic.url}
               alt=""
-              className="w-8 h-8 rounded-full"
+              className="w-10 h-10 rounded-full object-cover"
             />
-            <span>{user.name}</span>
+
+            {/* Online Dot */}
+            {isOnline && (
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-[#0B0F14]" />
+            )}
           </div>
 
-          <span className="flex justify-center items-center gap-1">
-            {loggedInUser._id === chat.latestMessage.sender ? (
-              <BsSendCheck />
-            ) : (
-              ""
-            )}
-            {chat.latestMessage.text.slice(0, 18)}...
-          </span>
+          {/* Name + Last Message */}
+          <div className="flex-1 overflow-hidden">
+            <p className="text-white font-medium text-sm truncate">
+              {user.name}
+            </p>
+
+            <div className="flex items-center gap-1 text-gray-400 text-xs truncate">
+              {loggedInUser._id === chat.latestMessage.sender && (
+                <BsSendCheck className="text-indigo-400 text-sm" />
+              )}
+              <span>
+                {chat.latestMessage.text.length > 22
+                  ? chat.latestMessage.text.slice(0, 22) + "…"
+                  : chat.latestMessage.text}
+              </span>
+            </div>
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

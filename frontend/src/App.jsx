@@ -13,7 +13,7 @@ import UserAccount from "./pages/UserAccount";
 import Search from "./pages/Search";
 import ChatPage from "./pages/ChatPage";
 import TwikitLanding from "./pages/TwikitLanding";
-
+import PostDetail from "./pages/PostDetail";
 function App() {
   const {loading,isAuth,user} = UserData();
   // 
@@ -34,6 +34,8 @@ function App() {
           <Route path="/chat" element={isAuth?<ChatPage user={user} />:<Login/>} />
           <Route path="/login" element={!isAuth?<Login/>:<Home/>} />
           <Route path="*" element={<NotFound/>} />
+          <Route path="/post/:id" element={<PostDetail />} />
+
         </Routes>
         {isAuth && <NavigationBar/>}
       </BrowserRouter>}

@@ -1,6 +1,9 @@
 import User from "../models/userModel.js";
 import tryCatch from "../utils/tryCatch.js";
 import bcrypt from 'bcrypt'
+import getDataUrl from "../utils/urlGenerator.js";
+import cloudinary from "cloudinary";
+
 export const myProfile = tryCatch(async (req, res) => {
     const user = await User.findById(req.user._id).select("-password")
     // console.log(req.user);
@@ -9,14 +12,18 @@ export const myProfile = tryCatch(async (req, res) => {
 })
 
 export const userProfile = async (req, res) => {
-    const user = await User.findById(req.params.id).select("-password")
+  if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+    return res.status(400).json({ message: "Invalid user id" });
+  }
 
-    if (!user) return res.status(404).json({
-        message: "usernotfound"
-    })
+  const user = await User.findById(req.params.id).select("-password");
 
-    res.json(user)
-}
+  if (!user)
+    return res.status(404).json({ message: "User Not Found" });
+
+  res.json(user);
+};
+
 
 
 export const followAndUnfollowUser = tryCatch(async (req, res) => {
@@ -125,8 +132,20 @@ export const updatePassword = tryCatch(async (req, res) => {
 });
 
 
-// export const getAllUsers = tryCatch(async(req,res)=>{
-//   const users = await User.find();
 
-//   res.json(users)
-// })
+export const searchUsers = tryCatch(async (req, res) => {
+  const search = req.query.search || "";
+
+  if (!search.trim()) {
+    return res.json([]);
+  }
+
+  const users = await User.find({
+    name: { $regex: search, $options: "i" },
+    _id: { $ne: req.user._id },
+  }).select("name profilePic");
+
+  res.json(users);
+});
+
+

@@ -1,19 +1,29 @@
-import e from "express";
+import express from "express";
 import { isAuth } from "../middlewares/isAuth.js";
-import { followAndUnfollowUser, myProfile, updatePassword, updateProfile, userFollowerandFollowingData, userProfile } from "../controllers/userControllers.js";
+import {
+  myProfile,
+  userProfile,
+  followAndUnfollowUser,
+  userFollowerandFollowingData,
+  updateProfile,
+  updatePassword,
+  searchUsers,
+} from "../controllers/userControllers.js";
 import uploadFile from "../middlewares/multer.js";
 
-const router = e.Router();
-// router.get("/", (req, res) => {
-//     res.json({ message: "User API root - specify '/me' or '/:id'." });
-// });
+const router = express.Router();
 
-router.get("/me",isAuth,myProfile)
-router.get("/:id",isAuth,userProfile)
-router.post("/:id",isAuth,updatePassword)
-router.put("/:id",isAuth,uploadFile,updateProfile)
-router.post("/follow/:id",isAuth,followAndUnfollowUser)
-router.get("/followdata/:id",isAuth,userFollowerandFollowingData)
-// router.get("/all",isAuth,getAllUsers)
-export default router
+/* ✅ SEARCH / ALL USERS (ALWAYS ON TOP) */
+router.get("/all", isAuth, searchUsers);
 
+/* ================= PROTECTED ================= */
+router.get("/me", isAuth, myProfile);
+router.post("/follow/:id", isAuth, followAndUnfollowUser);
+router.get("/followdata/:id", isAuth, userFollowerandFollowingData);
+
+/* ================= ID BASED (ALWAYS LAST) ================= */
+router.get("/:id", isAuth, userProfile);
+router.post("/:id", isAuth, updatePassword);
+router.put("/:id", isAuth, uploadFile, updateProfile);
+
+export default router;

@@ -12,60 +12,84 @@ import { RiAccountCircleFill, RiAccountCircleLine } from "react-icons/ri";
 const NavigationBar = () => {
   const [tab, setTab] = useState(window.location.pathname);
 
-  
+  const activeStyle =
+    "text-indigo-400 scale-110";
+  const inactiveStyle =
+    "text-gray-400 hover:text-gray-200";
+
   return (
-    <div className="fixed bottom-0 w-full bg-white py-3">
-      <div className="flex justify-around">
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md">
+      
+      {/* Glass Bar */}
+      <div className="flex justify-around items-center bg-[#111827]/80 backdrop-blur-xl border border-white/10 rounded-2xl py-3 shadow-2xl">
+        
+        {/* Home */}
         <Link
-          to={"/"}
+          to="/"
           onClick={() => setTab("/")}
-          className="flex flex-col items-center text-2xl"
+          className={`text-2xl transition-all duration-200 ${
+            tab === "/" ? activeStyle : inactiveStyle
+          }`}
         >
-          <span>{tab === "/" ? <AiFillHome /> : <AiOutlineHome />}</span>
+          {tab === "/" ? <AiFillHome /> : <AiOutlineHome />}
         </Link>
+
+        {/* Reels */}
         <Link
-          to={"/reels"}
+          to="/reels"
           onClick={() => setTab("/reels")}
-          className="flex flex-col items-center text-2xl"
+          className={`text-2xl transition-all duration-200 ${
+            tab === "/reels" ? activeStyle : inactiveStyle
+          }`}
         >
-          <span>
-            {tab === "/reels" ? <BsCameraReelsFill /> : <BsCameraReels />}
-          </span>
+          {tab === "/reels" ? <BsCameraReelsFill /> : <BsCameraReels />}
         </Link>
+
+        {/* Search (highlighted center feel) */}
         <Link
+          to="/search"
           onClick={() => setTab("/search")}
-          to={"/search"}
-          className="flex flex-col items-center text-2xl"
+          className={`text-3xl transition-all duration-200 ${
+            tab === "/search"
+              ? "text-cyan-400 scale-125"
+              : "text-gray-400 hover:text-gray-200"
+          }`}
         >
-          <span>
-            {tab === "/search" ? <IoSearchCircle /> : <IoSearchCircleOutline />}
-          </span>
+          {tab === "/search" ? (
+            <IoSearchCircle />
+          ) : (
+            <IoSearchCircleOutline />
+          )}
         </Link>
+
+        {/* Chat */}
         <Link
+          to="/chat"
           onClick={() => setTab("/chat")}
-          to={"/chat"}
-          className="flex flex-col items-center text-2xl"
+          className={`text-2xl transition-all duration-200 ${
+            tab === "/chat" ? activeStyle : inactiveStyle
+          }`}
         >
-          <span>
-            {tab === "/chat" ? (
-              <IoChatbubbleEllipses />
-            ) : (
-              <IoChatbubbleEllipsesOutline />
-            )}
-          </span>
+          {tab === "/chat" ? (
+            <IoChatbubbleEllipses />
+          ) : (
+            <IoChatbubbleEllipsesOutline />
+          )}
         </Link>
+
+        {/* Account */}
         <Link
+          to="/account"
           onClick={() => setTab("/account")}
-          to={"/account"}
-          className="flex flex-col items-center text-2xl"
+          className={`text-2xl transition-all duration-200 ${
+            tab === "/account" ? activeStyle : inactiveStyle
+          }`}
         >
-          <span>
-            {tab === "/account" ? (
-              <RiAccountCircleFill />
-            ) : (
-              <RiAccountCircleLine />
-            )}
-          </span>
+          {tab === "/account" ? (
+            <RiAccountCircleFill />
+          ) : (
+            <RiAccountCircleLine />
+          )}
         </Link>
       </div>
     </div>

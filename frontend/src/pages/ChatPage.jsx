@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ChatData } from "../context/ChatContext";
 import axios from "axios";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaArrowLeft } from "react-icons/fa";
 import Chat from "../components/chat/Chat";
 import MessageContainer from "../components/chat/MessageContainer";
 import { SocketData } from "../context/SocketContext";
@@ -14,28 +14,46 @@ const ChatPage = ({ user }) => {
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState(false);
 
-  async function fetchAllUsers() {
-    try {
-      const { data } = await axios.get("/api/user/all?search=" + query);
+  const { onlineUsers } = SocketData();
 
-      setUsers(data);
-    } catch (error) {
-      console.log(error);
-    }
+  /* ================= FETCH ================= */
+
+  async function fetchAllUsers() {
+  if (!query || query.trim() === "") {
+    setUsers([]);
+    return;
   }
 
-  const getAllChats = async () => {
+  try {
+   
+    const { data } = await axios.get(
+      "/api/user/all?search=" + query.trim()
+    );
+    setUsers(data);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
+  async function getAllChats() {
     try {
       const { data } = await axios.get("/api/messages/chats");
       setChats(data);
     } catch (error) {
       console.log(error);
     }
-  };
+  }
 
   useEffect(() => {
+  if (query.trim()) {
     fetchAllUsers();
-  }, [query]);
+  } else {
+    setUsers([]);
+  }
+}, [query]);
+
+
 
   useEffect(() => {
     getAllChats();
@@ -45,75 +63,119 @@ const ChatPage = ({ user }) => {
     await createChat(id);
     setSearch(false);
     getAllChats();
+    setSelectedChat(null);
   }
 
-  const { onlineUsers, socket } = SocketData();
-  return (
-    <div className="w-full md:w-[750px] md:p-4">
-      <div className="flex gap-4 mx-auto">
-        <div className="w-[30%]">
-          <div className="top">
-            <button
-              className="bg-blue-500 text-white px-3 py-1 rounded-full"
-              onClick={() => setSearch(!search)}
-            >
-              {search ? "X" : <FaSearch />}
-            </button>
-            {search ? (
-              <>
-                <input
-                  type="text"
-                  className="custom-input"
-                  style={{ width: "100px", border: "gray solid 1px" }}
-                  placeholder="Enter name"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
+  /* ================= UI ================= */
 
-                <div className="users">
-                  {users && users.length > 0 ? (
-                    users.map((e) => (
-                      <div
-                        key={e._id}
-                        onClick={() => createNewChat(e._id)}
-                        className="bg-gray-500 text-white p-2 mt-2 cursor-pointer flex justify-center items-center gap-2"
-                      >
-                        <img
-                          src={e.profilePic.url}
-                          className="w-8 h-8 rounded-full"
-                          alt=""
-                        />
-                        {e.name}
-                      </div>
-                    ))
-                  ) : (
-                    <p>No Users</p>
-                  )}
-                </div>
-              </>
+  return (
+    <div className="min-h-screen bg-[#0B0F14] flex justify-center px-2 py-4">
+      <div className="w-full max-w-6xl h-[85vh] bg-[#111827]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl flex overflow-hidden">
+
+        {/* ================= LEFT SIDEBAR ================= */}
+        <div
+          className={`${
+            selectedChat ? "hidden md:flex" : "flex"
+          } w-full md:w-[30%] border-r border-white/10 flex-col`}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-4">
+            <h2 className="text-white font-semibold">Chats</h2>
+            <button
+              onClick={() => setSearch(!search)}
+              className="bg-indigo-500 text-white p-2 rounded-full hover:opacity-90"
+            >
+              {search ? "✕" : <FaSearch />}
+            </button>
+          </div>
+
+          {/* Search bar (ALWAYS TOP) */}
+          <div className="px-4 pb-3">
+            <input
+              type="text"
+              className="w-full px-3 py-2 rounded-lg bg-[#0B0F14] border border-white/10 text-white placeholder-gray-400"
+              placeholder="Search users..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
+
+          {/* Chat / User list */}
+          <div className="flex-1 overflow-y-auto px-2 space-y-2">
+            {search ? (
+              users.length > 0 ? (
+                users.map((u) => (
+                  <div
+                    key={u._id}
+                    onClick={() => createNewChat(u._id)}
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer bg-[#0B0F14]/60 hover:bg-[#0B0F14]"
+                  >
+                    <img
+                      src={u.profilePic.url}
+                      className="w-9 h-9 rounded-full object-cover"
+                      alt=""
+                    />
+                    <p className="text-white text-sm">{u.name}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-400 text-sm text-center mt-4">
+                  No users found
+                </p>
+              )
+            ) : chats.length > 0 ? (
+              chats.map((c) => (
+                <Chat
+                  key={c._id}
+                  chat={c}
+                  setSelectedChat={setSelectedChat}
+                  isOnline={onlineUsers.includes(c.users[0]._id)}
+                />
+              ))
             ) : (
-              <div className="flex flex-col justify-center items-center mt-2">
-                {chats.map((e) => (
-                  <Chat
-                    key={e._id}
-                    chat={e}
-                    setSelectedChat={setSelectedChat}
-                    isOnline={onlineUsers.includes(e.users[0]._id)}
-                  />
-                ))}
-              </div>
+              <p className="text-gray-400 text-sm text-center mt-4">
+                No chats yet
+              </p>
             )}
           </div>
         </div>
-        {selectedChat === null ? (
-          <div className="w-[70%] mx-20 mt-40 text-2xl">
-            Hello 👋 {user.name} select a chat to start conversation
-          </div>
-        ) : (
-          <div className="w-[70%]">
-            <MessageContainer selectedChat={selectedChat} setChats={setChats} />
-          </div>
-        )}
+
+        {/* ================= RIGHT PANEL ================= */}
+        <div
+          className={`${
+            selectedChat ? "flex" : "hidden md:flex"
+          } flex-1 flex flex-col`}
+        >
+          {/* Mobile back button */}
+          {selectedChat && (
+            <div className="md:hidden p-3 border-b border-white/10">
+              <button
+                onClick={() => setSelectedChat(null)}
+                className="text-white flex items-center gap-2"
+              >
+                <FaArrowLeft /> Back
+              </button>
+            </div>
+          )}
+
+          {selectedChat === null ? (
+            <div className="flex flex-1 items-center justify-center text-center px-4">
+              <div>
+                <p className="text-2xl text-white font-semibold">
+                  Hello {user.name} 👋
+                </p>
+                <p className="text-gray-400 mt-2">
+                  Select a chat to start conversation
+                </p>
+              </div>
+            </div>
+          ) : (
+            <MessageContainer
+              selectedChat={selectedChat}
+              setChats={setChats}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

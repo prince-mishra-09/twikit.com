@@ -1,19 +1,16 @@
-import jwt from 'jsonwebtoken'
+import jwt from "jsonwebtoken";
 
-const generateToken = (id,res)=>{
+const generateToken = (id, res) => {
+  const token = jwt.sign({ _id: id }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 
-     if (!process.env.JWT_SECRET) {
-    throw new Error("JWT_SECRET not set in environment");
-  }
-    const token = jwt.sign({id},process.env.JWT_SECRET,{
-        expiresIn:"15d",
-    });
-
-    res.cookie("token",token,{
-        maxAge:15*24*60*60*1000,
-        httpOnly: true,
-        sameSite: "strict",
-    });
-}
+  res.cookie("token", token, {
+    httpOnly: true,
+    sameSite: "lax",   // ✅ VERY IMPORTANT
+    secure: false,     // ✅ localhost ke liye FALSE
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+};
 
 export default generateToken;

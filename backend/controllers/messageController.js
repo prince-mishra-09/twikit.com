@@ -1,7 +1,7 @@
 import { Chat } from "../models/chatModel.js";
 import { Messages } from "../models/messagesModel.js";
-import { getReciverSocketId, io } from "../socket/socket.js";
-import TryCatch from "../utils/Trycatch.js";
+import { getReceiverSocketId, io } from "../socket/socket.js";
+import TryCatch from "../utils/tryCatch.js";
 
 export const sendMessage = TryCatch(async (req, res) => {
   const { recieverId, message } = req.body;
@@ -44,7 +44,7 @@ export const sendMessage = TryCatch(async (req, res) => {
     },
   });
 
-  const reciverSocketId = getReciverSocketId(recieverId);
+  const reciverSocketId = getReceiverSocketId(recieverId);
 
   if (reciverSocketId) {
     io.to(reciverSocketId).emit("newMessage", newMessage);
@@ -73,3 +73,21 @@ export const getAllMessages = TryCatch(async (req, res) => {
   res.json(messages);
 });
 
+export const getAllChats = TryCatch(async (req, res) => {
+  const userId = req.user._id;
+
+  const chats = await Chat.find({
+    users: { $in: [userId] },
+  })
+    .populate("users", "name profilePic")
+    .sort({ updatedAt: -1 });
+
+  // remove logged-in user from users array
+  chats.forEach(chat => {
+    chat.users = chat.users.filter(
+      u => u._id.toString() !== userId.toString()
+    );
+  });
+
+  res.json(chats);
+});

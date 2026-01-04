@@ -3,37 +3,48 @@ import { Link } from "react-router-dom";
 
 const Modal = ({ value, title, setShow }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-      <div className="bg-white rounded-lg p-4 shadow-lg w-[300px] max-h-[300px] overflow-y-auto">
-        <h1 className="text-2xl text-blue-600">{title}</h1>
-        <div className="flex justify-end">
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      
+      {/* Card */}
+      <div className="w-full max-w-sm bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-5 mx-4">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-white font-medium text-lg">
+            {title}
+          </h1>
           <button
             onClick={() => setShow(false)}
-            className="text-gray-500 text-2xl"
+            className="text-gray-400 hover:text-white text-xl transition"
           >
             &times;
           </button>
         </div>
-        <div className="flex flex-col space-y-2 mt-2">
+
+        {/* Content */}
+        <div className="max-h-[300px] overflow-y-auto space-y-3">
           {value && value.length > 0 ? (
             value.map((e, i) => (
               <Link
-                className="bg-gray-500 py-2 px-3 text-white text-center rounded-md flex justify-center items-center gap-4"
                 to={`/user/${e._id}`}
                 key={i}
                 onClick={() => setShow(false)}
+                className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition"
               >
-                {i + 1}{" "}
                 <img
-                  className="w-8 h-8 rounded-full"
                   src={e.profilePic.url}
                   alt=""
+                  className="w-9 h-9 rounded-full object-cover"
                 />
-                {e.name}
+                <span className="text-gray-200 text-sm font-medium">
+                  {e.name}
+                </span>
               </Link>
             ))
           ) : (
-            <p>No {title} yet</p>
+            <p className="text-gray-400 text-sm text-center py-6">
+              No {title} yet
+            </p>
           )}
         </div>
       </div>

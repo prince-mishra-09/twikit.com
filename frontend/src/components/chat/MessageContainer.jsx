@@ -18,21 +18,19 @@ const MessageContainer = ({ selectedChat, setChats }) => {
         setMessages((prev) => [...prev, message]);
       }
 
-      setChats((prev) => {
-        const updatedChat = prev.map((chat) => {
-          if (chat._id === message.chatId) {
-            return {
-              ...chat,
-              latestMessage: {
-                text: message.text,
-                sender: message.sender,
-              },
-            };
-          }
-          return chat;
-        });
-        return updatedChat;
-      });
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat._id === message.chatId
+            ? {
+                ...chat,
+                latestMessage: {
+                  text: message.text,
+                  sender: message.sender,
+                },
+              }
+            : chat
+        )
+      );
     });
 
     return () => socket.off("newMessage");
@@ -44,7 +42,6 @@ const MessageContainer = ({ selectedChat, setChats }) => {
       const { data } = await axios.get(
         "/api/messages/" + selectedChat.users[0]._id
       );
-
       setMessages(data);
       setLoading(false);
     } catch (error) {
@@ -52,8 +49,6 @@ const MessageContainer = ({ selectedChat, setChats }) => {
       setLoading(false);
     }
   }
-
-  console.log(messages);
 
   useEffect(() => {
     fetchMessages();
@@ -67,42 +62,54 @@ const MessageContainer = ({ selectedChat, setChats }) => {
         messageContainerRef.current.scrollHeight;
     }
   }, [messages]);
-  return (
-    <div>
-      {selectedChat && (
-        <div className="flex flex-col">
-          <div className="flex w-full h-12 items-center gap-3">
-            <img
-              src={selectedChat.users[0].profilePic.url}
-              className="w-8 h-8 rounded-full"
-              alt=""
-            />
-            <span>{selectedChat.users[0].name}</span>
-          </div>
-          {loading ? (
-            <LoadingAnimation />
-          ) : (
-            <>
-              <div
-                ref={messageContainerRef}
-                className="flex flex-col gap-4 my-4 h-[400px] overflow-y-auto border border-gray-300 bg-gray-100 p-3"
-              >
-                {messages &&
-                  messages.map((e) => (
-                    <Message
-                      message={e.text}
-                      ownMessage={e.sender === user._id && true}
-                    />
-                  ))}
-              </div>
 
-              <MessageInput
-                setMessages={setMessages}
-                selectedChat={selectedChat}
-              />
-            </>
-          )}
+  return (
+    <div className="flex flex-col h-full bg-[#0B0F14]">
+
+      {/* HEADER */}
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-[#111827]/80 backdrop-blur-md">
+        <img
+          src={selectedChat.users[0].profilePic.url}
+          className="w-9 h-9 rounded-full object-cover"
+          alt=""
+        />
+        <div>
+          <p className="text-white font-medium">
+            {selectedChat.users[0].name}
+          </p>
+          <p className="text-xs text-gray-400">Active now</p>
         </div>
+      </div>
+
+      {/* MESSAGES */}
+      {loading ? (
+        <div className="flex flex-1 items-center justify-center">
+          <LoadingAnimation />
+        </div>
+      ) : (
+        <>
+          <div
+            ref={messageContainerRef}
+            className="flex-1 overflow-y-auto px-4 py-3 space-y-2 bg-[#0B0F14]"
+          >
+            {messages &&
+              messages.map((e, i) => (
+                <Message
+                  key={i}
+                  message={e.text}
+                  ownMessage={e.sender === user._id}
+                />
+              ))}
+          </div>
+
+          {/* INPUT */}
+          <div className="border-t border-white/10 bg-[#111827]/80 backdrop-blur-md">
+            <MessageInput
+              setMessages={setMessages}
+              selectedChat={selectedChat}
+            />
+          </div>
+        </>
       )}
     </div>
   );

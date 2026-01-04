@@ -1,7 +1,8 @@
 import { Post } from "../models/postModel.js";
-import TryCatch from "../utils/Trycatch.js";
+import TryCatch from "../utils/tryCatch.js";
 import getDataUrl from "../utils/urlGenerator.js";
 import cloudinary from "cloudinary";
+import { io } from "../socket/socket.js";
 
 export const newPost = TryCatch(async (req, res) => {
 //     console.log("req.file:", req.file);
@@ -87,33 +88,44 @@ export const getAllPosts = TryCatch(async (req, res) => {
 });
 
 export const likeUnlikePost = TryCatch(async (req, res) => {
-    const post = await Post.findById(req.params.id);
+  const post = await Post.findById(req.params.id);
 
-    if (!post)
-        return res.status(404).json({
-            message: "No Post with this id",
-        });
+  if (!post) {
+    return res.status(404).json({
+      message: "No Post with this id",
+    });
+  }
 
-    if (post.likes.includes(req.user._id)) {
-        const index = post.likes.indexOf(req.user._id);
+  let action = "";
 
-        post.likes.splice(index, 1);
+  if (post.likes.includes(req.user._id)) {
+    // UNLIKE
+    post.likes = post.likes.filter(
+      (id) => id.toString() !== req.user._id.toString()
+    );
+    action = "unlike";
+  } else {
+    // LIKE
+    post.likes.push(req.user._id);
+    action = "like";
+  }
 
-        await post.save();
+  await post.save();
 
-        res.json({
-            message: "Post Unlike",
-        });
-    } else {
-        post.likes.push(req.user._id);
+  // 🔥 REAL-TIME EMIT
+  io.emit("postLikeUpdated", {
+    postId: post._id,
+    likes: post.likes,
+    likesCount: post.likes.length,
+    action,
+    userId: req.user._id,
+  });
 
-        await post.save();
-
-        res.json({
-            message: "Post liked",
-        });
-    }
+  res.json({
+    message: action === "like" ? "Post liked" : "Post unliked",
+  });
 });
+
 
 export const commentonPost = TryCatch(async (req, res) => {
     const post = await Post.findById(req.params.id);
@@ -203,3 +215,21 @@ export const editCaption = TryCatch(async (req, res) => {
         message: "post updated",
     });
 });
+
+
+export const getRandomPosts = async (req, res) => {
+  const posts = await Post.aggregate([
+    { $sample: { size: 12 } },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+      },
+    },
+    { $unwind: "$owner" },
+  ]);
+
+  res.json(posts);
+};

@@ -1,21 +1,21 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { LoadingAnimation } from "./Loading";
+import { Link } from "react-router-dom";
 
 const LikeModal = ({ isOpen, onClose, id }) => {
   if (!isOpen) return null;
-  const [value, setValue] = useState([]);
 
-  const [loading, setLoading] = true;
+  const [value, setValue] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   async function fetchLikes() {
     try {
       const { data } = await axios.get("/api/post/" + id);
-
       setValue(data);
-      setLoading(false);
     } catch (error) {
       console.log(error);
+    } finally {
       setLoading(false);
     }
   }
@@ -23,44 +23,56 @@ const LikeModal = ({ isOpen, onClose, id }) => {
   useEffect(() => {
     fetchLikes();
   }, [id]);
+
   return (
-    <>
-      {loading ? (
-        <LoadingAnimation />
-      ) : (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-          <div className="bg-white rounded-lg p-4 shadow-lg w-64">
-            <div className="flex justify-end">
-              <button onClick={onClose} className="text-gray-500 text-2xl">
-                &times;
-              </button>
-            </div>
-            <div className="flex flex-col space-y-2 mt-2">
-              {value && value.length > 0 ? (
-                value.map((e, i) => (
-                  <Link
-                    className="bg-gray-500 py-2 px-3 text-white text-center rounded-md flex justify-center items-center gap-4"
-                    to={`/user/${e._id}`}
-                    key={i}
-                    onClick={() => setShow(false)}
-                  >
-                    {i + 1}{" "}
-                    <img
-                      className="w-8 h-8 rounded-full"
-                      src={e.profilePic.url}
-                      alt=""
-                    />
-                    {e.name}
-                  </Link>
-                ))
-              ) : (
-                <p>No Likes yet</p>
-              )}
-            </div>
-          </div>
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="w-full max-w-sm bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-5">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-white font-medium">Liked by</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white text-xl"
+          >
+            &times;
+          </button>
         </div>
-      )}
-    </>
+
+        {/* Content */}
+        {loading ? (
+          <div className="flex justify-center py-6">
+            <LoadingAnimation />
+          </div>
+        ) : (
+          <div className="max-h-[300px] overflow-y-auto space-y-3">
+            {value && value.length > 0 ? (
+              value.map((e, i) => (
+                <Link
+                  key={i}
+                  to={`/user/${e._id}`}
+                  onClick={onClose}
+                  className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition"
+                >
+                  <img
+                    src={e.profilePic.url}
+                    alt=""
+                    className="w-9 h-9 rounded-full object-cover"
+                  />
+                  <span className="text-gray-200 text-sm font-medium">
+                    {e.name}
+                  </span>
+                </Link>
+              ))
+            ) : (
+              <p className="text-gray-400 text-sm text-center py-6">
+                No likes yet
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

@@ -1,15 +1,9 @@
-import dataUriParser from "datauri/parser.js"
-import path from 'path'
-
 const getDataUrl = (file) => {
-    const parser = new dataUriParser();
+  const base64 = file.buffer.toString("base64");
 
-
-    const extName = path.extname(file.originalname).toString()
-
-    return parser.format(extName,file.buffer);
-
-
-}
+  return {
+    content: `data:${file.mimetype};base64,${base64}`,
+  };
+};
 
 export default getDataUrl;

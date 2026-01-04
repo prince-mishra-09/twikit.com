@@ -11,7 +11,7 @@ const Search = () => {
     setLoading(true);
     try {
       const { data } = await axios.get("/api/user/all?search=" + search);
-
+      console.log(data);
       setUsers(data);
       setLoading(false);
     } catch (error) {
@@ -42,24 +42,24 @@ const Search = () => {
           <LoadingAnimation />
         ) : (
           <>
-            {users && users.length > 0 ? (
-              users.map((e) => (
-                <Link
-                  key={e._id}
-                  className="mt-3 px-3 py-2 bg-gray-300 rounded-md flex justify-center items-center gap-3"
-                  to={`/user/${e._id}`}
-                >
-                  <img
-                    src={e.profilePic.url}
-                    alt=""
-                    className="w-8 h-8 rounded-full"
-                  />{" "}
-                  {e.name}
-                </Link>
-              ))
-            ) : (
-              <p>No User please Search</p>
-            )}
+            {users.length > 0 ? (
+  users.map((u) => (
+    <Link
+      key={u._id}
+      to={`/user/${u._id}`}
+      className="mt-3 px-3 py-2 bg-gray-300 rounded-md flex items-center gap-3"
+    >
+      <img
+        src={u.profilePic?.url || "/default-avatar.png"}
+        className="w-8 h-8 rounded-full"
+      />
+      <span>{u.name}</span>
+    </Link>
+  ))
+) : (
+  <p>No user found</p>
+)}
+
           </>
         )}
       </div>
