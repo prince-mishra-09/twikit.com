@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { AiOutlineHome, AiFillHome, AiOutlinePlus } from "react-icons/ai";
 import { BsCameraReelsFill, BsCameraReels } from "react-icons/bs";
 import { IoSearchCircleOutline, IoSearchCircle } from "react-icons/io5";
@@ -7,24 +7,33 @@ import { RiAccountCircleFill, RiAccountCircleLine } from "react-icons/ri";
 import CreatePostModal from "./CreatePostModal";
 
 const NavigationBar = () => {
-  const [tab, setTab] = useState(window.location.pathname);
+  const location = useLocation();
+  const [tab, setTab] = useState(location.pathname);
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  useEffect(() => {
+    setTab(location.pathname);
+  }, [location.pathname]);
 
   const activeStyle = "text-indigo-400 scale-110";
   const inactiveStyle = "text-gray-400 hover:text-white transition";
+
+  // Hide Navbar on Reels and Chat pages
+  if (location.pathname === "/reels" || location.pathname === "/chat") {
+    return null;
+  }
 
   return (
     <>
       {showCreateModal && <CreatePostModal setShow={setShowCreateModal} />}
 
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-md">
-        {/* Glass Bar */}
-        <div className="flex justify-between items-center bg-[#111827]/80 backdrop-blur-xl border border-white/10 rounded-2xl py-3 px-6 shadow-2xl">
+      <div className="fixed bottom-0 left-0 w-full z-40 border-t border-white/10 bg-[#0B0F14]/90 backdrop-blur-xl">
+        {/* Full Width Bar */}
+        <div className="flex justify-between items-center py-3 px-6 max-w-xl mx-auto">
 
           {/* Home */}
           <Link
             to="/"
-            onClick={() => setTab("/")}
             className={`text-2xl transition-all duration-200 ${tab === "/" ? activeStyle : inactiveStyle
               }`}
           >
@@ -34,7 +43,6 @@ const NavigationBar = () => {
           {/* Search */}
           <Link
             to="/search"
-            onClick={() => setTab("/search")}
             className={`text-2xl transition-all duration-200 ${tab === "/search" ? activeStyle : inactiveStyle
               }`}
           >
@@ -52,7 +60,6 @@ const NavigationBar = () => {
           {/* Reels */}
           <Link
             to="/reels"
-            onClick={() => setTab("/reels")}
             className={`text-2xl transition-all duration-200 ${tab === "/reels" ? activeStyle : inactiveStyle
               }`}
           >
@@ -62,7 +69,6 @@ const NavigationBar = () => {
           {/* Account */}
           <Link
             to="/account"
-            onClick={() => setTab("/account")}
             className={`text-2xl transition-all duration-200 ${tab === "/account" ? activeStyle : inactiveStyle
               }`}
           >
