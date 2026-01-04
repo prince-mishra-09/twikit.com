@@ -49,13 +49,15 @@ const Home = () => {
             }`}
         >
           {/* Top Header */}
-          <div className="flex justify-between items-center py-4 px-1">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
+          <div className="flex justify-between items-center py-4 px-3">
+            <h1 className="text-xl font-bold bg-white/10 px-4 py-1.5 rounded-full backdrop-blur-md border border-white/5 shadow-lg shadow-indigo-500/10 text-white tracking-wide">
               Twikit
             </h1>
-            <Link to="/chat" className="text-2xl text-gray-300 hover:text-white transition relative">
-              <IoChatbubbleEllipsesOutline />
-              {/* Optional: Add red dot if unread messages exist (future task) */}
+            <Link
+              to="/chat"
+              className="relative bg-white/10 p-2.5 rounded-full backdrop-blur-md border border-white/5 hover:bg-white/20 transition-all duration-300 text-white shadow-lg shadow-indigo-500/10 group"
+            >
+              <IoChatbubbleEllipsesOutline className="text-xl group-hover:scale-110 transition-transform" />
             </Link>
           </div>
         </div>

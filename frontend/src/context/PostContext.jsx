@@ -122,6 +122,24 @@ export const PostContextProvider = ({ children }) => {
       );
     });
 
+    socket.on("postCommentUpdated", (data) => {
+      setPosts((prev) =>
+        prev.map((p) =>
+          p._id === data.postId
+            ? { ...p, comments: data.comments }
+            : p
+        )
+      );
+
+      setReels((prev) =>
+        prev.map((r) =>
+          r._id === data.postId
+            ? { ...r, comments: data.comments }
+            : r
+        )
+      );
+    });
+
     return () => socket.off("postLikeUpdated");
   }, [socket]);
 

@@ -5,8 +5,8 @@ import cloudinary from "cloudinary";
 import { io } from "../socket/socket.js";
 
 export const newPost = TryCatch(async (req, res) => {
-//     console.log("req.file:", req.file);
-// console.log("req.body:", req.body);
+    //     console.log("req.file:", req.file);
+    // console.log("req.body:", req.body);
 
     const { caption } = req.body;
     // console.log("main caption");
@@ -88,42 +88,42 @@ export const getAllPosts = TryCatch(async (req, res) => {
 });
 
 export const likeUnlikePost = TryCatch(async (req, res) => {
-  const post = await Post.findById(req.params.id);
+    const post = await Post.findById(req.params.id);
 
-  if (!post) {
-    return res.status(404).json({
-      message: "No Post with this id",
+    if (!post) {
+        return res.status(404).json({
+            message: "No Post with this id",
+        });
+    }
+
+    let action = "";
+
+    if (post.likes.includes(req.user._id)) {
+        // UNLIKE
+        post.likes = post.likes.filter(
+            (id) => id.toString() !== req.user._id.toString()
+        );
+        action = "unlike";
+    } else {
+        // LIKE
+        post.likes.push(req.user._id);
+        action = "like";
+    }
+
+    await post.save();
+
+    // 🔥 REAL-TIME EMIT
+    io.emit("postLikeUpdated", {
+        postId: post._id,
+        likes: post.likes,
+        likesCount: post.likes.length,
+        action,
+        userId: req.user._id,
     });
-  }
 
-  let action = "";
-
-  if (post.likes.includes(req.user._id)) {
-    // UNLIKE
-    post.likes = post.likes.filter(
-      (id) => id.toString() !== req.user._id.toString()
-    );
-    action = "unlike";
-  } else {
-    // LIKE
-    post.likes.push(req.user._id);
-    action = "like";
-  }
-
-  await post.save();
-
-  // 🔥 REAL-TIME EMIT
-  io.emit("postLikeUpdated", {
-    postId: post._id,
-    likes: post.likes,
-    likesCount: post.likes.length,
-    action,
-    userId: req.user._id,
-  });
-
-  res.json({
-    message: action === "like" ? "Post liked" : "Post unliked",
-  });
+    res.json({
+        message: action === "like" ? "Post liked" : "Post unliked",
+    });
 });
 
 
@@ -143,6 +143,12 @@ export const commentonPost = TryCatch(async (req, res) => {
 
     await post.save();
 
+    // Real-time emit
+    io.emit("postCommentUpdated", {
+        postId: post._id,
+        comments: post.comments,
+    });
+
     res.json({
         message: "Comment Added",
     });
@@ -155,12 +161,12 @@ export const deleteComment = TryCatch(async (req, res) => {
         return res.status(404).json({
             message: "No Post with this id",
         });
-// console.log(req.query.commentId);
+    // console.log(req.query.commentId);
 
     if (!req.query.commentId)
         return res.status(404).json({
-    // console.log();
-    
+            // console.log();
+
             message: "Please give comment id",
         });
 
@@ -218,18 +224,18 @@ export const editCaption = TryCatch(async (req, res) => {
 
 
 export const getRandomPosts = async (req, res) => {
-  const posts = await Post.aggregate([
-    { $sample: { size: 12 } },
-    {
-      $lookup: {
-        from: "users",
-        localField: "owner",
-        foreignField: "_id",
-        as: "owner",
-      },
-    },
-    { $unwind: "$owner" },
-  ]);
+    const posts = await Post.aggregate([
+        { $sample: { size: 12 } },
+        {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner",
+            },
+        },
+        { $unwind: "$owner" },
+    ]);
 
-  res.json(posts);
+    res.json(posts);
 };
