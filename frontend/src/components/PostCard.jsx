@@ -17,6 +17,13 @@ const PostCard = ({ type, value, isActive }) => {
   const [comment, setComment] = useState("");
   const [expanded, setExpanded] = useState(false);
   const captionLimit = 40; // Characters to show before truncating
+  const [isFollowed, setIsFollowed] = useState(false);
+
+  useEffect(() => {
+    if (user && value.owner) {
+      setIsFollowed(user.followings?.includes(value.owner._id));
+    }
+  }, [user, value.owner]);
 
 
 
