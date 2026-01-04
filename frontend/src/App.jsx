@@ -28,9 +28,9 @@ function App() {
           // I followed someone, update my following list
           setUser((prev) => ({
             ...prev,
-            following: prev.following.includes(data.followingId)
-              ? prev.following.filter(id => id !== data.followingId)
-              : [...prev.following, data.followingId]
+            followings: prev.followings?.includes(data.followingId)
+              ? prev.followings.filter(id => id !== data.followingId)
+              : [...(prev.followings || []), data.followingId]
           }));
         }
       });

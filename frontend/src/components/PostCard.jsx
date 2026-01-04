@@ -39,7 +39,7 @@ const PostCard = ({ type, value, isActive }) => {
 
   useEffect(() => {
     if (user && value.owner) {
-      setIsFollowed(user.following?.includes(value.owner._id));
+      setIsFollowed(user.followings?.includes(value.owner._id));
     }
   }, [user, value.owner]);
 
@@ -255,8 +255,8 @@ const PostCard = ({ type, value, isActive }) => {
             <button
               onClick={followHandler}
               className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-all duration-300 ${isFollowed
-                  ? "bg-gray-700/50 text-white border border-gray-600 hover:bg-gray-700"
-                  : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-500/20"
+                ? "bg-gray-700/50 text-white border border-gray-600 hover:bg-gray-700"
+                : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-500/20"
                 }`}
             >
               {isFollowed ? "Following" : "Follow"}

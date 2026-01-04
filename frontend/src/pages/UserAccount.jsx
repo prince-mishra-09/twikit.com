@@ -48,12 +48,31 @@ const UserAccount = ({ user: loggedInUser }) => {
   useEffect(() => {
     if (user?.followers?.includes(loggedInUser._id)) {
       setFollowed(true);
+    } else {
+      setFollowed(false);
     }
   }, [user, loggedInUser._id]);
 
+  // Real-time update for profile stats
+  const { socket } = SocketData();
+  useEffect(() => {
+    if (socket && user) {
+      const handleFollow = (data) => {
+        if (data.followingId === user._id) {
+          // This user was followed/unfollowed
+          // We need to update the followers list locally or refetch
+          // Simple approach: Refetch to get fresh data
+          fetchUser();
+        }
+      };
+      socket.on("userFollowed", handleFollow);
+      return () => socket.off("userFollowed", handleFollow);
+    }
+  }, [socket, user, params.id]); // trigger on user change or socket
+
   const followHandler = () => {
     setFollowed(!followed);
-    followUser(user._id, fetchUser);
+    followUser(user._id);
   };
 
   const [show, setShow] = useState(false);
@@ -88,65 +107,64 @@ const UserAccount = ({ user: loggedInUser }) => {
       )}
 
       {/* PROFILE CARD */}
-<div className="w-full max-w-md bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6 mt-4">
+      <div className="w-full max-w-md bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6 mt-4">
 
-  {/* NAME + GENDER (TOP LEFT, LIKE INSTAGRAM) */}
-  <p className="text-white font-semibold text-lg flex items-center gap-2 mb-3">
-    {user.name}
-    <span className="text-gray-400 text-sm font-normal">
-      • {user.gender}
-    </span>
-    {onlineUsers.includes(user._id) && (
-      <span className="text-green-400 text-xs">●</span>
-    )}
-  </p>
-
-  {/* IMAGE + STATS */}
-  <div className="flex items-center gap-6">
-
-    {/* PROFILE IMAGE */}
-    <img
-      src={user.profilePic.url}
-      alt="profile"
-      className="w-24 h-24 rounded-full object-cover border border-white/20"
-    />
-
-    {/* STATS */}
-    <div className="flex flex-1 justify-around text-center">
-      <div
-        className="cursor-pointer"
-        onClick={() => setShow(true)}
-      >
-        <p className="text-white font-semibold">
-          {user.followers.length}
+        {/* NAME + GENDER (TOP LEFT, LIKE INSTAGRAM) */}
+        <p className="text-white font-semibold text-lg flex items-center gap-2 mb-3">
+          {user.name}
+          <span className="text-gray-400 text-sm font-normal">
+            • {user.gender}
+          </span>
+          {onlineUsers.includes(user._id) && (
+            <span className="text-green-400 text-xs">●</span>
+          )}
         </p>
-        <p className="text-gray-400 text-xs">followers</p>
-      </div>
 
-      <div
-        className="cursor-pointer"
-        onClick={() => setShow1(true)}
-      >
-        <p className="text-white font-semibold">
-          {user.followings.length}
-        </p>
-        <p className="text-gray-400 text-xs">following</p>
-      </div>
-    </div>
-  </div>
+        {/* IMAGE + STATS */}
+        <div className="flex items-center gap-6">
 
-  {/* FOLLOW BUTTON */}
-  {user._id !== loggedInUser._id && (
-    <button
-      onClick={followHandler}
-      className={`mt-4 w-full py-2 rounded-lg text-white ${
-        followed ? "bg-red-500" : "bg-indigo-500"
-      }`}
-    >
-      {followed ? "Unfollow" : "Follow"}
-    </button>
-  )}
-</div>
+          {/* PROFILE IMAGE */}
+          <img
+            src={user.profilePic.url}
+            alt="profile"
+            className="w-24 h-24 rounded-full object-cover border border-white/20"
+          />
+
+          {/* STATS */}
+          <div className="flex flex-1 justify-around text-center">
+            <div
+              className="cursor-pointer"
+              onClick={() => setShow(true)}
+            >
+              <p className="text-white font-semibold">
+                {user.followers.length}
+              </p>
+              <p className="text-gray-400 text-xs">followers</p>
+            </div>
+
+            <div
+              className="cursor-pointer"
+              onClick={() => setShow1(true)}
+            >
+              <p className="text-white font-semibold">
+                {user.followings.length}
+              </p>
+              <p className="text-gray-400 text-xs">following</p>
+            </div>
+          </div>
+        </div>
+
+        {/* FOLLOW BUTTON */}
+        {user._id !== loggedInUser._id && (
+          <button
+            onClick={followHandler}
+            className={`mt-4 w-full py-2 rounded-lg text-white ${followed ? "bg-red-500" : "bg-indigo-500"
+              }`}
+          >
+            {followed ? "Unfollow" : "Follow"}
+          </button>
+        )}
+      </div>
 
 
       {/* TOGGLE */}
