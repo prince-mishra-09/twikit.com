@@ -7,8 +7,8 @@ const generateToken = (id, res) => {
 
   res.cookie("token", token, {
     httpOnly: true,
-    sameSite: "lax",   // ✅ VERY IMPORTANT
-    secure: false,     // ✅ localhost ke liye FALSE
+    sameSite: "none",   // ✅ VERY IMPORTANT
+    secure: true,     // ✅ localhost ke liye FALSE
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 };
