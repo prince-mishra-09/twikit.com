@@ -23,6 +23,7 @@ io.on("connection", (socket) => {
 
   if (userId) {
     userSocketMap[userId] = socket.id;
+    socket.join(userId);
   }
 
   io.emit("getOnlineUser", Object.keys(userSocketMap));

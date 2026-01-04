@@ -132,6 +132,8 @@ export const likeUnlikePost = TryCatch(async (req, res) => {
         });
 
         // Real-time Emit
+        await notification.populate("sender", "name profilePic");
+        await notification.populate("postId", "post");
         io.to(post.owner.toString()).emit("notification:new", notification);
     }
 
@@ -172,6 +174,8 @@ export const commentonPost = TryCatch(async (req, res) => {
             postId: post._id,
         });
 
+        await notification.populate("sender", "name profilePic");
+        await notification.populate("postId", "post");
         io.to(post.owner.toString()).emit("notification:new", notification);
     }
 

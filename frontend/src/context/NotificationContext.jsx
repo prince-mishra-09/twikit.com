@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toast } from "react-hot-toast";
 import { createContext, useContext, useEffect, useState } from "react";
 import { SocketData } from "./SocketContext";
 import { UserData } from "./UserContext";
@@ -45,6 +46,7 @@ export const NotificationProvider = ({ children }) => {
             socket.on("notification:new", (newNotification) => {
                 setNotifications((prev) => [newNotification, ...prev]);
                 setUnreadCount((prev) => prev + 1);
+                toast.success(`${newNotification.sender?.name || "Someone"} ${newNotification.type === "like" ? "liked" : "commented on"} your post`);
             });
 
             return () => {
