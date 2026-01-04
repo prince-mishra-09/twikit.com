@@ -27,19 +27,31 @@ const PostCard = ({ type, value }) => {
   const [progress, setProgress] = useState(0);
   const [showHeart, setShowHeart] = useState(false);
 
-  const formatDate = format(new Date(value.createdAt), "MMMM do");
+  if (!value) return null;
+
+  const formatDate = value.createdAt ? format(new Date(value.createdAt), "MMMM do") : "Unknown Date";
 
   useEffect(() => {
-    value.likes.forEach((id) => {
-      if (id === user._id) setIsLike(true);
-    });
+    if (value.likes) {
+      value.likes.forEach((id) => {
+        if (id === user._id) setIsLike(true);
+      });
+    }
   }, [value, user._id]);
 
   /* ===== AUTOPLAY REEL ===== */
   useEffect(() => {
     if (type === "reel" && videoRef.current) {
-      videoRef.current.play();
-      setIsPlaying(true);
+      const playVideo = async () => {
+        try {
+          await videoRef.current.play();
+          setIsPlaying(true);
+        } catch (err) {
+          console.log("Autoplay blocked:", err);
+          setIsPlaying(false);
+        }
+      };
+      playVideo();
     }
   }, [value, type]);
 
@@ -74,7 +86,7 @@ const PostCard = ({ type, value }) => {
             className="flex items-center gap-2"
           >
             <img
-              src={value.owner.profilePic.url}
+              src={value.owner?.profilePic?.url}
               className="w-9 h-9 rounded-full"
               alt=""
             />

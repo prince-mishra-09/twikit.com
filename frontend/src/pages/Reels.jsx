@@ -1,5 +1,4 @@
 import React, { useRef, useState } from "react";
-import AddPost from "../components/AddPost";
 import { PostData } from "../context/PostContext";
 import PostCard from "../components/PostCard";
 import { FaArrowUp, FaArrowDownLong } from "react-icons/fa6";
@@ -42,7 +41,6 @@ const Reels = () => {
 
   return (
     <div className="min-h-screen bg-[#0B0F14] flex flex-col items-center pb-24">
-      <AddPost type="reel" />
 
       <div
         className="relative w-full max-w-md mt-6 flex justify-center"

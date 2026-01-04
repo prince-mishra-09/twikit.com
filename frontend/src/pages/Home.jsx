@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import AddPost from "../components/AddPost";
 import PostCard from "../components/PostCard";
 import { PostData } from "../context/PostContext";
@@ -38,16 +40,24 @@ const Home = () => {
     <div className="min-h-screen bg-[#0B0F14] flex justify-center">
       {/* Feed container */}
       <div className="w-full max-w-xl px-3 pb-10">
-        
-        {/* Composer */}
+
+        {/* Header + Composer */}
         <div
-          className={`sticky top-3 z-20 transition-all duration-300 ${
-            showComposer
-              ? "translate-y-0 opacity-100"
-              : "-translate-y-32 opacity-0"
-          }`}
+          className={`sticky top-0 z-20 transition-all duration-300 bg-[#0B0F14]/90 backdrop-blur-md pb-2 ${showComposer
+            ? "translate-y-0 opacity-100"
+            : "-translate-y-40 opacity-0 pointer-events-none"
+            }`}
         >
-          <AddPost type="post" />
+          {/* Top Header */}
+          <div className="flex justify-between items-center py-4 px-1">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
+              Twikit
+            </h1>
+            <Link to="/chat" className="text-2xl text-gray-300 hover:text-white transition relative">
+              <IoChatbubbleEllipsesOutline />
+              {/* Optional: Add red dot if unread messages exist (future task) */}
+            </Link>
+          </div>
         </div>
 
         {/* Posts */}
