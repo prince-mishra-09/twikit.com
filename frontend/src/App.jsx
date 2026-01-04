@@ -14,30 +14,49 @@ import Search from "./pages/Search";
 import ChatPage from "./pages/ChatPage";
 import TwikitLanding from "./pages/TwikitLanding";
 import PostDetail from "./pages/PostDetail";
+import { SocketData } from "./context/SocketContext";
+import { useEffect } from "react";
+
 function App() {
-  const {loading,isAuth,user} = UserData();
-  // 
-  // console.log(onlineUsers);
-  
+  const { loading, isAuth, user, setUser } = UserData();
+  const { socket } = SocketData();
+
+  useEffect(() => {
+    if (socket && user) {
+      socket.on("userFollowed", (data) => {
+        if (data.followerId === user._id) {
+          // I followed someone, update my following list
+          setUser((prev) => ({
+            ...prev,
+            following: prev.following.includes(data.followingId)
+              ? prev.following.filter(id => id !== data.followingId)
+              : [...prev.following, data.followingId]
+          }));
+        }
+      });
+      return () => socket.off("userFollowed");
+    }
+  }, [socket, user, setUser]);
+
   return (
     <>
       <Toaster position="top-center" />
-      {loading?<Loading/>:<BrowserRouter>
+      {loading ? <Loading /> : <BrowserRouter>
         <Routes>
-          <Route path="/landing" element={<TwikitLanding/>} />
-          <Route path="/" element={isAuth?<Home />:<Login/>} />
-          <Route path="/reels" element={isAuth?<Reels />:<Login/>} />
-          <Route path="/user/:id" element={isAuth?<UserAccount user={user} />:<Login/>} />
-          <Route path="/account" element={isAuth?<Account user={user} />:<Login/>} />
-          <Route path="/register" element={!isAuth?<Register />:<Home/>} />
-          <Route path="/search" element={isAuth?<Search />:<Login/>} />
-          <Route path="/chat" element={isAuth?<ChatPage user={user} />:<Login/>} />
-          <Route path="/login" element={!isAuth?<Login/>:<Home/>} />
-          <Route path="*" element={<NotFound/>} />
+          <Route path="/landing" element={<TwikitLanding />} />
+          <Route path="/" element={isAuth ? <Home /> : <Login />} />
+          <Route path="/reels" element={isAuth ? <Reels /> : <Login />} />
+          <Route path="/user/:id" element={isAuth ? <UserAccount user={user} /> : <Login />} />
+          <Route path="/account" element={isAuth ? <Account user={user} /> : <Login />} />
+          <Route path="/register" element={!isAuth ? <Register /> : <Home />} />
+          <Route path="/search" element={isAuth ? <Search /> : <Login />} />
+          <Route path="/chat" element={isAuth ? <ChatPage user={user} /> : <Login />} />
+          <Route path="/login" element={!isAuth ? <Login /> : <Home />} />
+          <Route path="*" element={<NotFound />} />
           <Route path="/post/:id" element={<PostDetail />} />
 
         </Routes>
-        {isAuth && <NavigationBar/>}
+        {isAuth && <NavigationBar />}
       </BrowserRouter>}
     </>
   );

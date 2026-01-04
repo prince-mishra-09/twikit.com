@@ -5,10 +5,10 @@ import getDataUrl from "../utils/urlGenerator.js";
 import cloudinary from "cloudinary";
 
 export const myProfile = tryCatch(async (req, res) => {
-    const user = await User.findById(req.user._id).select("-password")
-    // console.log(req.user);
+  const user = await User.findById(req.user._id).select("-password")
+  // console.log(req.user);
 
-    res.json(user)
+  res.json(user)
 })
 
 export const userProfile = async (req, res) => {
@@ -26,8 +26,10 @@ export const userProfile = async (req, res) => {
 
 
 
+import { io } from "../socket/socket.js";
+
 export const followAndUnfollowUser = tryCatch(async (req, res) => {
-    const user = await User.findById(req.params.id);
+  const user = await User.findById(req.params.id);
   const loggedInUser = await User.findById(req.user._id);
 
   if (!user)
@@ -64,6 +66,12 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
       message: "User Followed",
     });
   }
+
+  // Real-time update
+  io.emit("userFollowed", {
+    followerId: loggedInUser._id,
+    followingId: user._id,
+  });
 })
 
 

@@ -167,8 +167,8 @@ const PostCard = ({ type, value, isActive }) => {
               <button
                 onClick={followHandler}
                 className={`text-xs px-3 py-1 rounded-lg backdrop-blur-md transition border ${isFollowed
-                    ? "bg-white/10 border-white/30 text-white"
-                    : "bg-indigo-600/80 border-indigo-500/50 text-white hover:bg-indigo-500"
+                  ? "bg-white/10 border-white/30 text-white"
+                  : "bg-indigo-600/80 border-indigo-500/50 text-white hover:bg-indigo-500"
                   }`}
               >
                 {isFollowed ? "Following" : "Follow"}
@@ -244,12 +244,22 @@ const PostCard = ({ type, value, isActive }) => {
             )}
           </Link>
 
-          {value.owner._id === user._id && (
+          {value.owner._id === user._id ? (
             <button
               onClick={deleteHandler}
               className="text-red-400 text-lg"
             >
               <MdDelete />
+            </button>
+          ) : (
+            <button
+              onClick={followHandler}
+              className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-all duration-300 ${isFollowed
+                  ? "bg-gray-700/50 text-white border border-gray-600 hover:bg-gray-700"
+                  : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-500/20"
+                }`}
+            >
+              {isFollowed ? "Following" : "Follow"}
             </button>
           )}
         </div>
