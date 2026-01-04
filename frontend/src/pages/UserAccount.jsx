@@ -56,19 +56,25 @@ const UserAccount = ({ user: loggedInUser }) => {
   // Real-time update for profile stats
   const { socket } = SocketData();
   useEffect(() => {
-    if (socket && user) {
+    if (socket && user && user._id) {
       const handleFollow = (data) => {
         if (data.followingId === user._id) {
-          // This user was followed/unfollowed
-          // We need to update the followers list locally or refetch
-          // Simple approach: Refetch to get fresh data
-          fetchUser();
+          // Optimistically update the followers list to reflect change instantly
+          setUser((prev) => {
+            const isFollower = prev.followers.includes(data.followerId);
+            return {
+              ...prev,
+              followers: isFollower
+                ? prev.followers.filter(id => id !== data.followerId)
+                : [...prev.followers, data.followerId]
+            };
+          });
         }
       };
       socket.on("userFollowed", handleFollow);
       return () => socket.off("userFollowed", handleFollow);
     }
-  }, [socket, user, params.id]); // trigger on user change or socket
+  }, [socket, user?._id]); // improved dependency to user._id
 
   const followHandler = () => {
     setFollowed(!followed);

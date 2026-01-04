@@ -45,7 +45,7 @@ const Reels = () => {
           <div
             key={reel._id}
             id={reel._id}
-            className="reel-container h-[100dvh] w-full snap-start flex justify-center items-center relative"
+            className="reel-container h-[100dvh] w-full snap-start snap-always flex justify-center items-center relative"
           >
             <div className="w-full h-full md:max-w-md relative flex items-center bg-black">
               <PostCard value={reel} type="reel" isActive={currentReelId === reel._id} />
