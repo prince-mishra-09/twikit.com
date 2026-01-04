@@ -120,9 +120,8 @@ const MessageContainer = ({ selectedChat, setChats }) => {
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-[100dvh] md:h-full bg-[#0B0F14]">
+    <div className="flex flex-col h-full bg-[#0B0F14]">
 
-      {/* HEADER */}
       {/* HEADER */}
       <div className="flex-none flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-[#111827]/80 backdrop-blur-md sticky top-0 z-10">
         <img
@@ -138,7 +137,8 @@ const MessageContainer = ({ selectedChat, setChats }) => {
             {isOnline ? (
               <span className="text-green-400 font-medium">Active now</span>
             ) : (
-              <>Last seen {formatLastSeen(otherUser.lastSeen)}</>
+              // Check if lastSeen is valid
+              otherUser.lastSeen ? `Last seen ${formatLastSeen(otherUser.lastSeen)}` : "Offline"
             )}
           </p>
         </div>

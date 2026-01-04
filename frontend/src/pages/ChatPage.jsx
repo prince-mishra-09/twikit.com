@@ -90,8 +90,8 @@ const ChatPage = ({ user }) => {
   /* ================= UI ================= */
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] flex justify-center px-2 py-4">
-      <div className="w-full max-w-6xl h-[85vh] bg-[#111827]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl flex overflow-hidden">
+    <div className="h-[100dvh] bg-[#0B0F14] flex justify-center md:px-2 md:py-4">
+      <div className="w-full max-w-6xl h-full md:h-[85vh] bg-[#111827]/80 backdrop-blur-xl border border-white/10 md:rounded-2xl shadow-xl flex overflow-hidden">
 
         {/* ================= LEFT SIDEBAR ================= */}
         <div
