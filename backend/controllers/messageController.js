@@ -95,7 +95,7 @@ export const getAllChats = TryCatch(async (req, res) => {
   const chats = await Chat.find({
     users: { $in: [userId] },
   })
-    .populate("users", "name profilePic")
+    .populate("users", "name profilePic lastSeen")
     .sort({ updatedAt: -1 });
 
   // Add unread count for each chat

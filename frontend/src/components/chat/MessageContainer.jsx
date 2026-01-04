@@ -19,15 +19,16 @@ const MessageContainer = ({ selectedChat, setChats }) => {
   const prevIsOnline = useRef(isOnline);
 
   const formatLastSeen = (dateString) => {
-    if (!dateString) return "";
+    if (!dateString) return "Offline";
     const date = new Date(dateString);
     const now = new Date();
     const diff = Math.floor((now - date) / 60000); // minutes
 
-    if (diff < 1) return "Just now";
-    if (diff < 60) return `${diff}m ago`;
-    if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
-    return date.toLocaleDateString();
+    if (diff >= 1440) return "Offline";
+
+    if (diff < 1) return "Last seen Just now";
+    if (diff < 60) return `Last seen ${diff}m ago`;
+    return `Last seen ${Math.floor(diff / 60)}h ago`;
   };
 
   useEffect(() => {
@@ -137,8 +138,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
             {isOnline ? (
               <span className="text-green-400 font-medium">Active now</span>
             ) : (
-              // Check if lastSeen is valid
-              otherUser.lastSeen ? `Last seen ${formatLastSeen(otherUser.lastSeen)}` : "Offline"
+              formatLastSeen(otherUser.lastSeen)
             )}
           </p>
         </div>
