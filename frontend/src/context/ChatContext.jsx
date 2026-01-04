@@ -16,7 +16,8 @@ export const ChatContextProvider = ({ children }) => {
 
   // Accumulate total unread count from all chats
   useEffect(() => {
-    const total = chats.reduce((acc, chat) => acc + (chat.unreadCount || 0), 0);
+    // Count number of CHATS with unread messages, not total unread messages
+    const total = chats.filter((chat) => chat.unreadCount > 0).length;
     setTotalUnreadMessages(total);
   }, [chats]);
 
