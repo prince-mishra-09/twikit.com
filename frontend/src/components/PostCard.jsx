@@ -29,7 +29,7 @@ const PostCard = ({ type, value, isActive }) => {
 
   useEffect(() => {
     if (value.likes) {
-      if (value.likes.includes(user._id)) {
+      if (value.likes?.includes(user._id)) {
         setIsLike(true);
       } else {
         setIsLike(false);
@@ -239,7 +239,7 @@ const PostCard = ({ type, value, isActive }) => {
               </p>
               <p className="text-gray-400 text-xs">{formatDate}</p>
             </div>
-            {onlineUsers.includes(value.owner._id) && (
+            {onlineUsers?.includes(value.owner._id) && (
               <span className="ml-1 w-2 h-2 bg-green-400 rounded-full" />
             )}
           </Link>

@@ -80,7 +80,7 @@ export const UserContextProvider = ({ children }) => {
     try {
       const { data } = await axios.post("/api/user/follow/" + id);
       toast.success(data.message);
-      fetchUser();
+      // Socket handles update, no need to refetch
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
