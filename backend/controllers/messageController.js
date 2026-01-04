@@ -51,15 +51,14 @@ export const sendMessage = TryCatch(async (req, res) => {
     io.to(reciverSocketId).emit("newMessage", newMessage);
   }
 
-  // NOTIFICATION LOGIC
-  const notification = await Notification.create({
-    receiver: recieverId,
-    sender: senderId,
-    type: "message",
-    messageId: newMessage._id,
-  });
-
-  io.to(recieverId.toString()).emit("notification:new", notification);
+  /* REMOVED NOTIFICATION LOGIC - Chat has its own flow */
+  // const notification = await Notification.create({
+  //   receiver: recieverId,
+  //   sender: senderId,
+  //   type: "message",
+  //   messageId: newMessage._id,
+  // });
+  // io.to(recieverId.toString()).emit("notification:new", notification);
 
   res.status(201).json(newMessage);
 });
@@ -87,18 +86,61 @@ export const getAllMessages = TryCatch(async (req, res) => {
 export const getAllChats = TryCatch(async (req, res) => {
   const userId = req.user._id;
 
+  /* MODIFIED: Include Unread Counts */
   const chats = await Chat.find({
     users: { $in: [userId] },
   })
     .populate("users", "name profilePic")
     .sort({ updatedAt: -1 });
 
-  // remove logged-in user from users array
-  chats.forEach(chat => {
-    chat.users = chat.users.filter(
-      u => u._id.toString() !== userId.toString()
-    );
-  });
+  // Add unread count for each chat
+  const chatsWithCount = await Promise.all(
+    chats.map(async (chat) => {
+      const unreadCount = await Messages.countDocuments({
+        chatId: chat._id,
+        sender: { $ne: userId },
+        isRead: false,
+      });
 
-  res.json(chats);
+      const otherUser = chat.users.find(
+        (u) => u._id.toString() !== userId.toString()
+      );
+
+      return {
+        ...chat.toObject(),
+        users: [otherUser], // Return only the other user
+        unreadCount,
+      };
+    })
+  );
+
+  res.json(chatsWithCount);
+});
+
+
+export const markMessageAsRead = TryCatch(async (req, res) => {
+  const { chatId } = req.params;
+  const userId = req.user._id;
+
+  // Update all messages in this chat sent by OTHER user to isRead: true
+  await Messages.updateMany(
+    { chatId, sender: { $ne: userId }, isRead: false },
+    { $set: { isRead: true } }
+  );
+
+  // Notify the sender that their messages were read
+  // We need to find the other user in the chat to know who to notify?
+  // Actually, we can just find the chat to get the users.
+  const chat = await Chat.findById(chatId);
+  if (chat) {
+    const otherUser = chat.users.find(id => id.toString() !== userId.toString());
+    if (otherUser) {
+      const otherUserSocketId = getReceiverSocketId(otherUser);
+      if (otherUserSocketId) {
+        io.to(otherUserSocketId).emit("messagesRead", { chatId, readerId: userId });
+      }
+    }
+  }
+
+  res.json({ message: "Messages marked as read" });
 });

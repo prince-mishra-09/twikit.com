@@ -7,7 +7,8 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "https://twiikit-com.vercel.app",
+    origin: ["https://twiikit-com.vercel.app", "http://localhost:5173", "*"],
+    methods: ["GET", "POST"],
     credentials: true,
   },
 });

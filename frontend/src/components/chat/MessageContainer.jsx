@@ -22,19 +22,37 @@ const MessageContainer = ({ selectedChat, setChats }) => {
         prev.map((chat) =>
           chat._id === message.chatId
             ? {
-                ...chat,
-                latestMessage: {
-                  text: message.text,
-                  sender: message.sender,
-                },
-              }
+              ...chat,
+              latestMessage: {
+                text: message.text,
+                sender: message.sender,
+              },
+            }
             : chat
         )
       );
     });
 
-    return () => socket.off("newMessage");
-  }, [socket, selectedChat, setChats]);
+    socket.on("messagesRead", ({ chatId }) => {
+      if (selectedChat._id === chatId) {
+        setMessages((prev) =>
+          prev.map((msg) => {
+            // If the other person read the chat, all my messages are now read.
+            // Actually, technically only messages they saw. But for now, assume all.
+            if (msg.sender === user._id) {
+              return { ...msg, isRead: true };
+            }
+            return msg;
+          })
+        );
+      }
+    });
+
+    return () => {
+      socket.off("newMessage");
+      socket.off("messagesRead");
+    };
+  }, [socket, selectedChat, setChats, user._id]);
 
   async function fetchMessages() {
     setLoading(true);
@@ -98,6 +116,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
                   key={i}
                   message={e.text}
                   ownMessage={e.sender === user._id}
+                  isRead={e.isRead}
                 />
               ))}
           </div>

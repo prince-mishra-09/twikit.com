@@ -24,7 +24,7 @@ cloudinary.v2.config({
 // middlewares
 app.use(
   cors({
-    origin: "https://twiikit-com.vercel.app",
+    origin: ["https://twiikit-com.vercel.app", "http://localhost:5173"],
     credentials: true,
   })
 );

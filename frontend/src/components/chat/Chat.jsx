@@ -2,7 +2,7 @@ import React from "react";
 import { UserData } from "../../context/UserContext";
 import { BsSendCheck } from "react-icons/bs";
 
-const Chat = ({ chat, setSelectedChat, isOnline }) => {
+const Chat = ({ chat, setSelectedChat, isOnline, unreadCount }) => {
   const { user: loggedInUser } = UserData();
   let user;
   if (chat) user = chat.users[0];
@@ -46,6 +46,14 @@ const Chat = ({ chat, setSelectedChat, isOnline }) => {
               </span>
             </div>
           </div>
+
+          {(unreadCount > 0) && (
+            <div className="flex flex-col items-end gap-1">
+              <span className="bg-indigo-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                {unreadCount}
+              </span>
+            </div>
+          )}
         </div>
       )}
     </>

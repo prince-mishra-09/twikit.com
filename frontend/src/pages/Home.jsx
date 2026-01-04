@@ -5,11 +5,13 @@ import AddPost from "../components/AddPost";
 import PostCard from "../components/PostCard";
 import { PostData } from "../context/PostContext";
 import { NotificationData } from "../context/NotificationContext";
+import { ChatData } from "../context/ChatContext";
 import { Loading } from "../components/Loading";
 
 const Home = () => {
   const { posts, loading } = PostData();
   const { unreadCount } = NotificationData();
+  const { totalUnreadMessages } = ChatData();
 
   const [showComposer, setShowComposer] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -72,6 +74,11 @@ const Home = () => {
                 className="relative bg-white/10 p-2.5 rounded-full backdrop-blur-md border border-white/5 hover:bg-white/20 transition-all duration-300 text-white shadow-lg shadow-indigo-500/10 group"
               >
                 <IoChatbubbleEllipsesOutline className="text-xl group-hover:scale-110 transition-transform" />
+                {totalUnreadMessages > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-indigo-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[#0B0F14]">
+                    {totalUnreadMessages > 9 ? "9+" : totalUnreadMessages}
+                  </span>
+                )}
               </Link>
             </div>
           </div>

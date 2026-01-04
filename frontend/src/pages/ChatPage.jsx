@@ -16,24 +16,45 @@ const ChatPage = ({ user }) => {
 
   const { onlineUsers } = SocketData();
 
+  useEffect(() => {
+    if (selectedChat) {
+      const markRead = async () => {
+        try {
+          await axios.put(`/api/messages/read/${selectedChat._id}`);
+
+          setChats(prev => prev.map(c => {
+            if (c._id === selectedChat._id) {
+              return { ...c, unreadCount: 0 };
+            }
+            return c;
+          }));
+        } catch (error) {
+          console.log(error);
+        }
+      };
+
+      markRead();
+    }
+  }, [selectedChat]);
+
   /* ================= FETCH ================= */
 
   async function fetchAllUsers() {
-  if (!query || query.trim() === "") {
-    setUsers([]);
-    return;
-  }
+    if (!query || query.trim() === "") {
+      setUsers([]);
+      return;
+    }
 
-  try {
-   
-    const { data } = await axios.get(
-      "/api/user/all?search=" + query.trim()
-    );
-    setUsers(data);
-  } catch (error) {
-    console.log(error);
+    try {
+
+      const { data } = await axios.get(
+        "/api/user/all?search=" + query.trim()
+      );
+      setUsers(data);
+    } catch (error) {
+      console.log(error);
+    }
   }
-}
 
 
   async function getAllChats() {
@@ -46,12 +67,12 @@ const ChatPage = ({ user }) => {
   }
 
   useEffect(() => {
-  if (query.trim()) {
-    fetchAllUsers();
-  } else {
-    setUsers([]);
-  }
-}, [query]);
+    if (query.trim()) {
+      fetchAllUsers();
+    } else {
+      setUsers([]);
+    }
+  }, [query]);
 
 
 
@@ -74,9 +95,8 @@ const ChatPage = ({ user }) => {
 
         {/* ================= LEFT SIDEBAR ================= */}
         <div
-          className={`${
-            selectedChat ? "hidden md:flex" : "flex"
-          } w-full md:w-[30%] border-r border-white/10 flex-col`}
+          className={`${selectedChat ? "hidden md:flex" : "flex"
+            } w-full md:w-[30%] border-r border-white/10 flex-col`}
         >
           {/* Header */}
           <div className="flex items-center justify-between p-4">
@@ -130,6 +150,7 @@ const ChatPage = ({ user }) => {
                   chat={c}
                   setSelectedChat={setSelectedChat}
                   isOnline={onlineUsers.includes(c.users[0]._id)}
+                  unreadCount={c.unreadCount}
                 />
               ))
             ) : (
@@ -142,9 +163,8 @@ const ChatPage = ({ user }) => {
 
         {/* ================= RIGHT PANEL ================= */}
         <div
-          className={`${
-            selectedChat ? "flex" : "hidden md:flex"
-          } flex-1 flex flex-col`}
+          className={`${selectedChat ? "flex" : "hidden md:flex"
+            } flex-1 flex flex-col`}
         >
           {/* Mobile back button */}
           {selectedChat && (
