@@ -76,7 +76,7 @@ export const UserContextProvider = ({ children }) => {
     }
   }
 
-  async function followUser(id, fetchUser) {
+  async function followUser(id) {
     try {
       const { data } = await axios.post("/api/user/follow/" + id);
       toast.success(data.message);

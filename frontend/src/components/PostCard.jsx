@@ -9,12 +9,13 @@ import { MdDelete } from "react-icons/md";
 import { SocketData } from "../context/SocketContext";
 
 const PostCard = ({ type, value, isActive }) => {
-  const { user } = UserData();
+  const { user, followUser } = UserData();
   const { likePost, addComment, deletePost } = PostData();
 
   const [isLike, setIsLike] = useState(false);
   const [show, setShow] = useState(false);
   const [comment, setComment] = useState("");
+  const [isFollowed, setIsFollowed] = useState(false);
 
   /* ===== REEL STATES ===== */
   const videoRef = useRef(null);
@@ -35,6 +36,12 @@ const PostCard = ({ type, value, isActive }) => {
       }
     }
   }, [value, user._id]);
+
+  useEffect(() => {
+    if (user && value.owner) {
+      setIsFollowed(user.following?.includes(value.owner._id));
+    }
+  }, [user, value.owner]);
 
   /* ===== AUTOPLAY REEL ===== */
   useEffect(() => {
@@ -69,6 +76,11 @@ const PostCard = ({ type, value, isActive }) => {
 
   const deleteHandler = () => deletePost(value._id);
 
+  const followHandler = async () => {
+    setIsFollowed(!isFollowed); // Optimistic update
+    await followUser(value.owner._id);
+  };
+
   const { onlineUsers } = SocketData();
 
   // ===================== REEL RENDER =====================
@@ -97,6 +109,7 @@ const PostCard = ({ type, value, isActive }) => {
             className="w-full h-full object-cover"
             loop
             playsInline
+            muted={false}
             onTimeUpdate={() => {
               if (videoRef.current) {
                 const current = videoRef.current.currentTime;
@@ -148,7 +161,19 @@ const PostCard = ({ type, value, isActive }) => {
               <img src={value.owner?.profilePic?.url} className="w-9 h-9 rounded-full border border-white/20" alt="" />
               <span className="font-semibold text-sm shadow-black drop-shadow-md">{value.owner.name}</span>
             </Link>
-            <button className="text-xs border border-white/30 px-3 py-1 rounded-lg backdrop-blur-md hover:bg-white/10 transition">Follow</button>
+
+            {/* FOLLOW BUTTON */}
+            {user._id !== value.owner._id && (
+              <button
+                onClick={followHandler}
+                className={`text-xs px-3 py-1 rounded-lg backdrop-blur-md transition border ${isFollowed
+                    ? "bg-white/10 border-white/30 text-white"
+                    : "bg-indigo-600/80 border-indigo-500/50 text-white hover:bg-indigo-500"
+                  }`}
+              >
+                {isFollowed ? "Following" : "Follow"}
+              </button>
+            )}
           </div>
           {value.caption && (
             <p className="text-sm text-gray-100 line-clamp-2 drop-shadow-md">{value.caption}</p>
