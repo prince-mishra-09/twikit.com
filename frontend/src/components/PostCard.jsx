@@ -187,14 +187,14 @@ const PostCard = ({ type, value, isActive }) => {
           </div>
           {value.caption && (
             <div className="pointer-events-auto">
-              {expanded || value.caption.length <= captionLimit ? (
-                <p className="text-sm text-gray-100 drop-shadow-md">{value.caption}</p>
-              ) : (
-                <p className="text-sm text-gray-100 drop-shadow-md">
-                  {value.caption.slice(0, captionLimit)}...
-                  <button onClick={() => setExpanded(true)} className="text-gray-300 ml-1 hover:text-white font-semibold">more</button>
-                </p>
-              )}
+              <p className="text-sm text-gray-100 drop-shadow-md break-words">
+                {expanded ? value.caption : (value.caption.slice(0, captionLimit) + (value.caption.length > captionLimit ? "..." : ""))}
+                {value.caption.length > captionLimit && (
+                  <button onClick={() => setExpanded(!expanded)} className="text-gray-300 ml-1 hover:text-white font-semibold">
+                    {expanded ? "less" : "more"}
+                  </button>
+                )}
+              </p>
             </div>
           )}
         </div>
@@ -285,14 +285,12 @@ const PostCard = ({ type, value, isActive }) => {
 
         {/* ===== CAPTION ===== */}
         {value.caption && (
-          <div className="mt-2">
-            {expanded || value.caption.length <= captionLimit ? (
-              <p className="text-gray-200 text-sm">{value.caption}</p>
-            ) : (
-              <p className="text-gray-200 text-sm">
-                {value.caption.slice(0, captionLimit)}...
-                <button onClick={() => setExpanded(true)} className="text-gray-400 ml-1 hover:text-white">more</button>
-              </p>
+          <div className="mt-2 text-gray-200 text-sm break-words">
+            {expanded ? value.caption : (value.caption.slice(0, captionLimit) + (value.caption.length > captionLimit ? "..." : ""))}
+            {value.caption.length > captionLimit && (
+              <button onClick={() => setExpanded(!expanded)} className="text-gray-400 ml-1 hover:text-white">
+                {expanded ? "less" : "more"}
+              </button>
             )}
           </div>
         )}
