@@ -91,7 +91,7 @@ export const ChatContextProvider = ({ children }) => {
     try {
       const { data } = await axios.post("/api/messages", {
         recieverId: id,
-        message: "hii",
+        message: "",
       });
       // Refresh chats
       // We can trigger a refresh or add manually. simpler to refresh.

@@ -5,12 +5,50 @@ import { LoadingAnimation } from "../Loading";
 import Message from "./Message";
 import MessageInput from "./MessageInput";
 import { SocketData } from "../../context/SocketContext";
+import { ChatData } from "../../context/ChatContext";
 
 const MessageContainer = ({ selectedChat, setChats }) => {
   const [messages, setMessages] = useState([]);
   const { user } = UserData();
   const [loading, setLoading] = useState(false);
-  const { socket } = SocketData();
+  const { socket, onlineUsers } = SocketData();
+  const { setSelectedChat } = ChatData();
+
+  const otherUser = selectedChat.users[0];
+  const isOnline = onlineUsers.includes(otherUser._id);
+  const prevIsOnline = useRef(isOnline);
+
+  const formatLastSeen = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = Math.floor((now - date) / 60000); // minutes
+
+    if (diff < 1) return "Just now";
+    if (diff < 60) return `${diff}m ago`;
+    if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
+    return date.toLocaleDateString();
+  };
+
+  useEffect(() => {
+    if (prevIsOnline.current && !isOnline) {
+      const now = new Date().toISOString();
+      setSelectedChat(prev => ({
+        ...prev,
+        users: prev.users.map(u => u._id === otherUser._id ? { ...u, lastSeen: now } : u)
+      }));
+      setChats(prev => prev.map(chat => {
+        if (chat._id === selectedChat._id) {
+          return {
+            ...chat,
+            users: chat.users.map(u => u._id === otherUser._id ? { ...u, lastSeen: now } : u)
+          };
+        }
+        return chat;
+      }));
+    }
+    prevIsOnline.current = isOnline;
+  }, [isOnline, otherUser._id, selectedChat._id, setChats, setSelectedChat]);
 
   useEffect(() => {
     socket.on("newMessage", (message) => {
@@ -82,20 +120,27 @@ const MessageContainer = ({ selectedChat, setChats }) => {
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-full bg-[#0B0F14]">
+    <div className="flex flex-col h-[100dvh] md:h-full bg-[#0B0F14]">
 
       {/* HEADER */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-[#111827]/80 backdrop-blur-md">
+      {/* HEADER */}
+      <div className="flex-none flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-[#111827]/80 backdrop-blur-md sticky top-0 z-10">
         <img
-          src={selectedChat.users[0].profilePic.url}
+          src={otherUser.profilePic.url}
           className="w-9 h-9 rounded-full object-cover"
           alt=""
         />
         <div>
           <p className="text-white font-medium">
-            {selectedChat.users[0].name}
+            {otherUser.name}
           </p>
-          <p className="text-xs text-gray-400">Active now</p>
+          <p className="text-xs text-gray-400">
+            {isOnline ? (
+              <span className="text-green-400 font-medium">Active now</span>
+            ) : (
+              <>Last seen {formatLastSeen(otherUser.lastSeen)}</>
+            )}
+          </p>
         </div>
       </div>
 
@@ -122,7 +167,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
           </div>
 
           {/* INPUT */}
-          <div className="border-t border-white/10 bg-[#111827]/80 backdrop-blur-md">
+          <div className="flex-none border-t border-white/10 bg-[#111827]/80 backdrop-blur-md sticky bottom-0 z-10">
             <MessageInput
               setMessages={setMessages}
               selectedChat={selectedChat}

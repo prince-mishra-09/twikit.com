@@ -22,12 +22,17 @@ export const sendMessage = TryCatch(async (req, res) => {
     chat = new Chat({
       users: [senderId, recieverId],
       latestMessage: {
-        text: message,
+        text: message || "New Chat",
         sender: senderId,
       },
     });
 
     await chat.save();
+  }
+
+  // IF NO MESSAGE, JUST RETURN CHAT (For "Start Chat" feature)
+  if (!message) {
+    return res.status(200).json({ message: "Chat initiated", chat });
   }
 
   const newMessage = new Messages({

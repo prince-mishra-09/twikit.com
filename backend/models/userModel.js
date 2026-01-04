@@ -34,7 +34,11 @@ const userSchema = new mongoose.Schema({
   profilePic: {
     id: String,
     url: String
-  }
+  },
+  lastSeen: {
+    type: Date,
+    default: Date.now,
+  },
 }, {
   timestamps: true
 });
