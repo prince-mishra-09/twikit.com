@@ -83,6 +83,7 @@ export const getAllMessages = TryCatch(async (req, res) => {
 
   const messages = await Messages.find({
     chatId: chat._id,
+    deletedBy: { $ne: userId }
   });
 
   res.json(messages);
@@ -148,4 +149,41 @@ export const markMessageAsRead = TryCatch(async (req, res) => {
   }
 
   res.json({ message: "Messages marked as read" });
+});
+
+export const deleteMessage = TryCatch(async (req, res) => {
+  const { id } = req.params;
+  const { type } = req.query; // 'unsend' or 'delete'
+  const userId = req.user._id;
+
+  const message = await Messages.findById(id);
+
+  if (!message) return res.status(404).json({ message: "Message not found" });
+
+  if (message.sender.toString() !== userId.toString() && type === 'unsend') {
+    return res.status(403).json({ message: "You can only unsend your own messages" });
+  }
+
+  if (type === "unsend") {
+    // Permanent delete (Unsend)
+    await message.deleteOne();
+
+    // Notify receiver to remove message
+    const chat = await Chat.findById(message.chatId);
+    if (chat) {
+      const receiverId = chat.users.find(u => u.toString() !== userId.toString());
+      const receiverSocketId = getReceiverSocketId(receiverId);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("messageDeleted", { messageId: id, chatId: message.chatId });
+      }
+    }
+  } else {
+    // Delete for me
+    if (!message.deletedBy.includes(userId)) {
+      message.deletedBy.push(userId);
+      await message.save();
+    }
+  }
+
+  res.json({ message: "Message deleted" });
 });

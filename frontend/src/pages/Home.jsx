@@ -75,7 +75,7 @@ const Home = () => {
               >
                 <IoChatbubbleEllipsesOutline className="text-xl group-hover:scale-110 transition-transform" />
                 {totalUnreadMessages > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-indigo-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[#0B0F14]">
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[#0B0F14]">
                     {totalUnreadMessages > 9 ? "9+" : totalUnreadMessages}
                   </span>
                 )}

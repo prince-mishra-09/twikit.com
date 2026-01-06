@@ -87,9 +87,14 @@ const MessageContainer = ({ selectedChat, setChats }) => {
       }
     });
 
+    socket.on("messageDeleted", ({ messageId }) => {
+      setMessages((prev) => prev.filter((msg) => msg._id !== messageId));
+    });
+
     return () => {
       socket.off("newMessage");
       socket.off("messagesRead");
+      socket.off("messageDeleted");
     };
   }, [socket, selectedChat, setChats, user._id]);
 
@@ -120,11 +125,24 @@ const MessageContainer = ({ selectedChat, setChats }) => {
     }
   }, [messages]);
 
-  return (
-    <div className="flex flex-col h-full bg-[#0B0F14]">
+  const deleteMessageHandler = async (id, type) => {
+    try {
+      await axios.delete(`/api/messages/${id}?type=${type}`);
+      setMessages((prev) => prev.filter((msg) => msg._id !== id));
 
-      {/* HEADER */}
-      <div className="flex-none flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-[#111827]/80 backdrop-blur-md sticky top-0 z-10">
+      // If unsend, socket handles other user. For me, I just remove it.
+      // But we should also update 'Chats' latest message if it was the last one? 
+      // Complexity: ignoring latestMessage update for now as it's minor.
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-[100dvh] absolute inset-0 md:static md:h-full bg-[#0B0F14]">
+
+      {/* HEADER - Fixed at top */}
+      <div className="flex-none flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-[#111827]/80 backdrop-blur-md z-20">
         <img
           src={otherUser.profilePic.url}
           className="w-9 h-9 rounded-full object-cover"
@@ -159,15 +177,16 @@ const MessageContainer = ({ selectedChat, setChats }) => {
               messages.map((e, i) => (
                 <Message
                   key={i}
-                  message={e.text}
+                  message={e}
                   ownMessage={e.sender === user._id}
                   isRead={e.isRead}
+                  deleteHandler={deleteMessageHandler}
                 />
               ))}
           </div>
 
           {/* INPUT */}
-          <div className="flex-none border-t border-white/10 bg-[#111827]/80 backdrop-blur-md sticky bottom-0 z-10">
+          <div className="flex-none border-t border-white/10 bg-[#111827]/80 backdrop-blur-md z-10 p-2 pb-4 md:pb-2">
             <MessageInput
               setMessages={setMessages}
               selectedChat={selectedChat}
