@@ -251,6 +251,19 @@ const PostCard = ({ type, value, isActive }) => {
     );
   }
 
+  const formatCommentDate = (dateString) => {
+    if (!dateString) return "just now";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+
+    if (diffInSeconds < 60) return "just now";
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d`;
+    return `${Math.floor(diffInSeconds / 604800)}w`;
+  };
+
   // ===================== POST RENDER =====================
   return (
     <div className="bg-[#0B0F14] w-full border-b border-white/10 pb-4">
@@ -397,7 +410,7 @@ const PostCard = ({ type, value, isActive }) => {
           />
 
           {/* Drawer */}
-          <div className="relative w-full max-w-md bg-[#1F2937] rounded-t-3xl h-[75vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
+          <div className="relative w-full max-w-md bg-[#1F2937] rounded-t-3xl h-[60vh] md:h-[75vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
             {/* Drawer Handle */}
             <div className="w-full flex justify-center pt-3 pb-1" onClick={() => setShow(false)}>
               <div className="w-12 h-1.5 bg-gray-600 rounded-full" />
@@ -414,18 +427,22 @@ const PostCard = ({ type, value, isActive }) => {
             {/* Comments List */}
             <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4 custom-scrollbar">
               {value.comments && value.comments.length > 0 ? (
+                // Reverse map to show latest comments at bottom or top? Usually comments are chronological.
+                // Assuming backend sends them sorted.
                 value.comments.map((c, i) => (
                   <div key={i} className="flex gap-3 items-start">
                     {/* Placeholder Avatar if not available in comment object, using generic */}
-                    <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-xs shrink-0">
-                      {c.name[0]?.toUpperCase()}
+                    <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-xs shrink-0 border border-white/10">
+                      {c.name ? c.name[0]?.toUpperCase() : "?"}
                     </div>
                     <div className="flex flex-col">
                       <div className="flex items-baseline gap-2">
                         <span className="text-sm font-semibold text-white">{c.name}</span>
-                        <span className="text-xs text-gray-400">Just now</span>
+                        <span className="text-xs text-gray-400">
+                          {formatCommentDate(c.createdAt)}
+                        </span>
                       </div>
-                      <p className="text-sm text-gray-200 mt-0.5">{c.comment}</p>
+                      <p className="text-sm text-gray-200 mt-0.5 leading-tight">{c.comment}</p>
                     </div>
                   </div>
                 ))
@@ -439,7 +456,7 @@ const PostCard = ({ type, value, isActive }) => {
             </div>
 
             {/* Input Area - Fixed at bottom of drawer */}
-            <div className="p-4 border-t border-gray-700 bg-[#1F2937]">
+            <div className="p-4 border-t border-gray-700 bg-[#1F2937] rounded-b-none lg:rounded-b-3xl pb-6 md:pb-4">
               <form onSubmit={addCommentHandler} className="flex gap-3 items-center">
                 <img
                   src={user.profilePic?.url}
@@ -453,7 +470,6 @@ const PostCard = ({ type, value, isActive }) => {
                     placeholder={`Comment as ${user.name}...`}
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
-                    autoFocus
                   />
                   <button
                     type="submit"
