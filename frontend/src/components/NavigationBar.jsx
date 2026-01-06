@@ -6,10 +6,13 @@ import { IoSearchCircleOutline, IoSearchCircle } from "react-icons/io5";
 import { RiAccountCircleFill, RiAccountCircleLine } from "react-icons/ri";
 import CreatePostModal from "./CreatePostModal";
 
+
 const NavigationBar = () => {
   const location = useLocation();
   const [tab, setTab] = useState(location.pathname);
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+
 
   useEffect(() => {
     setTab(location.pathname);
@@ -28,7 +31,6 @@ const NavigationBar = () => {
       {showCreateModal && <CreatePostModal setShow={setShowCreateModal} />}
 
       <div className="fixed bottom-0 left-0 w-full z-40 border-t border-white/10 bg-[#0B0F14]/90 backdrop-blur-xl">
-        {/* Full Width Bar */}
         <div className="flex justify-between items-center py-3 px-6 max-w-xl mx-auto">
 
           {/* Home */}

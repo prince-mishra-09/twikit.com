@@ -57,14 +57,7 @@ const ChatPage = ({ user }) => {
   }
 
 
-  async function getAllChats() {
-    try {
-      const { data } = await axios.get("/api/messages/chats");
-      setChats(data);
-    } catch (error) {
-      console.log(error);
-    }
-  }
+
 
   useEffect(() => {
     if (query.trim()) {
@@ -77,13 +70,13 @@ const ChatPage = ({ user }) => {
 
 
   useEffect(() => {
-    getAllChats();
-  }, []);
+    // Chats are now fetched in Context on app load
+  }, [chats]); // Optional dependency update or remove useEffect entirely if not needed
 
   async function createNewChat(id) {
     await createChat(id);
     setSearch(false);
-    getAllChats();
+    // getAllChats(); // Context handles this
     setSelectedChat(null);
   }
 

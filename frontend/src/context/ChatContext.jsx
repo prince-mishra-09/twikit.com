@@ -14,6 +14,21 @@ export const ChatContextProvider = ({ children }) => {
   const { socket } = SocketData();
   const { user } = UserData();
 
+  async function getAllChats() {
+    try {
+      const { data } = await axios.get("/api/messages/chats");
+      setChats(data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  useEffect(() => {
+    if (user) {
+      getAllChats();
+    }
+  }, [user]);
+
   // Accumulate total unread count from all chats
   useEffect(() => {
     // Count number of CHATS with unread messages, not total unread messages
@@ -113,7 +128,8 @@ export const ChatContextProvider = ({ children }) => {
         chats,
         setChats,
         totalUnreadMessages,
-        setTotalUnreadMessages
+        setTotalUnreadMessages,
+        getAllChats,
       }}
     >
       {children}
