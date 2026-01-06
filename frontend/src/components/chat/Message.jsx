@@ -1,6 +1,3 @@
-import React from "react";
-import { BsCheckAll } from "react-icons/bs";
-
 import React, { useState, useEffect, useRef } from "react";
 import { BsCheckAll } from "react-icons/bs";
 
