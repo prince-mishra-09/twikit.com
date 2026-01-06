@@ -254,55 +254,61 @@ const PostCard = ({ type, value, isActive }) => {
   // ===================== POST RENDER =====================
   return (
     <div className="bg-[#0B0F14] w-full border-b border-white/10 pb-4">
-      {/* ===== HEADER ===== */}
-      <div className="flex items-center justify-between px-3 py-3">
-        <Link
-          to={`/user/${value.owner._id}`}
-          className="flex items-center gap-2"
-        >
-          <img
-            src={value.owner?.profilePic?.url}
-            className="w-8 h-8 rounded-full border border-white/10"
-            alt=""
-          />
-          <div>
-            <p className="text-white font-semibold text-sm">
-              {value.owner.name}
-            </p>
-            <p className="text-gray-400 text-[10px]">{formatDate}</p>
+      {/* ===== POST IMAGE & OVERLAY HEADER ===== */}
+      <div className="relative w-full group">
+        {/* Header Overlay */}
+        <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-10 bg-gradient-to-b from-black/60 to-transparent pointer-events-none">
+          <Link
+            to={`/user/${value.owner._id}`}
+            className="flex items-center gap-3 pointer-events-auto"
+          >
+            <div className="relative">
+              <img
+                src={value.owner?.profilePic?.url}
+                className="w-10 h-10 rounded-full border-2 border-white/20"
+                alt=""
+              />
+              {onlineUsers?.includes(value.owner._id) && (
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-black" />
+              )}
+            </div>
+            <div className="flex flex-col">
+              <p className="text-white font-bold text-sm shadow-black drop-shadow-md">
+                {value.owner.name}
+              </p>
+              <p className="text-gray-200 text-[10px] drop-shadow-md">{formatDate}</p>
+            </div>
+          </Link>
+
+          {/* Delete / Follow Button Overlay */}
+          <div className="pointer-events-auto">
+            {value.owner._id === user._id ? (
+              <button
+                onClick={deleteHandler}
+                className="bg-black/40 backdrop-blur-md p-2 rounded-full text-white/80 hover:text-red-500 hover:bg-black/60 transition-all"
+              >
+                <MdDelete className="text-lg" />
+              </button>
+            ) : (
+              <button
+                onClick={followHandler}
+                className={`text-xs font-bold px-4 py-1.5 rounded-full backdrop-blur-md transition-all shadow-lg ${isFollowed
+                  ? "bg-white/20 text-white border border-white/20"
+                  : "bg-indigo-600/90 text-white hover:bg-indigo-500"
+                  }`}
+              >
+                {isFollowed ? "Following" : "Follow"}
+              </button>
+            )}
           </div>
-          {onlineUsers?.includes(value.owner._id) && (
-            <span className="ml-1 w-1.5 h-1.5 bg-green-500 rounded-full" />
-          )}
-        </Link>
+        </div>
 
-        {value.owner._id === user._id ? (
-          <button
-            onClick={deleteHandler}
-            className="text-white/60 hover:text-red-500 transition-colors"
-          >
-            <MdDelete className="text-xl" />
-          </button>
-        ) : (
-          <button
-            onClick={followHandler}
-            className={`text-xs font-semibold px-4 py-1.5 rounded-lg transition-all ${isFollowed
-              ? "bg-white/10 text-white"
-              : "bg-indigo-600 text-white"
-              }`}
-          >
-            {isFollowed ? "Following" : "Follow"}
-          </button>
-        )}
-      </div>
-
-      {/* ===== POST IMAGE ===== */}
-      <div className="relative w-full">
+        {/* The Image */}
         <img
           src={value.post.url}
           alt=""
           onClick={() => setShowImage(true)}
-          className="w-full h-auto object-cover cursor-pointer active:opacity-95 transition-opacity"
+          className="w-full h-auto object-cover cursor-pointer active:opacity-95 transition-opacity min-h-[300px]"
         />
       </div>
 
@@ -328,33 +334,37 @@ const PostCard = ({ type, value, isActive }) => {
         document.body
       )}
 
-      {/* ===== ACTIONS ===== */}
+      {/* ===== ACTIONS & CAPTION ===== */}
       <div className="px-3 pt-3">
-        <div className="flex justify-between items-center text-white mb-2">
-          <div className="flex items-center gap-4">
+        {/* Action Row: Likes & Comments inline */}
+        <div className="flex items-center gap-6 mb-3">
+          {/* Like Group */}
+          <div className="flex items-center gap-2">
             <button
               onClick={likeHandler}
-              className="text-2xl transition-transform active:scale-90"
+              className="text-2xl transition-transform active:scale-75"
             >
-              {isLike ? <IoHeartSharp className="text-red-500" /> : <IoHeartOutline />}
+              {isLike ? <IoHeartSharp className="text-red-500" /> : <IoHeartOutline className="text-white" />}
             </button>
+            <span className="text-white font-semibold text-sm">{value.likes.length}</span>
+          </div>
+
+          {/* Comment Group */}
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setShow(!show)}
-              className="text-2xl transition-transform active:scale-90"
+              className="text-2xl transition-transform active:scale-75"
             >
               <BsChatFill className="text-white" />
             </button>
+            <span className="text-white font-semibold text-sm">{value.comments.length}</span>
           </div>
         </div>
 
-        <p className="font-semibold text-sm text-white mb-1">
-          {value.likes.length} likes
-        </p>
-
-        {/* ===== CAPTION ===== */}
+        {/* Caption */}
         {value.caption && (
-          <div className="text-white text-sm">
-            <span className="font-semibold mr-2">{value.owner.name}</span>
+          <div className="text-white text-sm mb-2">
+            <span className="font-bold mr-2">{value.owner.name}</span>
             <span className="text-gray-200">
               {expanded ? value.caption : (value.caption.slice(0, captionLimit) + (value.caption.length > captionLimit ? "..." : ""))}
             </span>
@@ -366,11 +376,11 @@ const PostCard = ({ type, value, isActive }) => {
           </div>
         )}
 
-        {/* ===== COMMENTS LINK ===== */}
+        {/* View Comments Link */}
         {value.comments.length > 0 && (
           <button
             onClick={() => setShow(!show)}
-            className="text-gray-400 text-sm mt-1"
+            className="text-gray-500 text-xs font-medium"
           >
             View all {value.comments.length} comments
           </button>

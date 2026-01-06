@@ -85,7 +85,7 @@ const Home = () => {
         </div>
 
         {/* Posts */}
-        <div className="mt-6 space-y-6">
+        <div className="mt-1 space-y-6">
           {posts && posts.length > 0 ? (
             posts.map((post) => (
               <PostCard key={post._id} value={post} type="post" />
