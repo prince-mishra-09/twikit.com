@@ -14,6 +14,7 @@ const PostCard = ({ type, value, isActive }) => {
 
   const [isLike, setIsLike] = useState(false);
   const [show, setShow] = useState(false);
+  const [showImage, setShowImage] = useState(false);
   const [comment, setComment] = useState("");
   const [expanded, setExpanded] = useState(false);
   const captionLimit = 40; // Characters to show before truncating
@@ -300,9 +301,31 @@ const PostCard = ({ type, value, isActive }) => {
           <img
             src={value.post.url}
             alt=""
-            className="w-full rounded-xl object-cover"
+            onClick={() => setShowImage(true)}
+            className="w-full rounded-xl object-cover cursor-pointer hover:opacity-95 transition-opacity"
           />
         </div>
+
+        {/* FULL SCREEN IMAGE VIEWER */}
+        {showImage && (
+          <div
+            className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-2 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setShowImage(false)}
+          >
+            <button
+              onClick={() => setShowImage(false)}
+              className="absolute top-5 right-5 text-white/70 hover:text-white text-4xl z-[110] transition-colors"
+            >
+              &times;
+            </button>
+            <img
+              src={value.post.url}
+              alt=""
+              className="max-w-full max-h-full object-contain rounded-md shadow-2xl"
+              onClick={(e) => e.stopPropagation()} // Prevent close on image click
+            />
+          </div>
+        )}
 
         {/* ===== ACTIONS ===== */}
         <div className="flex justify-between items-center mt-3 text-gray-400">
