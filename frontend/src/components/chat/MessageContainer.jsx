@@ -7,6 +7,8 @@ import MessageInput from "./MessageInput";
 import { SocketData } from "../../context/SocketContext";
 import { ChatData } from "../../context/ChatContext";
 
+import { FaArrowLeft } from "react-icons/fa";
+
 const MessageContainer = ({ selectedChat, setChats }) => {
   const [messages, setMessages] = useState([]);
   const { user } = UserData();
@@ -131,7 +133,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
       setMessages((prev) => prev.filter((msg) => msg._id !== id));
 
       // If unsend, socket handles other user. For me, I just remove it.
-      // But we should also update 'Chats' latest message if it was the last one? 
+      // But we should also update 'Chats' latest message if it was the last one?
       // Complexity: ignoring latestMessage update for now as it's minor.
     } catch (error) {
       console.log(error);
@@ -143,6 +145,12 @@ const MessageContainer = ({ selectedChat, setChats }) => {
 
       {/* HEADER - Fixed at top */}
       <div className="flex-none flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-[#111827]/80 backdrop-blur-md z-20">
+        <button
+          onClick={() => setSelectedChat(null)}
+          className="md:hidden mr-1 text-white p-2 rounded-full hover:bg-white/10"
+        >
+          <FaArrowLeft />
+        </button>
         <img
           src={otherUser.profilePic.url}
           className="w-9 h-9 rounded-full object-cover"

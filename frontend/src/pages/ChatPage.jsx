@@ -159,17 +159,7 @@ const ChatPage = ({ user }) => {
           className={`${selectedChat ? "flex" : "hidden md:flex"
             } flex-1 flex flex-col`}
         >
-          {/* Mobile back button */}
-          {selectedChat && (
-            <div className="md:hidden p-3 border-b border-white/10">
-              <button
-                onClick={() => setSelectedChat(null)}
-                className="text-white flex items-center gap-2"
-              >
-                <FaArrowLeft /> Back
-              </button>
-            </div>
-          )}
+
 
           {selectedChat === null ? (
             <div className="flex flex-1 items-center justify-center text-center px-4">
