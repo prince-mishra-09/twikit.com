@@ -139,7 +139,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] absolute inset-0 md:static md:h-full bg-[#0B0F14]">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-[#0B0F14] md:static md:h-full">
 
       {/* HEADER - Fixed at top */}
       <div className="flex-none flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-[#111827]/80 backdrop-blur-md z-20">

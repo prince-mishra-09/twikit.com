@@ -27,6 +27,14 @@ const Message = ({ ownMessage, message, isRead, deleteHandler }) => {
     return () => window.removeEventListener("click", handleClickOutside);
   }, [showMenu]);
 
+  // Format time
+  const time = message.createdAt
+    ? new Date(message.createdAt).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+    : "";
+
   return (
     <div
       className={`flex mb-2 ${ownMessage ? "justify-end" : "justify-start"} relative select-none`}
@@ -37,19 +45,20 @@ const Message = ({ ownMessage, message, isRead, deleteHandler }) => {
         onMouseLeave={handleTouchEnd}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className={`max-w-[75%] px-4 py-2 text-sm rounded-2xl break-words relative cursor-pointer ${ownMessage
+        className={`max-w-[75%] px-4 py-2 pb-6 text-sm rounded-2xl break-words relative cursor-pointer ${ownMessage
           ? "bg-gradient-to-r from-indigo-500 to-blue-500 text-white rounded-br-sm pr-9"
           : "bg-[#1F2937]/80 backdrop-blur-md text-gray-100 rounded-bl-sm border border-white/10"
           }`}
       >
         {message.text}
 
-        {/* Read Receipt Ticks */}
-        {ownMessage && (
-          <div className={`absolute bottom-1 right-2 text-xs ${isRead ? "text-cyan-200" : "text-gray-300"}`}>
-            <BsCheckAll className="text-lg" />
-          </div>
-        )}
+        {/* Time & Read Receipt */}
+        <div className={`absolute bottom-1 right-3 text-[10px] flex items-center gap-1 ${ownMessage ? "text-gray-200" : "text-gray-400"}`}>
+          <span>{time}</span>
+          {ownMessage && (
+            <BsCheckAll className={`text-sm ${isRead ? "text-cyan-200" : "text-gray-200"}`} />
+          )}
+        </div>
       </div>
 
       {/* Long Press Menu */}
