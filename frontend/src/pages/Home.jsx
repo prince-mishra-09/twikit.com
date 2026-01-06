@@ -43,7 +43,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-[#0B0F14] flex justify-center">
       {/* Feed container */}
-      <div className="w-full max-w-xl px-3 pb-10">
+      <div className="w-full max-w-xl pb-20">
 
         {/* Header + Composer */}
         <div

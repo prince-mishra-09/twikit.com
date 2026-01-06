@@ -60,10 +60,11 @@ export const ChatContextProvider = ({ children }) => {
                 text: newMessage.text,
                 sender: newMessage.sender,
               },
+              updatedAt: new Date().toISOString(), // Force update time
               unreadCount: isCurrentChat ? chat.unreadCount : (chat.unreadCount || 0) + 1,
             };
             // Move to top
-            updatedChats.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)); // Ideally sort by latestMessage time but updatedAt will hopefully be updated by backend
+            updatedChats.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
             return updatedChats;
           } else {
             // New chat (rare case if not refreshed, but handle it if we fetched chat details?

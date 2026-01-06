@@ -28,8 +28,9 @@ const PostCard = ({ type, value, isActive }) => {
   }, [user, value.owner]);
 
   // Disable body scroll when image viewer is open
+  // Disable body scroll when image viewer OR comments drawer is open
   useEffect(() => {
-    if (showImage) {
+    if (showImage || show) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
@@ -37,7 +38,7 @@ const PostCard = ({ type, value, isActive }) => {
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [showImage]);
+  }, [showImage, show]);
 
 
 
@@ -252,152 +253,127 @@ const PostCard = ({ type, value, isActive }) => {
 
   // ===================== POST RENDER =====================
   return (
-    <div className="bg-[#0B0F14] flex items-center justify-center py-6">
-      <div className="bg-[#111827]/90 backdrop-blur-xl border border-white/10 p-5 rounded-2xl shadow-xl w-full max-w-md">
-
-        {/* ===== HEADER ===== */}
-        <div className="flex items-center justify-between">
-          <Link
-            to={`/user/${value.owner._id}`}
-            className="flex items-center gap-2"
-          >
-            <img
-              src={value.owner?.profilePic?.url}
-              className="w-9 h-9 rounded-full"
-              alt=""
-            />
-            <div>
-              <p className="text-white font-medium text-sm">
-                {value.owner.name}
-              </p>
-              <p className="text-gray-400 text-xs">{formatDate}</p>
-            </div>
-            {onlineUsers?.includes(value.owner._id) && (
-              <span className="ml-1 w-2 h-2 bg-green-400 rounded-full" />
-            )}
-          </Link>
-
-          {value.owner._id === user._id ? (
-            <button
-              onClick={deleteHandler}
-              className="text-red-400 text-lg"
-            >
-              <MdDelete />
-            </button>
-          ) : (
-            <button
-              onClick={followHandler}
-              className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-all duration-300 ${isFollowed
-                ? "bg-gray-700/50 text-white border border-gray-600 hover:bg-gray-700"
-                : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-500/20"
-                }`}
-            >
-              {isFollowed ? "Following" : "Follow"}
-            </button>
+    <div className="bg-[#0B0F14] w-full border-b border-white/10 pb-4">
+      {/* ===== HEADER ===== */}
+      <div className="flex items-center justify-between px-3 py-3">
+        <Link
+          to={`/user/${value.owner._id}`}
+          className="flex items-center gap-2"
+        >
+          <img
+            src={value.owner?.profilePic?.url}
+            className="w-8 h-8 rounded-full border border-white/10"
+            alt=""
+          />
+          <div>
+            <p className="text-white font-semibold text-sm">
+              {value.owner.name}
+            </p>
+            <p className="text-gray-400 text-[10px]">{formatDate}</p>
+          </div>
+          {onlineUsers?.includes(value.owner._id) && (
+            <span className="ml-1 w-1.5 h-1.5 bg-green-500 rounded-full" />
           )}
+        </Link>
+
+        {value.owner._id === user._id ? (
+          <button
+            onClick={deleteHandler}
+            className="text-white/60 hover:text-red-500 transition-colors"
+          >
+            <MdDelete className="text-xl" />
+          </button>
+        ) : (
+          <button
+            onClick={followHandler}
+            className={`text-xs font-semibold px-4 py-1.5 rounded-lg transition-all ${isFollowed
+              ? "bg-white/10 text-white"
+              : "bg-indigo-600 text-white"
+              }`}
+          >
+            {isFollowed ? "Following" : "Follow"}
+          </button>
+        )}
+      </div>
+
+      {/* ===== POST IMAGE ===== */}
+      <div className="relative w-full">
+        <img
+          src={value.post.url}
+          alt=""
+          onClick={() => setShowImage(true)}
+          className="w-full h-auto object-cover cursor-pointer active:opacity-95 transition-opacity"
+        />
+      </div>
+
+      {/* FULL SCREEN IMAGE VIEWER VIA PORTAL */}
+      {showImage && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] bg-black flex items-center justify-center p-0 animate-in fade-in duration-200"
+          onClick={() => setShowImage(false)}
+        >
+          <button
+            onClick={() => setShowImage(false)}
+            className="absolute top-4 right-4 text-white/80 hover:text-white text-4xl z-[10000] p-2"
+          >
+            &times;
+          </button>
+          <img
+            src={value.post.url}
+            alt=""
+            className="max-w-screen max-h-screen object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>,
+        document.body
+      )}
+
+      {/* ===== ACTIONS ===== */}
+      <div className="px-3 pt-3">
+        <div className="flex justify-between items-center text-white mb-2">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={likeHandler}
+              className="text-2xl transition-transform active:scale-90"
+            >
+              {isLike ? <IoHeartSharp className="text-red-500" /> : <IoHeartOutline />}
+            </button>
+            <button
+              onClick={() => setShow(!show)}
+              className="text-2xl transition-transform active:scale-90"
+            >
+              <BsChatFill className="text-white" />
+            </button>
+          </div>
         </div>
+
+        <p className="font-semibold text-sm text-white mb-1">
+          {value.likes.length} likes
+        </p>
 
         {/* ===== CAPTION ===== */}
         {value.caption && (
-          <div className="mt-2 text-gray-200 text-sm break-words">
-            {expanded ? value.caption : (value.caption.slice(0, captionLimit) + (value.caption.length > captionLimit ? "..." : ""))}
+          <div className="text-white text-sm">
+            <span className="font-semibold mr-2">{value.owner.name}</span>
+            <span className="text-gray-200">
+              {expanded ? value.caption : (value.caption.slice(0, captionLimit) + (value.caption.length > captionLimit ? "..." : ""))}
+            </span>
             {value.caption.length > captionLimit && (
-              <button onClick={() => setExpanded(!expanded)} className="text-gray-400 ml-1 hover:text-white">
+              <button onClick={() => setExpanded(!expanded)} className="text-gray-400 text-xs ml-1 hover:text-white">
                 {expanded ? "less" : "more"}
               </button>
             )}
           </div>
         )}
 
-        {/* ===== POST IMAGE ===== */}
-        <div className="relative mt-3">
-          <img
-            src={value.post.url}
-            alt=""
-            onClick={() => setShowImage(true)}
-            className="w-full rounded-xl object-cover cursor-pointer hover:opacity-95 transition-opacity"
-          />
-        </div>
-
-        {/* FULL SCREEN IMAGE VIEWER VIA PORTAL */}
-        {showImage && createPortal(
-          <div
-            className="fixed inset-0 z-[9999] bg-black flex items-center justify-center p-0 animate-in fade-in duration-200"
-            onClick={() => setShowImage(false)}
-          >
-            <button
-              onClick={() => setShowImage(false)}
-              className="absolute top-4 right-4 text-white/80 hover:text-white text-4xl z-[10000] p-2"
-            >
-              &times;
-            </button>
-            <img
-              src={value.post.url}
-              alt=""
-              className="max-w-screen max-h-screen object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
-          </div>,
-          document.body
-        )}
-
-        {/* ===== ACTIONS ===== */}
-        <div className="flex justify-between items-center mt-3 text-gray-400">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={likeHandler}
-              className="text-2xl text-red-500"
-            >
-              {isLike ? <IoHeartSharp /> : <IoHeartOutline />}
-            </button>
-            <button>{value.likes.length} likes</button>
-          </div>
-
+        {/* ===== COMMENTS LINK ===== */}
+        {value.comments.length > 0 && (
           <button
             onClick={() => setShow(!show)}
-            className="flex items-center gap-1"
+            className="text-gray-400 text-sm mt-1"
           >
-            <BsChatFill />
-            {value.comments.length}
+            View all {value.comments.length} comments
           </button>
-        </div>
-
-        {/* ===== COMMENTS ===== */}
-        {show && (
-          <div className="mt-3">
-            <div className="max-h-52 overflow-y-auto mb-3 custom-scrollbar flex flex-col gap-2">
-              {value.comments && value.comments.length > 0 ? (
-                value.comments.map((c, i) => (
-                  <div key={i} className="flex gap-2 items-start">
-                    <div className="bg-white/10 p-2 rounded-lg rounded-tl-none text-xs text-gray-200">
-                      <span className="font-bold block text-indigo-400 mb-0.5">{c.name}</span>
-                      {c.comment}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500 text-sm text-center py-2">
-                  Be the first one to comment ✨
-                </p>
-              )}
-            </div>
-
-            <form onSubmit={addCommentHandler} className="flex gap-2">
-              <input
-                type="text"
-                className="flex-1 px-3 py-2 rounded-lg bg-[#0B0F14] border border-white/10 text-white focus:outline-none focus:border-indigo-500 transaction"
-                placeholder="Add a comment..."
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-              />
-              <button
-                type="submit"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 rounded-lg transition"
-              >
-                Post
-              </button>
-            </form>
-          </div>
         )}
       </div>
     </div>
