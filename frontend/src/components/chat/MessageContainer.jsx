@@ -140,8 +140,31 @@ const MessageContainer = ({ selectedChat, setChats }) => {
     }
   };
 
+  // State for one active menu at a time
+  const [activeMessageId, setActiveMessageId] = useState(null);
+
+  // Helper for dates
+  const formatDateLabel = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+
+    // Check Yesterday
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const isYesterday = date.toDateString() === yesterday.toDateString();
+
+    if (isToday) return "Today";
+    if (isYesterday) return "Yesterday";
+
+    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  };
+
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-[#0B0F14] md:static md:h-full">
+    <div
+      className="fixed inset-0 z-[100] flex flex-col bg-[#0B0F14] md:static md:h-full"
+      onClick={() => setActiveMessageId(null)} // Close menu on click outside
+    >
 
       {/* HEADER - Fixed at top */}
       <div className="flex-none flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-[#111827]/80 backdrop-blur-md z-20">
@@ -182,15 +205,32 @@ const MessageContainer = ({ selectedChat, setChats }) => {
             className="flex-1 overflow-y-auto px-4 py-3 space-y-2 bg-[#0B0F14]"
           >
             {messages &&
-              messages.map((e, i) => (
-                <Message
-                  key={i}
-                  message={e}
-                  ownMessage={e.sender === user._id}
-                  isRead={e.isRead}
-                  deleteHandler={deleteMessageHandler}
-                />
-              ))}
+              messages.map((e, i) => {
+                // Date Separator Logic
+                const currentDateLabel = formatDateLabel(e.createdAt);
+                const prevDateLabel = i > 0 ? formatDateLabel(messages[i - 1].createdAt) : null;
+                const showDateSeparator = currentDateLabel !== prevDateLabel;
+
+                return (
+                  <React.Fragment key={i}>
+                    {showDateSeparator && (
+                      <div className="flex justify-center my-4">
+                        <span className="bg-[#1F2937] text-gray-400 text-xs px-3 py-1 rounded-full border border-white/5">
+                          {currentDateLabel}
+                        </span>
+                      </div>
+                    )}
+                    <Message
+                      message={e}
+                      ownMessage={e.sender === user._id}
+                      isRead={e.isRead}
+                      deleteHandler={deleteMessageHandler}
+                      activeMessageId={activeMessageId}
+                      setActiveMessageId={setActiveMessageId}
+                    />
+                  </React.Fragment>
+                );
+              })}
           </div>
 
           {/* INPUT */}
