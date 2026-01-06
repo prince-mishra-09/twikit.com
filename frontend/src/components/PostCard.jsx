@@ -27,6 +27,18 @@ const PostCard = ({ type, value, isActive }) => {
     }
   }, [user, value.owner]);
 
+  // Disable body scroll when image viewer is open
+  useEffect(() => {
+    if (showImage) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [showImage]);
+
 
 
   /* ===== REEL STATES ===== */
