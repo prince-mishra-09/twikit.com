@@ -159,6 +159,12 @@ export const commentonPost = TryCatch(async (req, res) => {
 
     await post.save();
 
+    // Populate user details for real-time update
+    await post.populate({
+        path: "comments.user",
+        select: "name profilePic",
+    });
+
     // Real-time emit
     io.emit("postCommentUpdated", {
         postId: post._id,

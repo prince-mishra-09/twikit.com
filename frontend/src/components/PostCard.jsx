@@ -431,13 +431,18 @@ const PostCard = ({ type, value, isActive }) => {
                 // Assuming backend sends them sorted.
                 value.comments.map((c, i) => (
                   <div key={i} className="flex gap-3 items-start">
-                    {/* Placeholder Avatar if not available in comment object, using generic */}
-                    <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-xs shrink-0 border border-white/10">
-                      {c.name ? c.name[0]?.toUpperCase() : "?"}
-                    </div>
+                    <Link to={`/user/${c.user?._id}`} className="shrink-0">
+                      <img
+                        src={c.user?.profilePic?.url || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"}
+                        className="w-8 h-8 rounded-full border border-white/10"
+                        alt=""
+                      />
+                    </Link>
                     <div className="flex flex-col">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-sm font-semibold text-white">{c.name}</span>
+                        <Link to={`/user/${c.user?._id}`}>
+                          <span className="text-sm font-semibold text-white hover:underline">{c.name}</span>
+                        </Link>
                         <span className="text-xs text-gray-400">
                           {formatCommentDate(c.createdAt)}
                         </span>
@@ -457,7 +462,28 @@ const PostCard = ({ type, value, isActive }) => {
 
             {/* Input Area - Fixed at bottom of drawer */}
             <div className="p-4 border-t border-gray-700 bg-[#1F2937] rounded-b-none lg:rounded-b-3xl pb-6 md:pb-4">
-              <form onSubmit={addCommentHandler} className="flex gap-3 items-center">
+              {/* Emoji Bar */}
+              <div className="flex gap-4 mb-3 overflow-x-auto custom-scrollbar px-1 pb-1">
+                {["❤️", "🙌", "🔥", "👏", "😢", "😍", "😂"].map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => setComment((prev) => prev + emoji)}
+                    className="text-2xl hover:scale-110 transition-transform"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  // Pass empty function as setShow to prevent closing drawer
+                  addComment(value._id, comment, setComment, () => { });
+                }}
+                className="flex gap-3 items-center"
+              >
                 <img
                   src={user.profilePic?.url}
                   className="w-8 h-8 rounded-full border border-gray-600"
