@@ -443,40 +443,34 @@ const PostCard = ({ type, value, isActive }) => {
                 [...value.comments].reverse().map((c, i) => (
                   <div
                     key={i}
-                    className="flex gap-3 items-start animate-in slide-in-from-bottom fade-in duration-300 active:scale-[98%] transition-transform select-none"
-                    onTouchStart={() => {
-                      longPressTimer.current = setTimeout(() => {
-                        if (user._id === c.user?._id || user._id === value.owner._id) {
-                          setDeleteModal({ show: true, commentId: c._id });
-                        }
-                      }, 500);
-                    }}
-                    onTouchEnd={() => clearTimeout(longPressTimer.current)}
-                    onMouseDown={() => {
-                      longPressTimer.current = setTimeout(() => {
-                        if (user._id === c.user?._id || user._id === value.owner._id) {
-                          setDeleteModal({ show: true, commentId: c._id });
-                        }
-                      }, 500);
-                    }}
-                    onMouseUp={() => clearTimeout(longPressTimer.current)}
-                    onMouseLeave={() => clearTimeout(longPressTimer.current)}
+                    className="flex gap-3 items-start animate-in slide-in-from-bottom fade-in duration-300"
                   >
-                    <Link to={`/user/${c.user?._id}`} className="shrink-0 pointer-events-auto">
+                    <Link to={`/user/${c.user?._id}`} className="shrink-0">
                       <img
                         src={c.user?.profilePic?.url || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"}
                         className="w-8 h-8 rounded-full border border-white/10"
                         alt=""
                       />
                     </Link>
-                    <div className="flex flex-col">
-                      <div className="flex items-baseline gap-2">
-                        <Link to={`/user/${c.user?._id}`} className="pointer-events-auto">
-                          <span className="text-sm font-semibold text-white hover:underline">{c.name}</span>
-                        </Link>
-                        <span className="text-xs text-gray-400">
-                          {formatCommentDate(c.createdAt)}
-                        </span>
+                    <div className="flex flex-col flex-1">
+                      <div className="flex items-baseline justify-between w-full">
+                        <div className="flex items-baseline gap-2">
+                          <Link to={`/user/${c.user?._id}`}>
+                            <span className="text-sm font-semibold text-white hover:underline">{c.name}</span>
+                          </Link>
+                          <span className="text-xs text-gray-400">
+                            {formatCommentDate(c.createdAt)}
+                          </span>
+                        </div>
+
+                        {(user._id === c.user?._id || user._id === value.owner._id) && (
+                          <button
+                            onClick={() => setDeleteModal({ show: true, commentId: c._id })}
+                            className="text-gray-400 hover:text-white p-1"
+                          >
+                            <BsThreeDotsVertical className="text-sm" />
+                          </button>
+                        )}
                       </div>
                       <p className="text-sm text-gray-200 mt-0.5 leading-tight">{c.comment}</p>
                     </div>
