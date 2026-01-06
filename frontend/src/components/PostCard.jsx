@@ -307,25 +307,26 @@ const PostCard = ({ type, value, isActive }) => {
           />
         </div>
 
-        {/* FULL SCREEN IMAGE VIEWER */}
-        {showImage && (
+        {/* FULL SCREEN IMAGE VIEWER VIA PORTAL */}
+        {showImage && createPortal(
           <div
-            className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-2 backdrop-blur-sm animate-in fade-in duration-200"
+            className="fixed inset-0 z-[9999] bg-black flex items-center justify-center p-0 animate-in fade-in duration-200"
             onClick={() => setShowImage(false)}
           >
             <button
               onClick={() => setShowImage(false)}
-              className="absolute top-5 right-5 text-white/70 hover:text-white text-4xl z-[110] transition-colors"
+              className="absolute top-4 right-4 text-white/80 hover:text-white text-4xl z-[10000] p-2"
             >
               &times;
             </button>
             <img
               src={value.post.url}
               alt=""
-              className="max-w-full max-h-full object-contain rounded-md shadow-2xl"
-              onClick={(e) => e.stopPropagation()} // Prevent close on image click
+              className="max-w-screen max-h-screen object-contain"
+              onClick={(e) => e.stopPropagation()}
             />
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* ===== ACTIONS ===== */}
