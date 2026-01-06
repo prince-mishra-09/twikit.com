@@ -11,7 +11,7 @@ import { SocketData } from "../context/SocketContext";
 
 const PostCard = ({ type, value, isActive }) => {
   const { user, followUser } = UserData();
-  const { likePost, addComment, deletePost } = PostData();
+  const { likePost, addComment, deletePost, deleteComment } = PostData();
 
   const [isLike, setIsLike] = useState(false);
   const [show, setShow] = useState(false);
