@@ -40,7 +40,14 @@ const PostCard = ({ type, value, isActive }) => {
     };
   }, [showImage, show]);
 
+  const commentsRef = useRef(null);
 
+  // Auto-scroll to top of comments when drawer opens or new comment added
+  useEffect(() => {
+    if (show && commentsRef.current) {
+      commentsRef.current.scrollTop = 0;
+    }
+  }, [show, value.comments]);
 
   /* ===== REEL STATES ===== */
   const videoRef = useRef(null);
@@ -425,12 +432,12 @@ const PostCard = ({ type, value, isActive }) => {
             </div>
 
             {/* Comments List */}
-            <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4 custom-scrollbar">
+            <div ref={commentsRef} className="flex-1 overflow-y-auto px-4 py-2 space-y-4 custom-scrollbar">
               {value.comments && value.comments.length > 0 ? (
                 // Reverse map to show latest comments at bottom or top? Usually comments are chronological.
                 // Assuming backend sends them sorted.
-                value.comments.map((c, i) => (
-                  <div key={i} className="flex gap-3 items-start">
+                [...value.comments].reverse().map((c, i) => (
+                  <div key={i} className="flex gap-3 items-start animate-in slide-in-from-bottom fade-in duration-300">
                     <Link to={`/user/${c.user?._id}`} className="shrink-0">
                       <img
                         src={c.user?.profilePic?.url || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"}
@@ -463,13 +470,13 @@ const PostCard = ({ type, value, isActive }) => {
             {/* Input Area - Fixed at bottom of drawer */}
             <div className="p-4 border-t border-gray-700 bg-[#1F2937] rounded-b-none lg:rounded-b-3xl pb-6 md:pb-4">
               {/* Emoji Bar */}
-              <div className="flex gap-4 mb-3 overflow-x-auto custom-scrollbar px-1 pb-1">
+              <div className="flex justify-between mb-3 px-2">
                 {["❤️", "🙌", "🔥", "👏", "😢", "😍", "😂"].map((emoji) => (
                   <button
                     key={emoji}
                     type="button"
                     onClick={() => setComment((prev) => prev + emoji)}
-                    className="text-2xl hover:scale-110 transition-transform"
+                    className="text-2xl hover:scale-125 transition-transform"
                   >
                     {emoji}
                   </button>
