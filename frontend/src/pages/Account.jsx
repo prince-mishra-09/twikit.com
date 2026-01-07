@@ -14,7 +14,7 @@ import { FiEdit2 } from "react-icons/fi";
 
 const Account = ({ user }) => {
   const navigate = useNavigate();
-  const { logoutUser, updateProfilePic, updateProfileName, unmuteUser } = UserData();
+  const { logoutUser, updateProfilePic, updateProfileName, unmuteUser, togglePrivacy } = UserData();
   const { posts, reels, loading } = PostData();
 
   const myPosts = posts?.filter((p) => p.owner._id === user._id);
@@ -142,7 +142,22 @@ const Account = ({ user }) => {
               className="fixed inset-0 z-[25] cursor-default"
               onClick={() => setShowSettings(false)}
             />
-            <div className="absolute top-14 right-4 w-48 bg-[#1F2937] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[30] animate-in slide-in-from-top-2 fade-in duration-200">
+            <div className="absolute top-14 right-4 w-52 bg-[#1F2937] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[30] animate-in slide-in-from-top-2 fade-in duration-200">
+              <button
+                onClick={() => {
+                  togglePrivacy();
+                  setShowSettings(false);
+                }}
+                className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2 justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  <span>Private Account</span>
+                </div>
+                <div className={`w-8 h-4 rounded-full relative transition-colors ${user.isPrivate ? "bg-indigo-500" : "bg-gray-600"}`}>
+                  <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-transform ${user.isPrivate ? "left-4.5" : "left-0.5"}`} style={{ left: user.isPrivate ? '18px' : '2px' }} />
+                </div>
+              </button>
+
               <button
                 onClick={() => {
                   setShowEdit(true);

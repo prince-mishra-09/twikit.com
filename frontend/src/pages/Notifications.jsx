@@ -26,6 +26,30 @@ const Notifications = () => {
         }
     }
 
+    const acceptRequest = async (id, notificationId) => {
+        try {
+            await axios.post(`/api/user/accept-request/${id}`);
+            setNotifications(prev => prev.map(n =>
+                n._id === notificationId ? { ...n, actionRequired: false } : n
+            ));
+            toast.success("Request Accepted");
+        } catch (error) {
+            toast.error("Something went wrong");
+        }
+    };
+
+    const rejectRequest = async (id, notificationId) => {
+        try {
+            await axios.post(`/api/user/reject-request/${id}`);
+            setNotifications(prev => prev.map(n =>
+                n._id === notificationId ? { ...n, actionRequired: false } : n
+            ));
+            toast.success("Request Rejected");
+        } catch (error) {
+            toast.error("Something went wrong");
+        }
+    };
+
     const getNotificationMessage = (type) => {
         switch (type) {
             case "like":
@@ -34,6 +58,8 @@ const Notifications = () => {
                 return "commented on your post";
             case "follow":
                 return "started following you";
+            case "follow_request":
+                return "sent you a follow request";
             case "message":
                 return "sent you a new message";
             default:
@@ -88,6 +114,23 @@ const Notifications = () => {
                                     <p className="text-xs text-gray-500 mt-1">
                                         {format(new Date(n.createdAt), "MMM do, h:mm a")}
                                     </p>
+
+                                    {n.type === "follow_request" && n.actionRequired && (
+                                        <div className="flex gap-3 mt-3">
+                                            <button
+                                                onClick={() => acceptRequest(n.sender._id, n._id)}
+                                                className="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-indigo-500 transition-colors"
+                                            >
+                                                Accept
+                                            </button>
+                                            <button
+                                                onClick={() => rejectRequest(n.sender._id, n._id)}
+                                                className="bg-gray-700 text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-gray-600 transition-colors"
+                                            >
+                                                Reject
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {n.postId && (

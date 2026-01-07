@@ -57,6 +57,22 @@ const userSchema = new mongoose.Schema({
       ref: "User"
     }
   ],
+  isPrivate: {
+    type: Boolean,
+    default: false,
+  },
+  followRequests: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    }
+  ],
+  blockedUsers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    }
+  ],
 }, {
   timestamps: true
 });

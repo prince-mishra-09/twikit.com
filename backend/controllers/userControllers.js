@@ -46,6 +46,7 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
     });
 
   if (user.followers.includes(loggedInUser._id)) {
+    // UNFOLLOW LOGIC (Always allowed)
     const indexFollowing = loggedInUser.followings.indexOf(user._id);
     const indexFollower = user.followers.indexOf(loggedInUser._id);
 
@@ -59,6 +60,30 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
       message: "User Unfollowed",
     });
   } else {
+    // FOLLOW LOGIC
+    // Check if request already sent
+    if (user.followRequests.includes(loggedInUser._id)) {
+      return res.status(400).json({ message: "Request already sent" });
+    }
+
+    if (user.isPrivate) {
+      // PRIVATE ACCOUNT: Send Request
+      user.followRequests.push(loggedInUser._id);
+      await user.save();
+
+      const notification = await Notification.create({
+        receiver: user._id,
+        sender: loggedInUser._id,
+        type: "follow_request",
+        actionRequired: true,
+      });
+
+      io.to(user._id.toString()).emit("notification:new", notification);
+
+      return res.json({ message: "Follow Request Sent" });
+    }
+
+    // PUBLIC ACCOUNT: Follow directly
     loggedInUser.followings.push(user._id);
     user.followers.push(loggedInUser._id);
 
@@ -184,4 +209,84 @@ export const getSavedPosts = tryCatch(async (req, res) => {
   const savedPosts = user.savedPosts.reverse();
 
   res.json(savedPosts);
+});
+
+export const acceptFollowRequest = tryCatch(async (req, res) => {
+  const userId = req.params.id; // The user who sent the request
+  const loggedInUser = await User.findById(req.user._id); // The receiver (me)
+  const sender = await User.findById(userId);
+
+  if (!sender) return res.status(404).json({ message: "User not found" });
+
+  // Remove from requests
+  if (loggedInUser.followRequests.includes(sender._id)) {
+    const index = loggedInUser.followRequests.indexOf(sender._id);
+    loggedInUser.followRequests.splice(index, 1);
+  }
+
+  // Add to followers/following
+  loggedInUser.followers.push(sender._id);
+  sender.followings.push(loggedInUser._id);
+
+  await loggedInUser.save();
+  await sender.save();
+
+  // Update Notification & Emit Update
+  const requestNotification = await Notification.findOneAndUpdate(
+    { sender: sender._id, receiver: loggedInUser._id, type: "follow_request" },
+    { actionRequired: false, isRead: true },
+    { new: true }
+  );
+
+  if (requestNotification) {
+    io.to(loggedInUser._id.toString()).emit("notification:update", requestNotification);
+  }
+
+  // Notify Sender that request was accepted
+  const notification = await Notification.create({
+    receiver: sender._id,
+    sender: loggedInUser._id,
+    type: "follow",
+    isRead: false
+  });
+  io.to(sender._id.toString()).emit("notification:new", notification);
+
+  res.json({ message: "Request Accepted" });
+});
+
+export const rejectFollowRequest = tryCatch(async (req, res) => {
+  const userId = req.params.id;
+  const loggedInUser = await User.findById(req.user._id);
+
+  // Remove from requests
+  if (loggedInUser.followRequests.includes(userId)) {
+    const index = loggedInUser.followRequests.indexOf(userId);
+    loggedInUser.followRequests.splice(index, 1);
+    await loggedInUser.save();
+  }
+
+  // Update Notification & Emit Update
+  const requestNotification = await Notification.findOneAndUpdate(
+    { sender: userId, receiver: loggedInUser._id, type: "follow_request" },
+    { actionRequired: false, isRead: true },
+    { new: true }
+  );
+
+  if (requestNotification) {
+    io.to(loggedInUser._id.toString()).emit("notification:update", requestNotification);
+  }
+
+  res.json({ message: "Request Rejected" });
+});
+
+export const togglePrivacy = tryCatch(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  user.isPrivate = !user.isPrivate;
+  await user.save();
+
+  res.json({
+    message: user.isPrivate ? "Account is now Private" : "Account is now Public",
+    isPrivate: user.isPrivate
+  });
 });

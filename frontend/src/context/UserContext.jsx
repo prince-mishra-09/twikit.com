@@ -153,6 +153,16 @@ export const UserContextProvider = ({ children }) => {
     }
   }
 
+  async function togglePrivacy() {
+    try {
+      const { data } = await axios.put("/api/user/privacy");
+      toast.success(data.message);
+      fetchUser();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  }
+
   useEffect(() => {
     fetchUser();
   }, []);
@@ -175,7 +185,9 @@ export const UserContextProvider = ({ children }) => {
         hidePost,
         hidePost,
         muteUser,
+        muteUser,
         unmuteUser,
+        togglePrivacy,
       }}
     >
       {children}

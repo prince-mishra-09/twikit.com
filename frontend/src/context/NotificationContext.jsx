@@ -49,8 +49,15 @@ export const NotificationProvider = ({ children }) => {
                 toast.success(`${newNotification.sender?.name || "Someone"} ${newNotification.type === "like" ? "liked" : "commented on"} your post`);
             });
 
+            socket.on("notification:update", (updatedNotification) => {
+                setNotifications((prev) =>
+                    prev.map((n) => n._id === updatedNotification._id ? { ...n, ...updatedNotification } : n)
+                );
+            });
+
             return () => {
                 socket.off("notification:new");
+                socket.off("notification:update");
             };
         }
     }, [socket]);

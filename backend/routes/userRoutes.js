@@ -9,6 +9,9 @@ import {
   updatePassword,
   searchUsers,
   getSavedPosts,
+  acceptFollowRequest,
+  rejectFollowRequest,
+  togglePrivacy,
 } from "../controllers/userControllers.js";
 import uploadFile from "../middlewares/multer.js";
 
@@ -22,6 +25,9 @@ router.get("/me", isAuth, myProfile);
 router.get("/saved", isAuth, getSavedPosts);
 router.post("/follow/:id", isAuth, followAndUnfollowUser);
 router.get("/followdata/:id", isAuth, userFollowerandFollowingData);
+router.post("/accept-request/:id", isAuth, acceptFollowRequest);
+router.post("/reject-request/:id", isAuth, rejectFollowRequest);
+router.put("/privacy", isAuth, togglePrivacy);
 
 /* ================= ID BASED (ALWAYS LAST) ================= */
 router.get("/:id", isAuth, userProfile);
