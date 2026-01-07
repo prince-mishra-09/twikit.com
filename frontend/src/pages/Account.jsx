@@ -214,14 +214,20 @@ const Account = ({ user }) => {
         >
           Reels
         </button>
+        <button
+          onClick={() => setType("saved")}
+          className={type === "saved" ? "text-indigo-400" : "text-gray-400"}
+        >
+          Saved
+        </button>
       </div>
 
       {/* Content */}
       {type === "post" &&
         (myPosts?.length
           ? myPosts.map((e) => (
-              <PostCard type="post" value={e} key={e._id} />
-            ))
+            <PostCard type="post" value={e} key={e._id} />
+          ))
           : <p className="text-gray-500">No posts yet</p>)}
 
       {type === "reel" &&
@@ -242,6 +248,27 @@ const Account = ({ user }) => {
             </div>
           </div>
         ) : <p className="text-gray-500">No reels yet</p>)}
+
+      {type === "saved" &&
+        (user.savedPosts?.length ? (
+          <div className="grid grid-cols-1 gap-4 w-full">
+            {/* We need to fetch the actual post details if user.savedPosts is only IDs, 
+                 but our backend User model populate might handle it? 
+                 The plan said we'd make a separate API call or rely on user context populate.
+                 Let's check if UserContext populates savedPosts. 
+                 
+                 Actually, looking at `getSavedPosts` controller, it returns POPULATED posts.
+                 But the `user` object in `UserData` might just have IDs if `me` endpoint isn't updated to populate deeply.
+                 
+                 Let's check `userControllers.js` -> `myProfile`. 
+                 It does `await User.findById(req.user._id).select("-password")`. 
+                 It DOES NOT populate savedPosts deep details, only IDs (since it's in the schema).
+                 
+                 So we should fetch saved posts when this tab is active.
+             */}
+            <SavedPosts />
+          </div>
+        ) : <p className="text-gray-500">No saved posts yet</p>)}
     </div>
   );
 };

@@ -167,3 +167,19 @@ export const searchUsers = tryCatch(async (req, res) => {
 });
 
 
+
+export const getSavedPosts = tryCatch(async (req, res) => {
+  const user = await User.findById(req.user._id).populate({
+    path: "savedPosts",
+    populate: {
+      path: "owner",
+      select: "-password",
+    },
+  });
+
+  // Since savedPosts is an array, we might want to reverse it to show newest saved first,
+  // or depending on how they were pushed. Pushing adds to end, so reverse for LIFO.
+  const savedPosts = user.savedPosts.reverse();
+
+  res.json(savedPosts);
+});

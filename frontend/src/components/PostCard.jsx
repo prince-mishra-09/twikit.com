@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { BsChatFill, BsThreeDotsVertical } from "react-icons/bs";
+import { BsChatFill, BsThreeDotsVertical, BsBookmark, BsBookmarkFill } from "react-icons/bs";
 import { IoHeartOutline, IoHeartSharp } from "react-icons/io5";
 import { UserData } from "../context/UserContext";
 import { PostData } from "../context/PostContext";
@@ -10,7 +10,7 @@ import { MdDelete } from "react-icons/md";
 import { SocketData } from "../context/SocketContext";
 
 const PostCard = ({ type, value, isActive }) => {
-  const { user, followUser } = UserData();
+  const { user, followUser, savePost } = UserData();
   const { likePost, addComment, deletePost, deleteComment } = PostData();
 
   const [isLike, setIsLike] = useState(false);
@@ -18,6 +18,7 @@ const PostCard = ({ type, value, isActive }) => {
   const [showImage, setShowImage] = useState(false);
   const [comment, setComment] = useState("");
   const [expanded, setExpanded] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   // Comment Delete State
   const [deleteModal, setDeleteModal] = useState({ show: false, commentId: null });
@@ -76,8 +77,9 @@ const PostCard = ({ type, value, isActive }) => {
   useEffect(() => {
     if (user && value.owner) {
       setIsFollowed(user.followings?.includes(value.owner._id));
+      setIsSaved(user.savedPosts?.includes(value._id));
     }
-  }, [user, value.owner]);
+  }, [user, value.owner, value._id]);
 
   /* ===== AUTOPLAY REEL ===== */
   useEffect(() => {
@@ -115,6 +117,11 @@ const PostCard = ({ type, value, isActive }) => {
   const followHandler = async () => {
     setIsFollowed(!isFollowed); // Optimistic update
     await followUser(value.owner._id);
+  };
+
+  const saveHandler = async () => {
+    setIsSaved(!isSaved); // Optimistic update
+    await savePost(value._id);
   };
 
   const { onlineUsers } = SocketData();
@@ -180,6 +187,13 @@ const PostCard = ({ type, value, isActive }) => {
               <BsChatFill />
             </button>
             <span className="text-white text-xs font-medium drop-shadow-md">{value.comments.length}</span>
+          </div>
+
+          {/* SAVE */}
+          <div className="flex flex-col items-center gap-1">
+            <button onClick={saveHandler} className="text-3xl drop-shadow-lg transition-transform active:scale-95">
+              {isSaved ? <BsBookmarkFill className="text-white" /> : <BsBookmark className="text-white" />}
+            </button>
           </div>
 
           {/* DELETE (if owner) */}
@@ -382,6 +396,16 @@ const PostCard = ({ type, value, isActive }) => {
               <BsChatFill className="text-white" />
             </button>
             <span className="text-white font-semibold text-sm">{value.comments.length}</span>
+          </div>
+
+          {/* Bookmark Group */}
+          <div className="flex items-center gap-2 ml-auto">
+            <button
+              onClick={saveHandler}
+              className="text-2xl transition-transform active:scale-75"
+            >
+              {isSaved ? <BsBookmarkFill className="text-white" /> : <BsBookmark className="text-white" />}
+            </button>
           </div>
         </div>
 

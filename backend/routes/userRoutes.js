@@ -8,6 +8,7 @@ import {
   updateProfile,
   updatePassword,
   searchUsers,
+  getSavedPosts,
 } from "../controllers/userControllers.js";
 import uploadFile from "../middlewares/multer.js";
 
@@ -18,6 +19,7 @@ router.get("/all", isAuth, searchUsers);
 
 /* ================= PROTECTED ================= */
 router.get("/me", isAuth, myProfile);
+router.get("/saved", isAuth, getSavedPosts);
 router.post("/follow/:id", isAuth, followAndUnfollowUser);
 router.get("/followdata/:id", isAuth, userFollowerandFollowingData);
 

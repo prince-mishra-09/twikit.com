@@ -1,4 +1,5 @@
 import { Post } from "../models/postModel.js";
+import User from "../models/userModel.js";
 import TryCatch from "../utils/tryCatch.js";
 import getDataUrl from "../utils/urlGenerator.js";
 import cloudinary from "cloudinary";
@@ -275,3 +276,35 @@ export const getRandomPosts = async (req, res) => {
 
     res.json(posts);
 };
+// ... existing exports
+
+export const saveUnsavePost = TryCatch(async (req, res) => {
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+        return res.status(404).json({
+            message: "No Post with this id",
+        });
+    }
+
+    const user = await User.findById(req.user._id);
+
+    if (user.savedPosts.includes(post._id)) {
+        // Unsave
+        const index = user.savedPosts.indexOf(post._id);
+        user.savedPosts.splice(index, 1);
+        await user.save();
+
+        res.json({
+            message: "Post Unsaved",
+        });
+    } else {
+        // Save
+        user.savedPosts.push(post._id);
+        await user.save();
+
+        res.json({
+            message: "Post Saved",
+        });
+    }
+});
