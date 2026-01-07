@@ -102,7 +102,19 @@ export const getAllPosts = TryCatch(async (req, res) => {
             select: "-password",
         });
 
-    res.json({ posts, reels });
+    const filterPosts = (items) => {
+        return items.filter(item => {
+            if (item.owner._id.toString() === req.user._id.toString()) return true;
+            if (!item.owner.isPrivate) return true;
+            if (item.owner.followers.includes(req.user._id)) return true;
+            return false;
+        });
+    };
+
+    res.json({
+        posts: filterPosts(posts),
+        reels: filterPosts(reels)
+    });
 });
 
 export const likeUnlikePost = TryCatch(async (req, res) => {

@@ -60,13 +60,18 @@ export const NotificationProvider = ({ children }) => {
 
             socket.on("notification:update", (updatedNotification) => {
                 setNotifications((prev) =>
-                    prev.map((n) => n._id === updatedNotification._id ? { ...n, ...updatedNotification } : n)
+                    prev.map((n) => (n._id === updatedNotification._id ? updatedNotification : n))
                 );
+            });
+
+            socket.on("notification:delete", (notificationId) => {
+                setNotifications((prev) => prev.filter((n) => n._id !== notificationId));
             });
 
             return () => {
                 socket.off("notification:new");
                 socket.off("notification:update");
+                socket.off("notification:delete");
             };
         }
     }, [socket]);

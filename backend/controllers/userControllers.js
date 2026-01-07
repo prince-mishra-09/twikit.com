@@ -78,6 +78,8 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
         actionRequired: true,
       });
 
+      await notification.populate("sender", "name profilePic");
+
       io.to(user._id.toString()).emit("notification:new", notification);
 
       return res.json({ message: "Follow Request Sent" });
@@ -238,7 +240,7 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
   // Update Notification & Emit Update
   const requestNotification = await Notification.findOneAndUpdate(
     { sender: sender._id, receiver: loggedInUser._id, type: "follow_request" },
-    { actionRequired: false, isRead: true },
+    { type: "follow", actionRequired: false, isRead: true },
     { new: true }
   ).populate("sender", "name profilePic");
 
@@ -253,6 +255,9 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
     type: "request_accepted",
     isRead: false
   });
+
+  await notification.populate("sender", "name profilePic");
+
   io.to(sender._id.toString()).emit("notification:new", notification);
 
   // Real-time Follow Update for Receiever (Me)
@@ -282,14 +287,14 @@ export const rejectFollowRequest = tryCatch(async (req, res) => {
   }
 
   // Update Notification & Emit Update
-  const requestNotification = await Notification.findOneAndUpdate(
-    { sender: userId, receiver: loggedInUser._id, type: "follow_request" },
-    { actionRequired: false, isRead: true },
-    { new: true }
-  );
+  const requestNotification = await Notification.findOneAndDelete({
+    sender: userId,
+    receiver: loggedInUser._id,
+    type: "follow_request"
+  });
 
   if (requestNotification) {
-    io.to(loggedInUser._id.toString()).emit("notification:update", requestNotification);
+    io.to(loggedInUser._id.toString()).emit("notification:delete", requestNotification._id);
   }
 
   res.json({ message: "Request Rejected" });
