@@ -3,12 +3,14 @@ import { toast } from "react-hot-toast";
 import { createContext, useContext, useEffect, useState } from "react";
 import { SocketData } from "./SocketContext";
 import { UserData } from "./UserContext";
+import { useNavigate } from "react-router-dom"; // Added this import
 
 const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
     const { socket } = SocketData();
     const { user, isAuth } = UserData();
+    const navigate = useNavigate(); // Added this line
 
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);

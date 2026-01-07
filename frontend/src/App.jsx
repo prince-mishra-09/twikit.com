@@ -43,7 +43,8 @@ function App() {
   return (
     <>
       <Toaster position="top-center" />
-      {loading ? <Loading /> : <NotificationProvider><BrowserRouter>
+      <Toaster position="top-center" />
+      {loading ? <Loading /> : <BrowserRouter><NotificationProvider>
         <Routes>
           <Route path="/landing" element={<TwikitLanding />} />
           <Route path="/" element={isAuth ? <Home /> : <Login />} />
@@ -60,7 +61,7 @@ function App() {
 
         </Routes>
         {isAuth && <NavigationBar />}
-      </BrowserRouter></NotificationProvider>}
+      </NotificationProvider></BrowserRouter>}
     </>
   );
 }

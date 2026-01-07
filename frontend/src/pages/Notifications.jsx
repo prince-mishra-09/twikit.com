@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 
 const Notifications = () => {
     const navigate = useNavigate();
-    const { notifications, fetchNotifications, loading, setUnreadCount } =
+    const { notifications, setNotifications, fetchNotifications, loading, setUnreadCount } =
         NotificationData();
 
     useEffect(() => {
