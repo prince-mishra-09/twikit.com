@@ -204,7 +204,7 @@ export const UserContextProvider = ({ children }) => {
     try {
       const register = await navigator.serviceWorker.register("/sw.js");
 
-      const publicVapidKey = "BC5WLMAjdh2ycT8fVGr_tBDXddGq2EpwXstfRo4tUN4uphV8VXY"; // Generated Key
+      const publicVapidKey = "BDEaakozjRUhtyPzgDajIBVFpiXIQBi36jcO3rmiyRXEIDk8DmRxRrUi7VNI0mi9NQ6r_i_Hq_K5rJD0HlNQhl8"; // Generated Key
 
       const subscription = await register.pushManager.subscribe({
         userVisibleOnly: true,
