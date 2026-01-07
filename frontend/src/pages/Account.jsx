@@ -257,6 +257,7 @@ const Account = ({ user }) => {
 const SavedPosts = () => {
   const [savedPosts, setSavedPosts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [activePostId, setActivePostId] = useState(null);
 
   useEffect(() => {
     async function fetchSaved() {
@@ -273,12 +274,36 @@ const SavedPosts = () => {
     fetchSaved();
   }, []);
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActivePostId(entry.target.id);
+          }
+        });
+      },
+      { threshold: 0.6 }
+    );
+
+    const elements = document.querySelectorAll(".saved-post-container");
+    elements.forEach((el) => observer.observe(el));
+
+    return () => {
+      elements.forEach((el) => observer.unobserve(el));
+    };
+  }, [savedPosts]);
+
   if (loading) return <Loading />;
 
   return (
     <div className="grid grid-cols-1 gap-4 w-full">
       {savedPosts && savedPosts.length > 0 ? (
-        savedPosts.map((e) => <PostCard type="post" value={e} key={e._id} />)
+        savedPosts.map((e) => (
+          <div key={e._id} id={e._id} className="saved-post-container">
+            <PostCard type={e.type} value={e} isActive={activePostId === e._id} />
+          </div>
+        ))
       ) : (
         <p className="text-gray-500 text-center mt-4">No saved posts yet</p>
       )}
