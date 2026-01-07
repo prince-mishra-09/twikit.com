@@ -5,6 +5,7 @@ import getDataUrl from "../utils/urlGenerator.js";
 import cloudinary from "cloudinary";
 import { io } from "../socket/socket.js";
 import { Notification } from "../models/Notification.js";
+import { sendPushNotification } from "./notificationController.js";
 
 export const newPost = TryCatch(async (req, res) => {
     //     console.log("req.file:", req.file);
@@ -207,6 +208,14 @@ export const likeUnlikePost = TryCatch(async (req, res) => {
         await notification.populate("sender", "name profilePic");
         await notification.populate("postId", "post");
         io.to(post.owner.toString()).emit("notification:new", notification);
+
+        // SEND PUSH NOTIFICATION
+        console.log("Sending Push Notification for Like...");
+        await sendPushNotification(post.owner, {
+            title: "New Like",
+            body: `${req.user.name} liked your post`,
+            url: `/post/${post._id}`,
+        });
     }
 
     res.json({
@@ -255,6 +264,14 @@ export const commentonPost = TryCatch(async (req, res) => {
         await notification.populate("sender", "name profilePic");
         await notification.populate("postId", "post");
         io.to(post.owner.toString()).emit("notification:new", notification);
+
+        // SEND PUSH NOTIFICATION
+        console.log("Sending Push Notification for Comment...");
+        await sendPushNotification(post.owner, {
+            title: "New Comment",
+            body: `${req.user.name} commented on your post`,
+            url: `/post/${post._id}`,
+        });
     }
 
     res.json({

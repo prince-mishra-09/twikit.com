@@ -3,6 +3,7 @@ import { Messages } from "../models/messagesModel.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
 import { Notification } from "../models/Notification.js";
 import TryCatch from "../utils/tryCatch.js";
+import { sendPushNotification } from "./notificationController.js";
 
 export const sendMessage = TryCatch(async (req, res) => {
   const { recieverId, message } = req.body;
@@ -65,6 +66,13 @@ export const sendMessage = TryCatch(async (req, res) => {
   //   messageId: newMessage._id,
   // });
   // io.to(recieverId.toString()).emit("notification:new", notification);
+
+  // SEND PUSH NOTIFICATION
+  await sendPushNotification(recieverId, {
+    title: "New Message",
+    body: `New message from ${req.user.name}`,
+    url: `/chat/${chat._id}`,
+  });
 
   res.status(201).json(newMessage);
 });
