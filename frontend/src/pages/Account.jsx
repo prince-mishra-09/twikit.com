@@ -14,7 +14,7 @@ import { FiEdit2 } from "react-icons/fi";
 
 const Account = ({ user }) => {
   const navigate = useNavigate();
-  const { logoutUser, updateProfilePic, updateProfileName, unmuteUser, togglePrivacy } = UserData();
+  const { logoutUser, updateProfilePic, updateProfileName, unmuteUser, togglePrivacy, removeFollower, user: loggedInUser } = UserData();
   const { posts, reels, loading } = PostData();
 
   const myPosts = posts?.filter((p) => p.owner._id === user._id);
@@ -64,6 +64,17 @@ const Account = ({ user }) => {
     setFollowingsData(data.followings);
   }
 
+  const removeHandler = async (id) => {
+    // Optimistic Update
+    setFollowersData(prev => prev.filter(p => p._id !== id));
+
+    // API Call
+    const success = await removeFollower(id);
+
+    // Revert if failed (optional, but good UX)
+    if (!success) followData();
+  };
+
   useEffect(() => {
     followData();
   }, [user]);
@@ -88,8 +99,8 @@ const Account = ({ user }) => {
 
   return (
     <div className="min-h-screen bg-[#0B0F14] flex flex-col items-center gap-6 pb-24 px-3">
-
-      {show && <Modal value={followersData} title="Followers" setShow={setShow} />}
+      {/* Pass remove handler only if it's my own profile */}
+      {show && <Modal value={followersData} title="Followers" setShow={setShow} onRemove={user._id === loggedInUser._id ? removeHandler : null} />}
       {show1 && <Modal value={followingsData} title="Following" setShow={setShow1} />}
       {showMuted && (
         <div className="fixed inset-0 z-[50] w-full h-full bg-black/60 backdrop-blur-sm flex items-center justify-center">

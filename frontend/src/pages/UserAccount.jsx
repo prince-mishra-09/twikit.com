@@ -44,12 +44,18 @@ const UserAccount = ({ user: loggedInUser }) => {
     index !== myReels.length - 1 && setIndex(index + 1);
 
   const [followed, setFollowed] = useState(false);
+  const [requested, setRequested] = useState(false);
 
   useEffect(() => {
     if (user?.followers?.includes(loggedInUser._id)) {
       setFollowed(true);
+      setRequested(false);
+    } else if (user?.followRequests?.includes(loggedInUser._id)) {
+      setRequested(true);
+      setFollowed(false);
     } else {
       setFollowed(false);
+      setRequested(false);
     }
   }, [user, loggedInUser._id]);
 
@@ -76,9 +82,35 @@ const UserAccount = ({ user: loggedInUser }) => {
     }
   }, [socket, user?._id]); // improved dependency to user._id
 
-  const followHandler = () => {
-    setFollowed(!followed);
-    followUser(user._id);
+  const followHandler = async () => {
+    // Optimistic Logic
+    if (followed) {
+      setFollowed(false);
+      setRequested(false);
+    } else if (requested) {
+      setRequested(false);
+      setFollowed(false);
+    } else {
+      if (user.isPrivate) {
+        setRequested(true);
+      } else {
+        setFollowed(true);
+      }
+    }
+
+    const message = await followUser(user._id);
+
+    // Status Logic based on backend message
+    if (message === "Follow Request Sent") {
+      setRequested(true);
+      setFollowed(false);
+    } else if (message === "User Followed") {
+      setFollowed(true);
+      setRequested(false);
+    } else if (message === "User Unfollowed") {
+      setFollowed(false);
+      setRequested(false);
+    }
   };
 
   const [show, setShow] = useState(false);
@@ -164,10 +196,10 @@ const UserAccount = ({ user: loggedInUser }) => {
         {user._id !== loggedInUser._id && (
           <button
             onClick={followHandler}
-            className={`mt-4 w-full py-2 rounded-lg text-white ${followed ? "bg-red-500" : "bg-indigo-500"
+            className={`mt-4 w-full py-2 rounded-lg text-white ${followed ? "bg-red-500" : requested ? "bg-gray-600" : "bg-indigo-500"
               }`}
           >
-            {followed ? "Unfollow" : "Follow"}
+            {followed ? "Unfollow" : requested ? "Requested" : "Follow"}
           </button>
         )}
       </div>

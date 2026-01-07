@@ -10,11 +10,11 @@ const registerUser = tryCatch(async (req, res) => {
 
     const file = req.file;
 
-if (!file) {
-  return res.status(400).json({
-    message: "Profile image is required",
-  });
-}
+    if (!file) {
+        return res.status(400).json({
+            message: "Profile image is required",
+        });
+    }
 
 
     let user = await User.findOne({ email });
@@ -55,13 +55,9 @@ export default registerUser
 
 
 export const loginUser = tryCatch(async (req, res) => {
-
     const { email, password } = req.body
 
     const user = await User.findOne({ email })
-    // console.log(req.body);
-    // console.log(req.headers["content-type"]);
-    // console.log(req.file);
 
     if (!user) return res.status(404).json({
         message: "wrong credential",
@@ -83,13 +79,13 @@ export const loginUser = tryCatch(async (req, res) => {
 })
 
 export const logoutUser = tryCatch((req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: false,
-  });
+    res.clearCookie("token", {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: false,
+    });
 
-  res.json({
-    message: "logout successfully",
-  });
+    res.json({
+        message: "logout successfully",
+    });
 });

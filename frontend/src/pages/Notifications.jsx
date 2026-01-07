@@ -6,6 +6,7 @@ import { FaArrowLeft } from "react-icons/fa6";
 import { format } from "date-fns";
 import axios from "axios";
 import { Loading } from "../components/Loading";
+import toast from "react-hot-toast";
 
 const Notifications = () => {
     const navigate = useNavigate();
@@ -30,23 +31,21 @@ const Notifications = () => {
         try {
             await axios.post(`/api/user/accept-request/${id}`);
             setNotifications(prev => prev.map(n =>
-                n._id === notificationId ? { ...n, actionRequired: false } : n
+                n._id === notificationId ? { ...n, type: "follow", actionRequired: false } : n
             ));
             toast.success("Request Accepted");
         } catch (error) {
-            toast.error("Something went wrong");
+            toast.error(error.response?.data?.message || "Something went wrong");
         }
     };
 
     const rejectRequest = async (id, notificationId) => {
         try {
             await axios.post(`/api/user/reject-request/${id}`);
-            setNotifications(prev => prev.map(n =>
-                n._id === notificationId ? { ...n, actionRequired: false } : n
-            ));
+            setNotifications(prev => prev.filter(n => n._id !== notificationId));
             toast.success("Request Rejected");
         } catch (error) {
-            toast.error("Something went wrong");
+            toast.error(error.response?.data?.message || "Something went wrong");
         }
     };
 
@@ -96,7 +95,7 @@ const Notifications = () => {
                             >
                                 <Link to={`/user/${n.sender._id}`} className="shrink-0">
                                     <img
-                                        src={n.sender.profilePic.url}
+                                        src={n.sender?.profilePic?.url || "https://cdn-icons-png.flaticon.com/512/1077/1077114.png"}
                                         alt=""
                                         className="w-10 h-10 rounded-full object-cover border border-white/10"
                                     />
@@ -135,7 +134,7 @@ const Notifications = () => {
 
                                 {n.postId && (
                                     <Link to={`/post/${n.postId._id || n.postId}`}>
-                                        {n.postId.post && n.postId.post.url ? (
+                                        {n.postId?.post?.url ? (
                                             n.postId.type === 'reel' ? (
                                                 <video src={n.postId.post.url} className="w-10 h-10 rounded-lg object-cover border border-white/10" />
                                             ) : (

@@ -3,15 +3,16 @@ import tryCatch from "../utils/tryCatch.js";
 import bcrypt from 'bcrypt'
 import getDataUrl from "../utils/urlGenerator.js";
 import cloudinary from "cloudinary";
+import { Notification } from "../models/Notification.js";
+import { io } from "../socket/socket.js";
 
 export const myProfile = tryCatch(async (req, res) => {
   const user = await User.findById(req.user._id)
     .select("-password")
     .populate("mutedUsers", "name profilePic");
-  // console.log(req.user);
 
-  res.json(user)
-})
+  res.json(user);
+});
 
 export const userProfile = async (req, res) => {
   if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
@@ -28,8 +29,7 @@ export const userProfile = async (req, res) => {
 
 
 
-import { io } from "../socket/socket.js";
-import { Notification } from "../models/Notification.js";
+
 
 export const followAndUnfollowUser = tryCatch(async (req, res) => {
   const user = await User.findById(req.params.id);
@@ -225,8 +225,12 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
   }
 
   // Add to followers/following
-  loggedInUser.followers.push(sender._id);
-  sender.followings.push(loggedInUser._id);
+  if (!loggedInUser.followers.includes(sender._id)) {
+    loggedInUser.followers.push(sender._id);
+  }
+  if (!sender.followings.includes(loggedInUser._id)) {
+    sender.followings.push(loggedInUser._id);
+  }
 
   await loggedInUser.save();
   await sender.save();
@@ -250,6 +254,18 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
     isRead: false
   });
   io.to(sender._id.toString()).emit("notification:new", notification);
+
+  // Real-time Follow Update for Receiever (Me)
+  io.to(loggedInUser._id.toString()).emit("userFollowed", {
+    followerId: sender._id,
+    followingId: loggedInUser._id,
+  });
+
+  // Real-time Follow Update for Sender (Them)
+  io.to(sender._id.toString()).emit("userFollowed", {
+    followerId: sender._id,
+    followingId: loggedInUser._id,
+  });
 
   res.json({ message: "Request Accepted" });
 });
@@ -289,4 +305,27 @@ export const togglePrivacy = tryCatch(async (req, res) => {
     message: user.isPrivate ? "Account is now Private" : "Account is now Public",
     isPrivate: user.isPrivate
   });
+});
+
+export const removeFollower = tryCatch(async (req, res) => {
+  const user = await User.findById(req.user._id); // Me
+  const followerToRemove = await User.findById(req.params.id); // The person following me
+
+  if (!followerToRemove) return res.status(404).json({ message: "User not found" });
+
+  // Remove from my followers
+  if (user.followers.includes(followerToRemove._id)) {
+    const index = user.followers.indexOf(followerToRemove._id);
+    user.followers.splice(index, 1);
+    await user.save();
+  }
+
+  // Remove me from their followings
+  if (followerToRemove.followings.includes(user._id)) {
+    const index = followerToRemove.followings.indexOf(user._id);
+    followerToRemove.followings.splice(index, 1);
+    await followerToRemove.save();
+  }
+
+  res.json({ message: "Follower Removed" });
 });

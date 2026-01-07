@@ -12,6 +12,7 @@ import {
   acceptFollowRequest,
   rejectFollowRequest,
   togglePrivacy,
+  removeFollower,
 } from "../controllers/userControllers.js";
 import uploadFile from "../middlewares/multer.js";
 
@@ -28,6 +29,7 @@ router.get("/followdata/:id", isAuth, userFollowerandFollowingData);
 router.post("/accept-request/:id", isAuth, acceptFollowRequest);
 router.post("/reject-request/:id", isAuth, rejectFollowRequest);
 router.put("/privacy", isAuth, togglePrivacy);
+router.delete("/follower/:id", isAuth, removeFollower);
 
 /* ================= ID BASED (ALWAYS LAST) ================= */
 router.get("/:id", isAuth, userProfile);
