@@ -21,11 +21,33 @@ const Account = ({ user }) => {
   const myReels = reels?.filter((r) => r.owner._id === user._id);
 
   const [type, setType] = useState("post");
-  const [index, setIndex] = useState(0);
+  const [activeReelId, setActiveReelId] = useState(null);
 
-  const prevReel = () => index !== 0 && setIndex(index - 1);
-  const nextReel = () =>
-    index !== myReels.length - 1 && setIndex(index + 1);
+  useEffect(() => {
+    if (type !== "reel") return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveReelId(entry.target.id);
+          }
+        });
+      },
+      { threshold: 0.6 }
+    );
+
+    // Wait for DOM
+    setTimeout(() => {
+      const elements = document.querySelectorAll(".account-reel");
+      elements.forEach((el) => observer.observe(el));
+    }, 100);
+
+    return () => {
+      const elements = document.querySelectorAll(".account-reel");
+      elements.forEach((el) => observer.unobserve(el));
+    };
+  }, [type, myReels]);
 
   const [show, setShow] = useState(false);
   const [show1, setShow1] = useState(false);
@@ -258,20 +280,12 @@ const Account = ({ user }) => {
 
       {type === "reel" &&
         (myReels?.length ? (
-          <div className="flex gap-4 items-center">
-            <PostCard type="reel" value={myReels[index]} />
-            <div className="flex flex-col gap-4">
-              {index !== 0 && (
-                <button onClick={prevReel} className="p-3 bg-[#111827] rounded-full text-white">
-                  <FaArrowUp />
-                </button>
-              )}
-              {index !== myReels.length - 1 && (
-                <button onClick={nextReel} className="p-3 bg-[#111827] rounded-full text-white">
-                  <FaArrowDownLong />
-                </button>
-              )}
-            </div>
+          <div className="grid grid-cols-1 gap-6 w-full max-w-xl mx-auto pb-4">
+            {myReels.map((reel) => (
+              <div key={reel._id} id={reel._id} className="account-reel flex justify-center w-full aspect-[9/16] h-[80vh] bg-gray-900 rounded-lg overflow-hidden relative">
+                <PostCard type="reel" value={reel} isActive={activeReelId === reel._id} />
+              </div>
+            ))}
           </div>
         ) : <p className="text-gray-500">No reels yet</p>)}
 
