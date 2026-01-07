@@ -120,18 +120,20 @@ export const getAllPosts = TryCatch(async (req, res) => {
         });
     };
 
-    // Sanitize engagement (remove likes/comments from blocked users)
+    // Sanitize engagement (remove likes/comments from blocked users, and if blocked BY users)
     const sanitizeEngagement = (items) => {
+        const blockedIds = user.blockedUsers.map(id => id.toString());
+
         return items.map(item => {
             // Filter Likes
             if (item.likes && item.likes.length > 0) {
-                item.likes = item.likes.filter(id => !user.blockedUsers.includes(id));
+                item.likes = item.likes.filter(id => !blockedIds.includes(id.toString()));
             }
             // Filter Comments
             if (item.comments && item.comments.length > 0) {
                 item.comments = item.comments.filter(comment => {
-                    const commentUserId = comment.user._id || comment.user;
-                    return !user.blockedUsers.includes(commentUserId);
+                    const commentUserId = comment.user._id ? comment.user._id.toString() : comment.user.toString();
+                    return !blockedIds.includes(commentUserId);
                 });
             }
             return item;
