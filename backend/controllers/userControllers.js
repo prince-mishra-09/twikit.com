@@ -1,5 +1,5 @@
 import User from "../models/userModel.js";
-import Notification from "../models/Notification.js";
+import { Notification } from "../models/Notification.js";
 import tryCatch from "../utils/tryCatch.js";
 import bcrypt from 'bcrypt'
 import getDataUrl from "../utils/urlGenerator.js";
