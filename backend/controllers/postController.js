@@ -86,10 +86,22 @@ export const getAllPosts = TryCatch(async (req, res) => {
     // Filter out posts from blocked users. 
     // We use the freshly fetched 'user' object to ensure we have the latest lists (muted, blocked, hidden).
 
+    // 0. Fetch users who have BLOCKED the current user ('blockedBy')
+    const blockedByUsers = await User.find({ blockedUsers: req.user._id }).distinct('_id');
+
+    // 1. Combine with users I have BLOCKED
+    const blockedUsers = user.blockedUsers || [];
+
+    // Create a Set of all hidden User IDs (both blocked and blockedBy)
+    const hiddenUserIds = [
+        ...blockedUsers.map(id => id.toString()),
+        ...blockedByUsers.map(id => id.toString())
+    ];
+
     const posts = await Post.find({
         type: "post",
         _id: { $nin: user.hiddenPosts },
-        owner: { $nin: [...user.mutedUsers, ...user.blockedUsers] }
+        owner: { $nin: [...user.mutedUsers, ...hiddenUserIds] }
     })
         .sort({ createdAt: -1 })
         .populate("owner", "-password")
@@ -98,11 +110,10 @@ export const getAllPosts = TryCatch(async (req, res) => {
             select: "-password",
         });
 
-    // Same logic for reels
     const reels = await Post.find({
         type: "reel",
         _id: { $nin: user.hiddenPosts },
-        owner: { $nin: [...user.mutedUsers, ...user.blockedUsers] }
+        owner: { $nin: [...user.mutedUsers, ...hiddenUserIds] }
     })
         .sort({ createdAt: -1 })
         .populate("owner", "-password")
