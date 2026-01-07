@@ -9,7 +9,8 @@ import { io } from "../socket/socket.js";
 export const myProfile = tryCatch(async (req, res) => {
   const user = await User.findById(req.user._id)
     .select("-password")
-    .populate("mutedUsers", "name profilePic");
+    .populate("mutedUsers", "name profilePic")
+    .populate("blockedUsers", "name profilePic");
 
   res.json(user);
 });
@@ -21,8 +22,17 @@ export const userProfile = async (req, res) => {
 
   const user = await User.findById(req.params.id).select("-password");
 
-  if (!user)
+  if (!user) return res.status(404).json({ message: "User Not Found" });
+
+  // CHECK BLOCK STATUS
+  // 1. If I blocked them
+  if (req.user.blockedUsers.includes(user._id)) {
     return res.status(404).json({ message: "User Not Found" });
+  }
+  // 2. If they blocked me
+  if (user.blockedUsers.includes(req.user._id)) {
+    return res.status(404).json({ message: "User Not Found" });
+  }
 
   res.json(user);
 };
@@ -189,7 +199,7 @@ export const searchUsers = tryCatch(async (req, res) => {
 
   const users = await User.find({
     name: { $regex: search, $options: "i" },
-    _id: { $ne: req.user._id },
+    _id: { $ne: req.user._id, $nin: req.user.blockedUsers },
   }).select("name profilePic");
 
   res.json(users);
@@ -208,7 +218,12 @@ export const getSavedPosts = tryCatch(async (req, res) => {
 
   // Since savedPosts is an array, we might want to reverse it to show newest saved first,
   // or depending on how they were pushed. Pushing adds to end, so reverse for LIFO.
-  const savedPosts = user.savedPosts.reverse();
+  let savedPosts = user.savedPosts.reverse();
+
+  // Filter out blocked users
+  savedPosts = savedPosts.filter((post) => {
+    return !req.user.blockedUsers.includes(post.owner._id.toString());
+  });
 
   res.json(savedPosts);
 });
@@ -333,4 +348,60 @@ export const removeFollower = tryCatch(async (req, res) => {
   }
 
   res.json({ message: "Follower Removed" });
+});
+
+export const blockUser = tryCatch(async (req, res) => {
+  const userToBlock = await User.findById(req.params.id);
+  const loggedInUser = await User.findById(req.user._id);
+
+  if (!userToBlock) return res.status(404).json({ message: "User not found" });
+
+  if (loggedInUser.blockedUsers.includes(userToBlock._id)) {
+    return res.status(400).json({ message: "User already blocked" });
+  }
+
+  // Atomically remove all relationships
+  // 1. Remove from followers/following
+  loggedInUser.followers = loggedInUser.followers.filter(id => id.toString() !== userToBlock._id.toString());
+  loggedInUser.followings = loggedInUser.followings.filter(id => id.toString() !== userToBlock._id.toString());
+
+  userToBlock.followers = userToBlock.followers.filter(id => id.toString() !== loggedInUser._id.toString());
+  userToBlock.followings = userToBlock.followings.filter(id => id.toString() !== loggedInUser._id.toString());
+
+  // 2. Remove Follow Requests
+  loggedInUser.followRequests = loggedInUser.followRequests.filter(id => id.toString() !== userToBlock._id.toString());
+  userToBlock.followRequests = userToBlock.followRequests.filter(id => id.toString() !== loggedInUser._id.toString());
+
+  // 3. Add to Blocked List 
+  loggedInUser.blockedUsers.push(userToBlock._id);
+
+  await loggedInUser.save();
+  await userToBlock.save();
+
+  // 4. Delete Notifications
+  await Notification.deleteMany({
+    $or: [
+      { sender: loggedInUser._id, receiver: userToBlock._id },
+      { sender: userToBlock._id, receiver: loggedInUser._id }
+    ]
+  });
+
+  res.json({ message: "User blocked successfully" });
+});
+
+export const unblockUser = tryCatch(async (req, res) => {
+  const userToUnblock = await User.findById(req.params.id);
+  const loggedInUser = await User.findById(req.user._id);
+
+  if (!userToUnblock) return res.status(404).json({ message: "User not found" });
+
+  if (!loggedInUser.blockedUsers.includes(userToUnblock._id)) {
+    return res.status(400).json({ message: "User is not blocked" });
+  }
+
+  loggedInUser.blockedUsers = loggedInUser.blockedUsers.filter(id => id.toString() !== userToUnblock._id.toString());
+
+  await loggedInUser.save();
+
+  res.json({ message: "User unblocked successfully" });
 });

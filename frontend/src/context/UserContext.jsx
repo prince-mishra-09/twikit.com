@@ -168,16 +168,32 @@ export const UserContextProvider = ({ children }) => {
     try {
       const { data } = await axios.delete("/api/user/follower/" + userId);
       toast.success(data.message);
-      // We need to fetchUser to update the followers list
-      // Or we can return true/false to let the component update its local state to avoid full re-fetch
-      // But fetchUser is safer to sync everything
-      // Actually, Modal uses 'followersData' state in Account.jsx which comes from 'followData' API
-      // So fetchUser() updates 'user' context, but Account.jsx state needs specific update.
       fetchUser();
       return true;
     } catch (error) {
       toast.error(getErrorMessage(error));
       return false;
+    }
+  }
+
+  async function blockUser(id, navigate) {
+    try {
+      const { data } = await axios.post("/api/user/block/" + id);
+      toast.success(data.message);
+      if (navigate) navigate("/", { replace: true });
+      fetchUser();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  }
+
+  async function unblockUser(id) {
+    try {
+      const { data } = await axios.delete("/api/user/unblock/" + id);
+      toast.success(data.message);
+      fetchUser();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   }
 
@@ -201,12 +217,12 @@ export const UserContextProvider = ({ children }) => {
         updateProfileName,
         savePost,
         hidePost,
-        hidePost,
-        muteUser,
         muteUser,
         unmuteUser,
         togglePrivacy,
         removeFollower,
+        blockUser,
+        unblockUser,
       }}
     >
       {children}

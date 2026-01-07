@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { PostData } from "../context/PostContext";
 import PostCard from "../components/PostCard";
-import { FaArrowDownLong, FaArrowUp } from "react-icons/fa6";
+import { FaArrowDownLong, FaArrowUp, FaEllipsisVertical } from "react-icons/fa6"; // Updated Import
 import axios from "axios";
 import { Loading } from "../components/Loading";
 import { UserData } from "../context/UserContext";
 import Modal from "../components/Modal";
 import { SocketData } from "../context/SocketContext";
+import { useNavigate } from "react-router-dom"; // Added for redirect
 
 const UserAccount = ({ user: loggedInUser }) => {
   const { posts, reels } = PostData();
@@ -132,6 +133,27 @@ const UserAccount = ({ user: loggedInUser }) => {
     if (user) followData();
   }, [user]);
 
+  // BLOCKING LOGIC
+  const [showMenu, setShowMenu] = useState(false);
+  const [showBlock, setShowBlock] = useState(false);
+  const { blockUser } = UserData();
+  const navigate = useNavigate();
+
+  const handleBlock = () => {
+    if (confirm("Are you sure? This user will not be able to find your profile, posts, or story.")) {
+      blockUser(user._id, navigate);
+    }
+    setShowBlock(false);
+    setShowMenu(false);
+  };
+
+  // Close menu on click outside
+  useEffect(() => {
+    const closeMenu = () => setShowMenu(false);
+    if (showMenu) window.addEventListener('click', closeMenu);
+    return () => window.removeEventListener('click', closeMenu);
+  }, [showMenu]);
+
   if (loading) return <Loading />;
 
   return (
@@ -148,15 +170,34 @@ const UserAccount = ({ user: loggedInUser }) => {
       <div className="w-full max-w-xl bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6 mt-4">
 
         {/* NAME + GENDER (TOP LEFT, LIKE INSTAGRAM) */}
-        <p className="text-white font-semibold text-lg flex items-center gap-2 mb-3">
-          {user.name}
-          <span className="text-gray-400 text-sm font-normal">
-            • {user.gender}
-          </span>
-          {onlineUsers.includes(user._id) && (
-            <span className="text-green-400 text-xs">●</span>
-          )}
-        </p>
+        <div className="flex justify-between items-start mb-3">
+          <p className="text-white font-semibold text-lg flex items-center gap-2">
+            {user.name}
+            <span className="text-gray-400 text-sm font-normal">
+              • {user.gender}
+            </span>
+            {onlineUsers.includes(user._id) && (
+              <span className="text-green-400 text-xs">●</span>
+            )}
+          </p>
+
+          {/* MENU BUTTON */}
+          <div className="relative z-10">
+            <button onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }} className="text-white p-2 rounded-full hover:bg-white/10">
+              <FaEllipsisVertical />
+            </button>
+            {showMenu && (
+              <div className="absolute right-0 top-full mt-2 w-40 bg-[#1F2937] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[50]">
+                <button onClick={handleBlock} className="w-full text-left px-4 py-3 text-red-500 hover:bg-white/5 font-medium text-sm">
+                  Block User
+                </button>
+                <button className="w-full text-left px-4 py-3 text-gray-300 hover:bg-white/5 text-sm">
+                  Report
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* IMAGE + STATS */}
         <div className="flex items-center gap-6">

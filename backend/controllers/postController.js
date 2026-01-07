@@ -73,14 +73,23 @@ export const getAllPosts = TryCatch(async (req, res) => {
     // Determine the user's hidden and muted lists if logged in
     const user = await User.findById(req.user._id);
 
-    const hiddenPosts = user.hiddenPosts;
-    const mutedUsers = user.mutedUsers;
+    // Filter out posts from blocked users by ensuring we use the updated lists from req.user
+    // Note: req.user.hiddenPosts and req.user.mutedUsers are populated in isAuth middleware usually, 
+    // or we can rely on the user object fetched above if we populated it there.
+    // However, the error was redeclaration. Let's just use the 'user' object we fetched at line 74 and ensure it has what we need.
+    // Ideally, we just merge the lists for the query.
 
-    // Filter query: Type is "post" AND ID is not in hiddenPosts AND Owner is not in mutedUsers
+    // Note: We already filter by hiddenPosts (which now includes blockedUsers ids theoretically if we wanted, 
+    // but better to separate concerns or merge them).
+    // Let's explicitly exclude blocked users from 'owner' field.
+
+    // Filter out posts from blocked users. 
+    // We use the freshly fetched 'user' object to ensure we have the latest lists (muted, blocked, hidden).
+
     const posts = await Post.find({
         type: "post",
-        _id: { $nin: hiddenPosts },
-        owner: { $nin: mutedUsers }
+        _id: { $nin: user.hiddenPosts },
+        owner: { $nin: [...user.mutedUsers, ...user.blockedUsers] }
     })
         .sort({ createdAt: -1 })
         .populate("owner", "-password")
@@ -92,8 +101,8 @@ export const getAllPosts = TryCatch(async (req, res) => {
     // Same logic for reels
     const reels = await Post.find({
         type: "reel",
-        _id: { $nin: hiddenPosts },
-        owner: { $nin: mutedUsers }
+        _id: { $nin: user.hiddenPosts },
+        owner: { $nin: [...user.mutedUsers, ...user.blockedUsers] }
     })
         .sort({ createdAt: -1 })
         .populate("owner", "-password")
@@ -111,9 +120,30 @@ export const getAllPosts = TryCatch(async (req, res) => {
         });
     };
 
+    // Sanitize engagement (remove likes/comments from blocked users)
+    const sanitizeEngagement = (items) => {
+        return items.map(item => {
+            // Filter Likes
+            if (item.likes && item.likes.length > 0) {
+                item.likes = item.likes.filter(id => !user.blockedUsers.includes(id));
+            }
+            // Filter Comments
+            if (item.comments && item.comments.length > 0) {
+                item.comments = item.comments.filter(comment => {
+                    const commentUserId = comment.user._id || comment.user;
+                    return !user.blockedUsers.includes(commentUserId);
+                });
+            }
+            return item;
+        });
+    };
+
+    const sanitizedPosts = sanitizeEngagement(posts);
+    const sanitizedReels = sanitizeEngagement(reels);
+
     res.json({
-        posts: filterPosts(posts),
-        reels: filterPosts(reels)
+        posts: filterPosts(sanitizedPosts),
+        reels: filterPosts(sanitizedReels)
     });
 });
 

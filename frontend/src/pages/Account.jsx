@@ -14,7 +14,7 @@ import { FiEdit2 } from "react-icons/fi";
 
 const Account = ({ user }) => {
   const navigate = useNavigate();
-  const { logoutUser, updateProfilePic, updateProfileName, unmuteUser, togglePrivacy, removeFollower, user: loggedInUser } = UserData();
+  const { logoutUser, updateProfilePic, updateProfileName, unmuteUser, togglePrivacy, removeFollower, unblockUser, user: loggedInUser } = UserData();
   const { posts, reels, loading } = PostData();
 
   const myPosts = posts?.filter((p) => p.owner._id === user._id);
@@ -54,6 +54,7 @@ const Account = ({ user }) => {
   const [showMuted, setShowMuted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [showBlocked, setShowBlocked] = useState(false);
 
   const [followersData, setFollowersData] = useState([]);
   const [followingsData, setFollowingsData] = useState([]);
@@ -135,6 +136,10 @@ const Account = ({ user }) => {
         </div>
       )}
 
+      {showBlocked && (
+        <Modal value={user.blockedUsers} title="Blocked Users" setShow={setShowBlocked} onRemove={unblockUser} />
+      )}
+
       {/* ================= PROFILE CARD ================= */}
       <div className="w-full max-w-xl bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6 mt-4 relative">
 
@@ -196,6 +201,15 @@ const Account = ({ user }) => {
                 className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
               >
                 Muted Users
+              </button>
+              <button
+                onClick={() => {
+                  setShowBlocked(true);
+                  setShowSettings(false);
+                }}
+                className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
+              >
+                Blocked Users
               </button>
               <button
                 onClick={() => {

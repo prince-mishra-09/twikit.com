@@ -11,7 +11,7 @@ import { SocketData } from "../context/SocketContext";
 
 
 const PostCard = ({ value, type, isActive }) => {
-  const { user, followUser, savePost, hidePost, muteUser } = UserData();
+  const { user, followUser, savePost, hidePost, muteUser, blockUser } = UserData();
   const { likePost, addComment, deletePost, deleteComment } = PostData();
 
   const [isLike, setIsLike] = useState(false);
@@ -252,6 +252,18 @@ const PostCard = ({ value, type, isActive }) => {
                   >
                     🔇 Mute @{value.owner.name}
                   </button>
+                  <button
+                    onClick={() => {
+                      if (confirm("Block this user? They will disappear from your feed.")) {
+                        blockUser(value.owner._id, null);
+                        setIsHidden(true);
+                      }
+                      setShowMenu(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
+                  >
+                    🚫 Block User
+                  </button>
                 </div>
               )}
             </div>
@@ -413,6 +425,18 @@ const PostCard = ({ value, type, isActive }) => {
                         className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
                       >
                         🔇 Mute @{value.owner.name}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm("Block this user? They will disappear from your feed.")) {
+                            blockUser(value.owner._id, null);
+                            setIsHidden(true);
+                          }
+                          setShowMenu(false);
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
+                      >
+                        🚫 Block User
                       </button>
                     </div>
                   )}

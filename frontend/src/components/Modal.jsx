@@ -56,7 +56,8 @@ const Modal = ({ value, title, setShow, onRemove }) => {
             ))
           ) : (
             <p className="text-gray-400 text-sm text-center py-6">
-              No {title} yet
+              {/* If value is empty */}
+              No {title.toLowerCase()} yet
             </p>
           )}
         </div>
