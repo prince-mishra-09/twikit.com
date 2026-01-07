@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { UserData } from "./UserContext";
 
-const EndPoint = "https://twikit-backend.onrender.com";
+const EndPoint = import.meta.env.MODE === "development" ? "http://localhost:5000" : "https://twikit-backend.onrender.com";
 
 const SocketContext = createContext();
 
@@ -12,19 +12,19 @@ export const SocketContextProvider = ({ children }) => {
   const { user } = UserData();
 
   useEffect(() => {
-  if (!user?._id) return;
+    if (!user?._id) return;
 
-  const socket = io(EndPoint, {
-    query: { userId: user._id },
-    withCredentials: true,
-  });
+    const socket = io(EndPoint, {
+      query: { userId: user._id },
+      withCredentials: true,
+    });
 
-  setSocket(socket);
+    setSocket(socket);
 
-  socket.on("getOnlineUser", setOnlineUsers);
+    socket.on("getOnlineUser", setOnlineUsers);
 
-  return () => socket.close();
-}, [user?._id]);
+    return () => socket.close();
+  }, [user?._id]);
 
 
 

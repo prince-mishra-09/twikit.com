@@ -112,7 +112,7 @@ export const UserContextProvider = ({ children }) => {
 
   async function savePost(postId) {
     try {
-      const { data } = await axios.post("/api/posts/save/" + postId);
+      const { data } = await axios.post("/api/post/save/" + postId);
       toast.success(data.message);
       fetchUser(); // Refresh user to update savedPosts
     } catch (error) {

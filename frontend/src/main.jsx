@@ -7,7 +7,8 @@ import { PostContextProvider } from './context/PostContext.jsx'
 import { ChatContextProvider } from './context/ChatContext.jsx'
 import { SocketContextProvider } from './context/SocketContext.jsx'
 import axios from "axios";
-axios.defaults.baseURL = "https://twikit-backend.onrender.com";
+// Automatically toggle between local proxy (dev) and live backend (prod)
+axios.defaults.baseURL = import.meta.env.MODE === "development" ? "" : "https://twikit-backend.onrender.com";
 axios.defaults.withCredentials = true;
 
 
@@ -16,14 +17,14 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <UserContextProvider>
       <SocketContextProvider>
-      <PostContextProvider>
-        <ChatContextProvider>
+        <PostContextProvider>
+          <ChatContextProvider>
 
-          <App />
+            <App />
 
-        </ChatContextProvider>
-      </PostContextProvider>
-    </SocketContextProvider>
-  </UserContextProvider>
+          </ChatContextProvider>
+        </PostContextProvider>
+      </SocketContextProvider>
+    </UserContextProvider>
   </StrictMode >,
 )

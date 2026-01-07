@@ -36,8 +36,11 @@ io.on("connection", (socket) => {
 
     // Update lastSeen
     try {
-      const { User } = await import("../models/userModel.js"); // Dynamic import to avoid circular dep if any (though likely fine) -> actually standard import at top is better but let's see imports.
-      // Or just import at top. 
+      // Dynamic import to avoid circular dependency
+      // Ensure we get the default export
+      const module = await import("../models/userModel.js");
+      const User = module.default;
+
       await User.findByIdAndUpdate(userId, { lastSeen: Date.now() });
     } catch (err) {
       console.log("Error updating lastSeen:", err);
