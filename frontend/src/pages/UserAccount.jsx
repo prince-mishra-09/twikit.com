@@ -15,6 +15,14 @@ const UserAccount = ({ user: loggedInUser }) => {
   const { followUser } = UserData();
   const { onlineUsers } = SocketData();
   const params = useParams();
+  const navigate = useNavigate();
+
+  // Redirect to account if checking own profile
+  useEffect(() => {
+    if (loggedInUser && params.id === loggedInUser._id) {
+      navigate("/account");
+    }
+  }, [params.id, loggedInUser, navigate]);
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -137,7 +145,6 @@ const UserAccount = ({ user: loggedInUser }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [showBlock, setShowBlock] = useState(false);
   const { blockUser } = UserData();
-  const navigate = useNavigate();
 
   const handleBlock = () => {
     if (confirm("Are you sure? This user will not be able to find your profile, posts, or story.")) {
@@ -181,22 +188,24 @@ const UserAccount = ({ user: loggedInUser }) => {
             )}
           </p>
 
-          {/* MENU BUTTON */}
-          <div className="relative z-10">
-            <button onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }} className="text-white p-2 rounded-full hover:bg-white/10">
-              <FaEllipsisVertical />
-            </button>
-            {showMenu && (
-              <div className="absolute right-0 top-full mt-2 w-40 bg-[#1F2937] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[50]">
-                <button onClick={handleBlock} className="w-full text-left px-4 py-3 text-red-500 hover:bg-white/5 font-medium text-sm">
-                  Block User
-                </button>
-                <button className="w-full text-left px-4 py-3 text-gray-300 hover:bg-white/5 text-sm">
-                  Report
-                </button>
-              </div>
-            )}
-          </div>
+          {/* MENU BUTTON - Hide if own profile */}
+          {user._id !== loggedInUser?._id && (
+            <div className="relative z-10">
+              <button onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }} className="text-white p-2 rounded-full hover:bg-white/10">
+                <FaEllipsisVertical />
+              </button>
+              {showMenu && (
+                <div className="absolute right-0 top-full mt-2 w-40 bg-[#1F2937] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[50]">
+                  <button onClick={handleBlock} className="w-full text-left px-4 py-3 text-red-500 hover:bg-white/5 font-medium text-sm">
+                    Block User
+                  </button>
+                  <button className="w-full text-left px-4 py-3 text-gray-300 hover:bg-white/5 text-sm">
+                    Report
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* IMAGE + STATS */}
