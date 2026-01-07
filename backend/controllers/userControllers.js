@@ -221,9 +221,38 @@ export const getSavedPosts = tryCatch(async (req, res) => {
   // or depending on how they were pushed. Pushing adds to end, so reverse for LIFO.
   let savedPosts = user.savedPosts.reverse();
 
-  // Filter out blocked users
+  // 0. Fetch users who have BLOCKED the current user ('blockedBy')
+  const blockedByUsers = await User.find({ blockedUsers: req.user._id }).distinct('_id');
+
+  // 1. Combine with users I have BLOCKED
+  const blockedUsers = req.user.blockedUsers || [];
+
+  // Create a Set of all hidden User IDs (both blocked and blockedBy)
+  const hiddenUserIds = [
+    ...blockedUsers.map(id => id.toString()),
+    ...blockedByUsers.map(id => id.toString())
+  ];
+
+  // Filter out posts from blocked/blocking users
   savedPosts = savedPosts.filter((post) => {
-    return !req.user.blockedUsers.includes(post.owner._id.toString());
+    return !hiddenUserIds.includes(post.owner._id.toString());
+  });
+
+  // Sanitize engagement within saved posts
+  savedPosts = savedPosts.map(post => {
+    // Filter Likes
+    if (post.likes && post.likes.length > 0) {
+      post.likes = post.likes.filter(id => id && !hiddenUserIds.includes(id.toString()));
+    }
+    // Filter Comments
+    if (post.comments && post.comments.length > 0) {
+      post.comments = post.comments.filter(comment => {
+        if (!comment.user) return false;
+        const commentUserId = comment.user._id ? comment.user._id.toString() : comment.user.toString();
+        return !hiddenUserIds.includes(commentUserId);
+      });
+    }
+    return post;
   });
 
   res.json(savedPosts);
