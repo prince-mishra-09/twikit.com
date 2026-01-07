@@ -9,8 +9,9 @@ import { Link } from "react-router-dom";
 import { MdDelete } from "react-icons/md";
 import { SocketData } from "../context/SocketContext";
 
-const PostCard = ({ type, value, isActive }) => {
-  const { user, followUser, savePost } = UserData();
+
+const PostCard = ({ value, type, isActive }) => {
+  const { user, followUser, savePost, hidePost, muteUser } = UserData();
   const { likePost, addComment, deletePost, deleteComment } = PostData();
 
   const [isLike, setIsLike] = useState(false);
@@ -20,11 +21,17 @@ const PostCard = ({ type, value, isActive }) => {
   const [expanded, setExpanded] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
+  // Menu State
+  const [showMenu, setShowMenu] = useState(false);
+  const [isHidden, setIsHidden] = useState(false); // Optimistic filtering
+
   // Comment Delete State
   const [deleteModal, setDeleteModal] = useState({ show: false, commentId: null });
   const longPressTimer = useRef(null);
   const captionLimit = 40; // Characters to show before truncating
   const [isFollowed, setIsFollowed] = useState(false);
+
+  // ... useEffects for Follow / Like / Scroll match existing ...
 
   useEffect(() => {
     if (user && value.owner) {
@@ -32,7 +39,15 @@ const PostCard = ({ type, value, isActive }) => {
     }
   }, [user, value.owner]);
 
-  // Disable body scroll when image viewer is open
+  // Ensure menu closes when clicking outside
+  useEffect(() => {
+    const closeMenu = () => setShowMenu(false);
+    if (showMenu) window.addEventListener("click", closeMenu);
+    return () => window.removeEventListener("click", closeMenu);
+  }, [showMenu]);
+
+
+  // ... Existing useEffects ... 
   // Disable body scroll when image viewer OR comments drawer is open
   useEffect(() => {
     if (showImage || show) {
@@ -46,7 +61,6 @@ const PostCard = ({ type, value, isActive }) => {
   }, [showImage, show]);
 
   const commentsRef = useRef(null);
-
   // Auto-scroll to top of comments when drawer opens or new comment added
   useEffect(() => {
     if (show && commentsRef.current) {
@@ -54,24 +68,20 @@ const PostCard = ({ type, value, isActive }) => {
     }
   }, [show, value.comments]);
 
-  /* ===== REEL STATES ===== */
+  // ... Reel States ...
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [showHeart, setShowHeart] = useState(false);
 
-  if (!value) return null;
+
 
   const formatDate = value.createdAt ? format(new Date(value.createdAt), "MMMM do") : "Unknown Date";
 
   useEffect(() => {
-    if (value.likes) {
-      if (value.likes?.includes(user._id)) {
-        setIsLike(true);
-      } else {
-        setIsLike(false);
-      }
-    }
+    // Check if post is like
+    if (value.likes && value.likes?.includes(user._id)) setIsLike(true);
+    else setIsLike(false);
   }, [value, user._id]);
 
   useEffect(() => {
@@ -81,7 +91,7 @@ const PostCard = ({ type, value, isActive }) => {
     }
   }, [user, value.owner, value._id]);
 
-  /* ===== AUTOPLAY REEL ===== */
+  // ... Reel Autoplay Effect (same as original) ...
   useEffect(() => {
     if (type === "reel" && videoRef.current) {
       if (isActive) {
@@ -95,6 +105,7 @@ const PostCard = ({ type, value, isActive }) => {
       }
     }
   }, [isActive, type]);
+
 
   const likeHandler = () => {
     setIsLike(!isLike);
@@ -115,16 +126,31 @@ const PostCard = ({ type, value, isActive }) => {
   const deleteHandler = () => deletePost(value._id);
 
   const followHandler = async () => {
-    setIsFollowed(!isFollowed); // Optimistic update
+    setIsFollowed(!isFollowed);
     await followUser(value.owner._id);
   };
 
   const saveHandler = async () => {
-    setIsSaved(!isSaved); // Optimistic update
+    setIsSaved(!isSaved);
     await savePost(value._id);
   };
 
+  // --- FEED CONTROLS ---
+  const notInterestedHandler = async (e) => {
+    e.stopPropagation();
+    setIsHidden(true); // Optimistic UI
+    await hidePost(value._id);
+  };
+
+  const muteHandler = async (e) => {
+    e.stopPropagation();
+    setIsHidden(true); // Optimistic UI
+    await muteUser(value.owner._id);
+  };
+
   const { onlineUsers } = SocketData();
+
+  if (!value || isHidden) return null; // Hide post if isHidden is true
 
   // ===================== REEL RENDER =====================
   if (type === "reel") {
@@ -201,6 +227,34 @@ const PostCard = ({ type, value, isActive }) => {
             <button onClick={deleteHandler} className="text-white text-2xl drop-shadow-lg opacity-80 hover:opacity-100">
               <MdDelete />
             </button>
+          )}
+
+          {/* MENU (if NOT owner) */}
+          {value.owner._id !== user._id && (
+            <div className="relative">
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
+                className="text-white text-2xl drop-shadow-lg opacity-80 hover:opacity-100 p-1"
+              >
+                <BsThreeDotsVertical />
+              </button>
+              {showMenu && (
+                <div className="absolute right-0 bottom-full mb-2 w-40 bg-[#1F2937] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[100] animate-in slide-in-from-bottom-2 fade-in duration-200">
+                  <button
+                    onClick={notInterestedHandler}
+                    className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
+                  >
+                    ❌ Not Interested
+                  </button>
+                  <button
+                    onClick={muteHandler}
+                    className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
+                  >
+                    🔇 Mute @{value.owner.name}
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
@@ -318,8 +372,8 @@ const PostCard = ({ type, value, isActive }) => {
             </div>
           </Link>
 
-          {/* Delete / Follow Button Overlay */}
-          <div className="pointer-events-auto">
+          {/* Delete / Follow / Menu Button Overlay */}
+          <div className="pointer-events-auto flex items-center gap-2">
             {value.owner._id === user._id ? (
               <button
                 onClick={deleteHandler}
@@ -328,15 +382,42 @@ const PostCard = ({ type, value, isActive }) => {
                 <MdDelete className="text-lg" />
               </button>
             ) : (
-              <button
-                onClick={followHandler}
-                className={`text-xs font-bold px-4 py-1.5 rounded-full backdrop-blur-md transition-all shadow-lg ${isFollowed
-                  ? "bg-white/20 text-white border border-white/20"
-                  : "bg-indigo-600/90 text-white hover:bg-indigo-500"
-                  }`}
-              >
-                {isFollowed ? "Following" : "Follow"}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={followHandler}
+                  className={`text-xs font-bold px-4 py-1.5 rounded-full backdrop-blur-md transition-all shadow-lg ${isFollowed
+                    ? "bg-white/20 text-white border border-white/20"
+                    : "bg-indigo-600/90 text-white hover:bg-indigo-500"
+                    }`}
+                >
+                  {isFollowed ? "Following" : "Follow"}
+                </button>
+
+                <div className="relative">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
+                    className="bg-black/40 backdrop-blur-md p-2 rounded-full text-white/80 hover:text-white hover:bg-black/60 transition-all"
+                  >
+                    <BsThreeDotsVertical className="text-sm" />
+                  </button>
+                  {showMenu && (
+                    <div className="absolute right-0 top-full mt-2 w-40 bg-[#1F2937]/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[100] animate-in slide-in-from-top-2 fade-in duration-200">
+                      <button
+                        onClick={notInterestedHandler}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
+                      >
+                        ❌ Not Interested
+                      </button>
+                      <button
+                        onClick={muteHandler}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
+                      >
+                        🔇 Mute @{value.owner.name}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </div>

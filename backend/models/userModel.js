@@ -45,6 +45,18 @@ const userSchema = new mongoose.Schema({
       ref: "Post",
     },
   ],
+  hiddenPosts: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Post"
+    }
+  ],
+  mutedUsers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    }
+  ],
 }, {
   timestamps: true
 });

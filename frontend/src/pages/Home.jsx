@@ -91,9 +91,21 @@ const Home = () => {
               <PostCard key={post._id} value={post} type="post" />
             ))
           ) : (
-            <p className="text-center text-gray-400 mt-16">
-              No posts yet. Be the first one ✨
-            </p>
+            <div className="flex flex-col items-center justify-center p-8 mt-12 text-center opacity-0 animate-in fade-in slide-in-from-bottom-4 fill-mode-forwards duration-700 delay-200" style={{ animationFillMode: 'forwards' }}>
+              <div className="w-16 h-16 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center mb-4 border border-white/5 shadow-2xl shadow-indigo-500/10">
+                <span className="text-3xl">✨</span>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Your feed is clean</h3>
+              <p className="text-gray-400 max-w-xs mx-auto text-sm leading-relaxed">
+                Follow more people or explore the community to see posts here.
+              </p>
+              <Link
+                to="/search" // Assuming there's a search/explore page or similar
+                className="mt-6 px-6 py-2.5 bg-white text-black font-semibold rounded-full hover:bg-gray-200 transition-all active:scale-95 text-sm"
+              >
+                Discover People
+              </Link>
+            </div>
           )}
         </div>
       </div>

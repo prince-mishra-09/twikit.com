@@ -1,12 +1,14 @@
 import React, { useEffect } from "react";
 import { NotificationData } from "../context/NotificationContext";
 import { IoNotificationsOutline } from "react-icons/io5";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa6";
 import { format } from "date-fns";
 import axios from "axios";
 import { Loading } from "../components/Loading";
 
 const Notifications = () => {
+    const navigate = useNavigate();
     const { notifications, fetchNotifications, loading, setUnreadCount } =
         NotificationData();
 
@@ -44,9 +46,17 @@ const Notifications = () => {
     return (
         <div className="min-h-screen bg-[#0B0F14] flex justify-center text-white">
             <div className="w-full max-w-xl px-4 py-6 pb-24">
-                <h1 className="text-xl font-bold mb-6 flex items-center gap-2">
-                    <IoNotificationsOutline /> Notifications
-                </h1>
+                <div className="flex items-center gap-3 mb-6">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="text-white p-2 rounded-full hover:bg-white/10 -ml-2"
+                    >
+                        <FaArrowLeft />
+                    </button>
+                    <h1 className="text-xl font-bold flex items-center gap-2">
+                        <IoNotificationsOutline /> Notifications
+                    </h1>
+                </div>
 
                 <div className="space-y-4">
                     {notifications && notifications.length > 0 ? (
@@ -54,8 +64,8 @@ const Notifications = () => {
                             <div
                                 key={n._id}
                                 className={`flex items-center gap-4 p-4 rounded-2xl border ${!n.isRead
-                                        ? "bg-[#111827] border-indigo-500/30 shadow-[0_0_10px_rgba(99,102,241,0.1)]"
-                                        : "bg-[#111827]/40 border-white/5 opacity-80"
+                                    ? "bg-[#111827] border-indigo-500/30 shadow-[0_0_10px_rgba(99,102,241,0.1)]"
+                                    : "bg-[#111827]/40 border-white/5 opacity-80"
                                     } transition-all duration-300 hover:opacity-100`}
                             >
                                 <Link to={`/user/${n.sender._id}`} className="shrink-0">

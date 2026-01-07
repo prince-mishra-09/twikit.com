@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ChatData } from "../context/ChatContext";
 import axios from "axios";
 import { FaSearch, FaArrowLeft } from "react-icons/fa";
@@ -7,6 +8,7 @@ import MessageContainer from "../components/chat/MessageContainer";
 import { SocketData } from "../context/SocketContext";
 
 const ChatPage = ({ user }) => {
+  const navigate = useNavigate();
   const { createChat, selectedChat, setSelectedChat, chats, setChats } =
     ChatData();
 
@@ -93,7 +95,15 @@ const ChatPage = ({ user }) => {
         >
           {/* Header */}
           <div className="flex items-center justify-between p-4">
-            <h2 className="text-white font-semibold">Chats</h2>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate(-1)}
+                className="text-white p-2 rounded-full hover:bg-white/10"
+              >
+                <FaArrowLeft />
+              </button>
+              <h2 className="text-white font-semibold">Chats</h2>
+            </div>
             <button
               onClick={() => setSearch(!search)}
               className="bg-indigo-500 text-white p-2 rounded-full hover:opacity-90"

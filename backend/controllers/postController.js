@@ -70,7 +70,18 @@ export const deletePost = TryCatch(async (req, res) => {
 });
 
 export const getAllPosts = TryCatch(async (req, res) => {
-    const posts = await Post.find({ type: "post" })
+    // Determine the user's hidden and muted lists if logged in
+    const user = await User.findById(req.user._id);
+
+    const hiddenPosts = user.hiddenPosts;
+    const mutedUsers = user.mutedUsers;
+
+    // Filter query: Type is "post" AND ID is not in hiddenPosts AND Owner is not in mutedUsers
+    const posts = await Post.find({
+        type: "post",
+        _id: { $nin: hiddenPosts },
+        owner: { $nin: mutedUsers }
+    })
         .sort({ createdAt: -1 })
         .populate("owner", "-password")
         .populate({
@@ -78,7 +89,12 @@ export const getAllPosts = TryCatch(async (req, res) => {
             select: "-password",
         });
 
-    const reels = await Post.find({ type: "reel" })
+    // Same logic for reels
+    const reels = await Post.find({
+        type: "reel",
+        _id: { $nin: hiddenPosts },
+        owner: { $nin: mutedUsers }
+    })
         .sort({ createdAt: -1 })
         .populate("owner", "-password")
         .populate({

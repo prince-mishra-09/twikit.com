@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserData } from "../context/UserContext";
 import { PostData } from "../context/PostContext";
 import PostCard from "../components/PostCard";
-import { FaArrowDownLong, FaArrowUp } from "react-icons/fa6";
+import { FaArrowDownLong, FaArrowUp, FaArrowLeft } from "react-icons/fa6";
+import { IoMenu } from "react-icons/io5";
 import Modal from "../components/Modal";
 import axios from "axios";
 import { Loading } from "../components/Loading";
@@ -13,7 +14,7 @@ import { FiEdit2 } from "react-icons/fi";
 
 const Account = ({ user }) => {
   const navigate = useNavigate();
-  const { logoutUser, updateProfilePic, updateProfileName } = UserData();
+  const { logoutUser, updateProfilePic, updateProfileName, unmuteUser } = UserData();
   const { posts, reels, loading } = PostData();
 
   const myPosts = posts?.filter((p) => p.owner._id === user._id);
@@ -28,6 +29,9 @@ const Account = ({ user }) => {
 
   const [show, setShow] = useState(false);
   const [show1, setShow1] = useState(false);
+  const [showMuted, setShowMuted] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
 
   const [followersData, setFollowersData] = useState([]);
   const [followingsData, setFollowingsData] = useState([]);
@@ -38,23 +42,9 @@ const Account = ({ user }) => {
     setFollowingsData(data.followings);
   }
 
-  const [file, setFile] = useState("");
-  const changeFileHandler = (e) => setFile(e.target.files[0]);
-
-  const changleImageHandler = () => {
-    const formdata = new FormData();
-    formdata.append("file", file);
-    updateProfilePic(user._id, formdata, setFile);
-  };
-
   useEffect(() => {
     followData();
   }, [user]);
-
-  const [showInput, setShowInput] = useState(false);
-  const [name, setName] = useState(user.name || "");
-
-  const UpdateName = () => updateProfileName(user._id, name, setShowInput);
 
   const [showUpdatePass, setShowUpdatePass] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
@@ -79,9 +69,104 @@ const Account = ({ user }) => {
 
       {show && <Modal value={followersData} title="Followers" setShow={setShow} />}
       {show1 && <Modal value={followingsData} title="Following" setShow={setShow1} />}
+      {showMuted && (
+        <div className="fixed inset-0 z-[50] w-full h-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-[#111827] w-full max-w-sm rounded-2xl border border-white/10 p-6 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <h2 className="text-xl font-bold text-white">Muted Users</h2>
+              <button onClick={() => setShowMuted(false)} className="text-gray-400 hover:text-white text-2xl">
+                &times;
+              </button>
+            </div>
+            <div className="flex flex-col gap-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+              {user.mutedUsers && user.mutedUsers.length > 0 ? (
+                user.mutedUsers.map((u) => (
+                  <div key={u._id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <img src={u.profilePic.url} alt="" className="w-10 h-10 rounded-full border border-white/10 object-cover" />
+                      <p className="text-white font-medium">{u.name}</p>
+                    </div>
+                    <button
+                      onClick={() => unmuteUser(u._id)}
+                      className="px-3 py-1 bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white rounded-full text-xs transition-colors border border-red-500/50"
+                    >
+                      Unmute
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 text-center py-4">No muted users</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ================= PROFILE CARD ================= */}
-      <div className="w-full max-w-md bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6 mt-4">
+      <div className="w-full max-w-md bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6 mt-4 relative">
+
+        {/* Settings Menu Button */}
+        <button
+          onClick={() => setShowSettings(!showSettings)}
+          className="absolute top-4 right-4 text-white text-2xl p-2 hover:bg-white/10 rounded-full transition-colors z-20"
+        >
+          <IoMenu />
+        </button>
+
+        {/* Settings Dropdown */}
+        {showSettings && (
+          <>
+            <div
+              className="fixed inset-0 z-[25] cursor-default"
+              onClick={() => setShowSettings(false)}
+            />
+            <div className="absolute top-14 right-4 w-48 bg-[#1F2937] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[30] animate-in slide-in-from-top-2 fade-in duration-200">
+              <button
+                onClick={() => {
+                  setShowEdit(true);
+                  setShowSettings(false);
+                }}
+                className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
+              >
+                Edit Profile
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowUpdatePass(!showUpdatePass);
+                  setShowSettings(false);
+                }}
+                className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
+              >
+                Change Password
+              </button>
+              <button
+                onClick={() => {
+                  setShowMuted(true);
+                  setShowSettings(false);
+                }}
+                className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
+              >
+                Muted Users
+              </button>
+              <button
+                onClick={() => {
+                  setType("saved");
+                  setShowSettings(false);
+                }}
+                className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
+              >
+                Saved Posts
+              </button>
+              <button
+                onClick={() => logoutUser(navigate)}
+                className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-500/10 flex items-center gap-2 border-t border-white/5"
+              >
+                Logout
+              </button>
+            </div>
+          </>
+        )}
 
         {/* Top Row */}
         <div className="flex items-center gap-6">
@@ -92,20 +177,6 @@ const Account = ({ user }) => {
               src={user.profilePic.url}
               alt="profile"
               className="w-24 h-24 rounded-full object-cover border border-white/20"
-            />
-
-            <label
-              htmlFor="profilePicInput"
-              className="absolute bottom-0 right-0 bg-indigo-500 p-1.5 rounded-full cursor-pointer"
-            >
-              <FiEdit2 className="text-white text-xs" />
-            </label>
-
-            <input
-              id="profilePicInput"
-              type="file"
-              onChange={changeFileHandler}
-              className="hidden"
             />
           </div>
 
@@ -124,56 +195,17 @@ const Account = ({ user }) => {
 
         {/* Name + Info */}
         <div className="mt-4">
-          {showInput ? (
-            <div className="flex items-center gap-2">
-              <input
-                className="flex-1 px-3 py-1 rounded-lg bg-[#0B0F14] border border-white/10 text-white"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-              <button onClick={UpdateName} className="text-indigo-400">✔</button>
-              <button onClick={() => setShowInput(false)} className="text-red-400">✕</button>
-            </div>
-          ) : (
-            <p className="text-white font-semibold flex items-center gap-2">
-              {user.name}
-              <button onClick={() => setShowInput(true)} className="text-gray-400">
-                <CiEdit />
-              </button>
-            </p>
-          )}
+          <p className="text-white font-semibold flex items-center gap-2">
+            {user.name}
+          </p>
 
           <p className="text-gray-400 text-sm">{user.email}</p>
           <p className="text-gray-400 text-sm">{user.gender}</p>
         </div>
-
-        {/* Actions */}
-        <div className="mt-4 flex flex-col gap-2">
-          {file && (
-            <button
-              onClick={changleImageHandler}
-              className="w-full bg-indigo-500 text-white py-1.5 rounded-lg text-sm"
-            >
-              Update Profile
-            </button>
-          )}
-          <button
-            onClick={() => logoutUser(navigate)}
-            className="w-full bg-red-500 text-white py-1.5 rounded-lg text-sm"
-          >
-            Logout
-          </button>
-        </div>
       </div>
       {/* ================= END PROFILE CARD ================= */}
 
-      {/* Update Password */}
-      <button
-        onClick={() => setShowUpdatePass(!showUpdatePass)}
-        className="text-sm text-indigo-400"
-      >
-        {showUpdatePass ? "Cancel" : "Update Password"}
-      </button>
+
 
       {showUpdatePass && (
         <form
@@ -214,12 +246,6 @@ const Account = ({ user }) => {
         >
           Reels
         </button>
-        <button
-          onClick={() => setType("saved")}
-          className={type === "saved" ? "text-indigo-400" : "text-gray-400"}
-        >
-          Saved
-        </button>
       </div>
 
       {/* Content */}
@@ -249,12 +275,88 @@ const Account = ({ user }) => {
           </div>
         ) : <p className="text-gray-500">No reels yet</p>)}
 
-      {type === "saved" && <SavedPosts />}
+      {type === "saved" && <SavedPosts onBack={() => setType("post")} />}
+      {showEdit && <EditProfile user={user} onBack={() => setShowEdit(false)} />}
     </div>
   );
 };
 
-const SavedPosts = () => {
+const EditProfile = ({ user, onBack }) => {
+  const { updateProfileName, updateProfilePic } = UserData();
+  const [name, setName] = useState(user.name || "");
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(user.profilePic.url);
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setPreview(URL.createObjectURL(selectedFile));
+    }
+  };
+
+  const saveHandler = async () => {
+    setLoading(true);
+    try {
+      if (name !== user.name) {
+        await updateProfileName(user._id, name, () => { });
+      }
+      if (file) {
+        const formdata = new FormData();
+        formdata.append("file", file);
+        await updateProfilePic(user._id, formdata, () => { });
+      }
+      onBack();
+    } catch (e) {
+      console.log(e);
+      toast.error("Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-[#0B0F14] overflow-y-auto animate-in slide-in-from-right duration-300">
+      <div className="sticky top-0 z-10 bg-[#0B0F14]/90 backdrop-blur-md p-4 border-b border-white/10 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button onClick={onBack} className="text-white text-xl p-2 rounded-full hover:bg-white/10 transition-colors">
+            <FaArrowLeft />
+          </button>
+          <h2 className="text-xl font-bold text-white">Edit Profile</h2>
+        </div>
+        <button onClick={saveHandler} disabled={loading} className="text-indigo-400 font-semibold text-lg hover:text-indigo-300 disabled:opacity-50">
+          {loading ? "Saving..." : "Save"}
+        </button>
+      </div>
+
+      <div className="p-8 flex flex-col items-center gap-8 w-full max-w-sm mx-auto">
+        {/* Image Upload */}
+        <div className="relative group cursor-pointer" onClick={() => fileInputRef.current.click()}>
+          <img src={preview} alt="Profile" className="w-32 h-32 rounded-full object-cover border-4 border-[#1F2937] shadow-xl group-hover:opacity-80 transition-opacity" />
+          <div className="absolute bottom-1 right-1 bg-indigo-500 p-2 rounded-full shadow-lg border-2 border-[#0B0F14]">
+            <FiEdit2 className="text-white text-md" />
+          </div>
+          <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} accept="image/*" />
+        </div>
+
+        {/* Name Input */}
+        <div className="w-full space-y-2">
+          <label className="text-gray-400 text-sm ml-1">Name</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full bg-[#1F2937] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors"
+            placeholder="Enter your name"
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const SavedPosts = ({ onBack }) => {
   const [savedPosts, setSavedPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activePostId, setActivePostId] = useState(null);
@@ -294,19 +396,28 @@ const SavedPosts = () => {
     };
   }, [savedPosts]);
 
-  if (loading) return <Loading />;
-
   return (
-    <div className="grid grid-cols-1 gap-4 w-full">
-      {savedPosts && savedPosts.length > 0 ? (
-        savedPosts.map((e) => (
-          <div key={e._id} id={e._id} className="saved-post-container">
-            <PostCard type={e.type} value={e} isActive={activePostId === e._id} />
-          </div>
-        ))
-      ) : (
-        <p className="text-gray-500 text-center mt-4">No saved posts yet</p>
-      )}
+    <div className="fixed inset-0 z-[60] bg-[#0B0F14] overflow-y-auto animate-in slide-in-from-right duration-300">
+      <div className="sticky top-0 z-10 bg-[#0B0F14]/90 backdrop-blur-md p-4 border-b border-white/10 flex items-center gap-4">
+        <button onClick={onBack} className="text-white text-xl p-2 rounded-full hover:bg-white/10 transition-colors">
+          <FaArrowLeft />
+        </button>
+        <h2 className="text-xl font-bold text-white">Saved Posts</h2>
+      </div>
+
+      <div className="p-4 grid grid-cols-1 gap-6 w-full max-w-xl mx-auto pb-20">
+        {loading ? (
+          <Loading />
+        ) : savedPosts && savedPosts.length > 0 ? (
+          savedPosts.map((e) => (
+            <div key={e._id} id={e._id} className="saved-post-container">
+              <PostCard type={e.type} value={e} isActive={activePostId === e._id} />
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-500 text-center mt-20">No saved posts yet</p>
+        )}
+      </div>
     </div>
   );
 };

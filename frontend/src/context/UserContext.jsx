@@ -120,6 +120,39 @@ export const UserContextProvider = ({ children }) => {
     }
   }
 
+  // --- Feed Controls ---
+  async function hidePost(postId) {
+    try {
+      const { data } = await axios.post("/api/feed/hide-post/" + postId);
+      toast.success(data.message);
+      // We don't necessarily need to re-fetch user immediately as the UI will hide it optimistically
+      // But keeping state consistent is good.
+      fetchUser();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  }
+
+  async function muteUser(userId) {
+    try {
+      const { data } = await axios.post("/api/feed/mute-user/" + userId);
+      toast.success(data.message);
+      fetchUser();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  }
+
+  async function unmuteUser(userId) {
+    try {
+      const { data } = await axios.delete("/api/feed/unmute-user/" + userId);
+      toast.success(data.message);
+      fetchUser();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  }
+
   useEffect(() => {
     fetchUser();
   }, []);
@@ -137,9 +170,12 @@ export const UserContextProvider = ({ children }) => {
         registerUser,
         followUser,
         updateProfilePic,
-        updateProfilePic,
         updateProfileName,
         savePost,
+        hidePost,
+        hidePost,
+        muteUser,
+        unmuteUser,
       }}
     >
       {children}

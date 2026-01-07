@@ -5,7 +5,9 @@ import getDataUrl from "../utils/urlGenerator.js";
 import cloudinary from "cloudinary";
 
 export const myProfile = tryCatch(async (req, res) => {
-  const user = await User.findById(req.user._id).select("-password")
+  const user = await User.findById(req.user._id)
+    .select("-password")
+    .populate("mutedUsers", "name profilePic");
   // console.log(req.user);
 
   res.json(user)

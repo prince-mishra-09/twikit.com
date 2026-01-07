@@ -21,19 +21,23 @@ const MessageInput = ({ setMessages, selectedChat }) => {
       setMessages((message) => [...message, data]);
       setTextMsg("");
 
-      setChats((prev) =>
-        prev.map((chat) =>
-          chat._id === selectedChat._id
-            ? {
-                ...chat,
-                latestMessage: {
-                  text: textMsg,
-                  sender: data.sender,
-                },
-              }
-            : chat
-        )
-      );
+      setChats((prev) => {
+        const otherChats = prev.filter(chat => chat._id !== selectedChat._id);
+        const currentChat = prev.find(chat => chat._id === selectedChat._id);
+
+        if (currentChat) {
+          const updatedChat = {
+            ...currentChat,
+            latestMessage: {
+              text: textMsg,
+              sender: data.sender,
+            },
+            updatedAt: new Date().toISOString(),
+          };
+          return [updatedChat, ...otherChats];
+        }
+        return prev;
+      });
     } catch (error) {
       console.log(error);
       toast.error(error.response.data.message);

@@ -48,6 +48,7 @@ export const sendMessage = TryCatch(async (req, res) => {
       text: message,
       sender: senderId,
     },
+    updatedAt: new Date(),
   });
 
   const reciverSocketId = getReceiverSocketId(recieverId);
