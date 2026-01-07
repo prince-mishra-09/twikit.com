@@ -200,6 +200,7 @@ export const searchUsers = tryCatch(async (req, res) => {
   const users = await User.find({
     name: { $regex: search, $options: "i" },
     _id: { $ne: req.user._id, $nin: req.user.blockedUsers },
+    blockedUsers: { $ne: req.user._id }
   }).select("name profilePic");
 
   res.json(users);
