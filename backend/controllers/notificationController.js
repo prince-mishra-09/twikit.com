@@ -33,20 +33,12 @@ import webPush from "web-push";
 import User from "../models/userModel.js";
 
 // Initialize Web Push with keys from .env
+// Initialize Web Push with keys from .env
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
-    const publicKey = process.env.VAPID_PUBLIC_KEY.trim();
-    const privateKey = process.env.VAPID_PRIVATE_KEY.trim();
-
-    console.log("--- VAPID DEBUG ---");
-    console.log("Public Key Length:", publicKey.length);
-    console.log("Private Key Length:", privateKey.length);
-    console.log("Public Key Start:", publicKey.substring(0, 5));
-    console.log("-------------------");
-
     webPush.setVapidDetails(
         (process.env.VAPID_MAILTO || "mailto:test@example.com").trim(),
-        publicKey,
-        privateKey
+        process.env.VAPID_PUBLIC_KEY.trim(),
+        process.env.VAPID_PRIVATE_KEY.trim()
     );
 }
 
