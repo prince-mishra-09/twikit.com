@@ -93,6 +93,13 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
 
       io.to(user._id.toString()).emit("notification:new", notification);
 
+      // SEND PUSH NOTIFICATION
+      await sendPushNotification(user._id, {
+        title: "New Follow Request",
+        body: `${loggedInUser.name} wants to follow you`,
+        url: `/profile/${loggedInUser._id}`,
+      });
+
       return res.json({ message: "Follow Request Sent" });
     }
 
@@ -111,6 +118,13 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
     });
 
     io.to(user._id.toString()).emit("notification:new", notification);
+
+    // SEND PUSH NOTIFICATION
+    await sendPushNotification(user._id, {
+      title: "New Follower",
+      body: `${loggedInUser.name} started following you`,
+      url: `/profile/${loggedInUser._id}`,
+    });
 
     res.json({
       message: "User Followed",
@@ -305,6 +319,13 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
   await notification.populate("sender", "name profilePic");
 
   io.to(sender._id.toString()).emit("notification:new", notification);
+
+  // SEND PUSH NOTIFICATION
+  await sendPushNotification(sender._id, {
+    title: "Request Accepted",
+    body: `${loggedInUser.name} accepted your follow request`,
+    url: `/profile/${loggedInUser._id}`,
+  });
 
   // Real-time Follow Update for Receiever (Me)
   io.to(loggedInUser._id.toString()).emit("userFollowed", {
