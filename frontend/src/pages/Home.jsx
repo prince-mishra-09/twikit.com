@@ -85,18 +85,30 @@ const Home = () => {
         </div>
 
         {/* Posts */}
-        <p className="text-gray-400 max-w-xs mx-auto text-sm leading-relaxed">
-          Follow more people or explore the community to see posts here.
-        </p>
-        <Link
-          to="/search" // Assuming there's a search/explore page or similar
-          className="mt-6 px-6 py-2.5 bg-white text-black font-semibold rounded-full hover:bg-gray-200 transition-all active:scale-95 text-sm"
-        >
-          Discover People
-        </Link>
-      </div>
+        <div className="mt-4">
+          {loading ? (
+            <Loading />
+          ) : posts && posts.length > 0 ? (
+            <div className="space-y-4">
+              {posts.map((post) => (
+                <PostCard key={post._id} value={post} type="post" />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-[60vh] text-center w-full z-10 relative">
+              <h3 className="text-2xl font-bold text-white mb-2">No posts yet</h3>
+              <p className="text-gray-300 text-base mb-6">
+                Be the first to post something or follow others!
+              </p>
+              <Link
+                to="/search"
+                className="px-6 py-2 bg-white text-black font-semibold rounded-full hover:bg-gray-200 transition-colors"
+              >
+                Discover People
+              </Link>
+            </div>
           )}
-    </div>
+        </div>
       </div >
     </div >
   );

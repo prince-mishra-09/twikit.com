@@ -136,7 +136,7 @@ const Account = ({ user }) => {
       )}
 
       {/* ================= PROFILE CARD ================= */}
-      <div className="w-full max-w-md bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6 mt-4 relative">
+      <div className="w-full max-w-xl bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6 mt-4 relative">
 
         {/* Settings Menu Button */}
         <button
@@ -297,23 +297,27 @@ const Account = ({ user }) => {
       </div>
 
       {/* Content */}
-      {type === "post" &&
-        (myPosts?.length
-          ? myPosts.map((e) => (
-            <PostCard type="post" value={e} key={e._id} />
-          ))
-          : <p className="text-gray-500">No posts yet</p>)}
+      {/* Content */}
+      {type === "post" && (
+        <div className="w-full max-w-xl space-y-4">
+          {myPosts?.length
+            ? myPosts.map((e) => (
+              <PostCard type="post" value={e} key={e._id} />
+            ))
+            : <p className="text-gray-500 text-center py-4">No posts yet</p>}
+        </div>
+      )}
 
       {type === "reel" &&
         (myReels?.length ? (
-          <div className="grid grid-cols-1 gap-6 w-full max-w-xl mx-auto pb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl mx-auto pb-4">
             {myReels.map((reel) => (
-              <div key={reel._id} id={reel._id} className="account-reel flex justify-center w-full aspect-[9/16] h-[80vh] bg-gray-900 rounded-lg overflow-hidden relative">
+              <div key={reel._id} id={reel._id} className="account-reel flex justify-center w-full aspect-[9/16] bg-gray-900 rounded-lg overflow-hidden relative group">
                 <PostCard type="reel" value={reel} isActive={activeReelId === reel._id} />
               </div>
             ))}
           </div>
-        ) : <p className="text-gray-500">No reels yet</p>)}
+        ) : <p className="text-gray-500 text-center py-4">No reels yet</p>)}
 
       {type === "saved" && <SavedPosts onBack={() => setType("post")} />}
       {showEdit && <EditProfile user={user} onBack={() => setShowEdit(false)} />}

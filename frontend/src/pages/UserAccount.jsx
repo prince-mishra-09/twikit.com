@@ -145,7 +145,7 @@ const UserAccount = ({ user: loggedInUser }) => {
       )}
 
       {/* PROFILE CARD */}
-      <div className="w-full max-w-md bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6 mt-4">
+      <div className="w-full max-w-xl bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6 mt-4">
 
         {/* NAME + GENDER (TOP LEFT, LIKE INSTAGRAM) */}
         <p className="text-white font-semibold text-lg flex items-center gap-2 mb-3">
@@ -222,41 +222,30 @@ const UserAccount = ({ user: loggedInUser }) => {
       </div>
 
       {/* POSTS */}
-      {type === "post" &&
-        (myPosts?.length ? (
-          myPosts.map((e) => (
-            <PostCard type="post" value={e} key={e._id} />
-          ))
-        ) : (
-          <p className="text-gray-500">No posts yet</p>
-        ))}
+      {type === "post" && (
+        <div className="w-full max-w-xl space-y-4">
+          {myPosts?.length ? (
+            myPosts.map((e) => (
+              <PostCard type="post" value={e} key={e._id} />
+            ))
+          ) : (
+            <p className="text-gray-500 text-center py-4">No posts yet</p>
+          )}
+        </div>
+      )}
 
       {/* REELS */}
       {type === "reel" &&
         (myReels?.length ? (
-          <div className="flex gap-4 items-center">
-            <PostCard type="reel" value={myReels[index]} />
-            <div className="flex flex-col gap-4">
-              {index !== 0 && (
-                <button
-                  onClick={prevReel}
-                  className="p-3 bg-[#111827] rounded-full text-white"
-                >
-                  <FaArrowUp />
-                </button>
-              )}
-              {index !== myReels.length - 1 && (
-                <button
-                  onClick={nextReel}
-                  className="p-3 bg-[#111827] rounded-full text-white"
-                >
-                  <FaArrowDownLong />
-                </button>
-              )}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl mx-auto pb-4">
+            {myReels.map((reel, i) => (
+              <div key={reel._id} className="relative aspect-[9/16] bg-gray-900 rounded-lg overflow-hidden">
+                <PostCard type="reel" value={reel} />
+              </div>
+            ))}
           </div>
         ) : (
-          <p className="text-gray-500">No reels yet</p>
+          <p className="text-gray-500 text-center py-4">No reels yet</p>
         ))}
     </div>
   );
