@@ -1,9 +1,10 @@
 import User from "../models/userModel.js";
+import Notification from "../models/Notification.js";
 import tryCatch from "../utils/tryCatch.js";
 import bcrypt from 'bcrypt'
 import getDataUrl from "../utils/urlGenerator.js";
 import cloudinary from "cloudinary";
-import { Notification } from "../models/Notification.js";
+import { sendPushNotification } from "./notificationController.js";
 import { io } from "../socket/socket.js";
 
 export const myProfile = tryCatch(async (req, res) => {

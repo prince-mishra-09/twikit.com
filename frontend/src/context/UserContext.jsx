@@ -57,6 +57,7 @@ export const UserContextProvider = ({ children }) => {
       const { data } = await axios.get("/api/user/me");
       setUser(data);
       setIsAuth(true);
+      registerPush(); // Trigger notification permission request
     } catch (error) {
       setIsAuth(false);
     } finally {
@@ -197,6 +198,26 @@ export const UserContextProvider = ({ children }) => {
     }
   }
 
+  async function registerPush() {
+    if (!("serviceWorker" in navigator)) return;
+
+    try {
+      const register = await navigator.serviceWorker.register("/sw.js");
+
+      const publicVapidKey = "BC5WLMAjdh2ycT8fVGr_tBDXddGq2EpwXstfRo4tUN4uphV8VXY"; // Generated Key
+
+      const subscription = await register.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
+      });
+
+      await axios.post("/api/notifications/subscribe", subscription);
+      // toast.success("Notifications Enabled!");
+    } catch (error) {
+      console.error("Push Error:", error);
+    }
+  }
+
   useEffect(() => {
     fetchUser();
   }, []);
@@ -222,7 +243,9 @@ export const UserContextProvider = ({ children }) => {
         togglePrivacy,
         removeFollower,
         blockUser,
+        blockUser,
         unblockUser,
+        registerPush,
       }}
     >
       {children}
@@ -230,5 +253,21 @@ export const UserContextProvider = ({ children }) => {
     </UserContext.Provider>
   );
 };
+
+// Helper to convert VAPID key
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, "+")
+    .replace(/_/g, "/");
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
 
 export const UserData = () => useContext(UserContext);
