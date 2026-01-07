@@ -240,7 +240,7 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
     { sender: sender._id, receiver: loggedInUser._id, type: "follow_request" },
     { actionRequired: false, isRead: true },
     { new: true }
-  );
+  ).populate("sender", "name profilePic");
 
   if (requestNotification) {
     io.to(loggedInUser._id.toString()).emit("notification:update", requestNotification);
@@ -250,7 +250,7 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
   const notification = await Notification.create({
     receiver: sender._id,
     sender: loggedInUser._id,
-    type: "follow",
+    type: "request_accepted",
     isRead: false
   });
   io.to(sender._id.toString()).emit("notification:new", notification);

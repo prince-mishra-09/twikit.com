@@ -48,7 +48,14 @@ export const NotificationProvider = ({ children }) => {
             socket.on("notification:new", (newNotification) => {
                 setNotifications((prev) => [newNotification, ...prev]);
                 setUnreadCount((prev) => prev + 1);
-                toast.success(`${newNotification.sender?.name || "Someone"} ${newNotification.type === "like" ? "liked" : "commented on"} your post`);
+                let toastMessage = "New Notification";
+                if (newNotification.type === "like") toastMessage = "liked your post";
+                else if (newNotification.type === "comment") toastMessage = "commented on your post";
+                else if (newNotification.type === "follow") toastMessage = "started following you";
+                else if (newNotification.type === "follow_request") toastMessage = "sent you a follow request";
+                else if (newNotification.type === "request_accepted") toastMessage = "accepted your follow request";
+
+                toast.success(`${newNotification.sender?.name || "Someone"} ${toastMessage}`);
             });
 
             socket.on("notification:update", (updatedNotification) => {

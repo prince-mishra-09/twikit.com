@@ -31,7 +31,7 @@ const Notifications = () => {
         try {
             await axios.post(`/api/user/accept-request/${id}`);
             setNotifications(prev => prev.map(n =>
-                n._id === notificationId ? { ...n, type: "follow", actionRequired: false } : n
+                n._id === notificationId ? { ...n, type: "request_accepted", actionRequired: false } : n
             ));
             toast.success("Request Accepted");
         } catch (error) {
@@ -59,6 +59,8 @@ const Notifications = () => {
                 return "started following you";
             case "follow_request":
                 return "sent you a follow request";
+            case "request_accepted":
+                return "accepted your follow request";
             case "message":
                 return "sent you a new message";
             default:

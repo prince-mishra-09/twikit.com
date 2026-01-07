@@ -34,6 +34,14 @@ function App() {
               ? prev.followings.filter(id => id !== data.followingId)
               : [...(prev.followings || []), data.followingId]
           }));
+        } else if (data.followingId === user._id) {
+          // Someone followed me, update my followers list
+          setUser((prev) => ({
+            ...prev,
+            followers: prev.followers?.includes(data.followerId)
+              ? prev.followers.filter(id => id !== data.followerId)
+              : [...(prev.followers || []), data.followerId]
+          }));
         }
       });
       return () => socket.off("userFollowed");
