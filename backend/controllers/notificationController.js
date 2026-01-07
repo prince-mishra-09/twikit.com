@@ -35,9 +35,9 @@ import User from "../models/userModel.js";
 // Initialize Web Push with keys from .env
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
     webPush.setVapidDetails(
-        process.env.VAPID_MAILTO || "mailto:test@example.com",
-        process.env.VAPID_PUBLIC_KEY,
-        process.env.VAPID_PRIVATE_KEY
+        (process.env.VAPID_MAILTO || "mailto:test@example.com").trim(),
+        process.env.VAPID_PUBLIC_KEY.trim(),
+        process.env.VAPID_PRIVATE_KEY.trim()
     );
 }
 
