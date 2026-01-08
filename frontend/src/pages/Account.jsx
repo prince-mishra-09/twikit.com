@@ -141,7 +141,7 @@ const Account = ({ user }) => {
       )}
 
       {/* ================= PROFILE CARD ================= */}
-      <div className="w-full max-w-xl bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6 mt-4 relative">
+      <div className="w-full max-w-xl bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6 mt-4 relative z-30">
 
         {/* Settings Menu Button */}
 
