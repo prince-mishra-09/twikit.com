@@ -10,7 +10,7 @@ import { MdDelete } from "react-icons/md";
 import { SocketData } from "../context/SocketContext";
 
 
-const PostCard = ({ value, type, isActive }) => {
+const PostCard = ({ value, type, isActive, commentId }) => {
   const { user, followUser, savePost, hidePost, muteUser, blockUser } = UserData();
   const { likePost, addComment, deletePost, deleteComment } = PostData();
 
@@ -38,6 +38,22 @@ const PostCard = ({ value, type, isActive }) => {
       setIsFollowed(user.followings?.includes(value.owner._id));
     }
   }, [user, value.owner]);
+
+  // DEEP LINK COMMENT SCROLL
+  useEffect(() => {
+    if (commentId && show) {
+      setTimeout(() => {
+        const element = document.getElementById(`comment-${commentId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+          // Optional: Add highlight effect via state or assume the class in render handles it
+        }
+      }, 500); // Small delay to allow drawer animation
+    } else if (commentId && !show) {
+      // If commentId exists but drawer not open, open it
+      setShow(true);
+    }
+  }, [commentId, show]);
 
   // Ensure menu closes when clicking outside
   useEffect(() => {
@@ -567,12 +583,16 @@ const PostCard = ({ value, type, isActive }) => {
             {/* Comments List */}
             <div ref={commentsRef} className="flex-1 overflow-y-auto px-4 py-2 space-y-4 custom-scrollbar relative">
               {value.comments && value.comments.length > 0 ? (
-                // Reverse map to show latest comments at bottom or top? Usually comments are chronological.
                 // Assuming backend sends them sorted.
+                // We reverse locally?
+                // BE CAREFUL: commentId scroll needs to match the rendered order.
+                // Original code: [...value.comments].reverse().map
                 [...value.comments].reverse().map((c, i) => (
                   <div
                     key={i}
-                    className="flex gap-3 items-start animate-in slide-in-from-bottom fade-in duration-300"
+                    id={`comment-${c._id}`}
+                    className={`flex gap-3 items-start animate-in slide-in-from-bottom fade-in duration-300 p-2 rounded-lg transition-colors ${commentId === c._id ? "bg-white/10 border border-indigo-500/30" : ""
+                      }`}
                   >
                     <Link to={`/user/${c.user?._id}`} className="shrink-0">
                       <img

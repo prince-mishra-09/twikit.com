@@ -1,10 +1,13 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import Post from "../components/PostCard";
 
 const PostDetail = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const commentId = searchParams.get("commentId");
+
   const [post, setPost] = useState(null);
   const [morePosts, setMorePosts] = useState([]);
 
@@ -20,7 +23,7 @@ const PostDetail = () => {
   return (
     <div className="min-h-screen bg-[#0B0F14] px-4 py-6">
       <div className="max-w-xl mx-auto">
-        <Post post={post} />
+        <Post post={post} commentId={commentId} />
 
         <h3 className="text-white mt-8 mb-4">More posts</h3>
 

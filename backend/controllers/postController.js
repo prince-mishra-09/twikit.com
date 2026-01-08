@@ -265,12 +265,16 @@ export const commentonPost = TryCatch(async (req, res) => {
         await notification.populate("postId", "post");
         io.to(post.owner.toString()).emit("notification:new", notification);
 
+        // Get the last added comment's ID
+        const newComment = post.comments[post.comments.length - 1];
+        const newCommentId = newComment._id;
+
         // SEND PUSH NOTIFICATION
         console.log("Sending Push Notification for Comment...");
         await sendPushNotification(post.owner, {
             title: "New Comment",
             body: `${req.user.name} commented on your post`,
-            url: `/post/${post._id}`,
+            url: `/post/${post._id}?commentId=${newCommentId}`,
         });
     }
 

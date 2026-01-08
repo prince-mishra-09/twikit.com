@@ -97,7 +97,7 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
       await sendPushNotification(user._id, {
         title: "New Follow Request",
         body: `${loggedInUser.name} wants to follow you`,
-        url: `/profile/${loggedInUser._id}`,
+        url: `/notifications`,
       });
 
       return res.json({ message: "Follow Request Sent" });
@@ -123,7 +123,7 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
     await sendPushNotification(user._id, {
       title: "New Follower",
       body: `${loggedInUser.name} started following you`,
-      url: `/profile/${loggedInUser._id}`,
+      url: `/notifications`,
     });
 
     res.json({
@@ -324,7 +324,7 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
   await sendPushNotification(sender._id, {
     title: "Request Accepted",
     body: `${loggedInUser.name} accepted your follow request`,
-    url: `/profile/${loggedInUser._id}`,
+    url: `/notifications`,
   });
 
   // Real-time Follow Update for Receiever (Me)
