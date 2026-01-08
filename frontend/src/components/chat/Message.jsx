@@ -30,15 +30,15 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
         onMouseLeave={handleTouchEnd}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className={`max-w-[75%] px-4 py-2 pb-6 text-sm rounded-2xl break-words relative cursor-pointer ${ownMessage
-          ? "bg-gradient-to-r from-indigo-500 to-blue-500 text-white rounded-br-sm pr-9"
-          : "bg-[#1F2937]/80 backdrop-blur-md text-gray-100 rounded-bl-sm border border-white/10"
+        className={`max-w-[75%] px-4 py-2 text-sm rounded-2xl break-words relative cursor-pointer flex flex-wrap items-end gap-2 shadow-sm ${ownMessage
+          ? "bg-gradient-to-r from-indigo-500 to-blue-500 text-white rounded-br-sm"
+          : "bg-[#1F2937] text-gray-100 rounded-bl-sm border border-white/10"
           }`}
       >
-        {message.text}
+        <span className="break-words max-w-full leading-relaxed">{message.text}</span>
 
         {/* Time & Read Receipt */}
-        <div className={`absolute bottom-1 right-3 text-[10px] flex items-center gap-1 ${ownMessage ? "text-gray-200" : "text-gray-400"}`}>
+        <div className={`text-[10px] flex items-center gap-1 ml-auto shrink-0 ${ownMessage ? "text-gray-200" : "text-gray-400"}`}>
           <span>{
             message.createdAt
               ? new Date(message.createdAt).toLocaleTimeString([], {
