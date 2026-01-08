@@ -60,15 +60,36 @@ export const subscribeToPush = TryCatch(async (req, res) => {
     res.status(201).json({ message: "Subscription added" });
 });
 
+import { getReceiverSocketId } from "../socket/socket.js";
+
 // Internal helper to send push notifications to a user
 export const sendPushNotification = async (userId, payload) => {
     try {
+        // 1. Suppression Logic: Don't send push if user is online (socket connected)
+        const isOnline = getReceiverSocketId(userId.toString());
+        if (isOnline) {
+            // console.log(`User ${userId} is online, skipping push notification.`);
+            return;
+        }
+
         const user = await User.findById(userId);
         if (!user || !user.pushSubscriptions || user.pushSubscriptions.length === 0) return;
 
         const notificationPayload = JSON.stringify(payload);
 
-        const promises = user.pushSubscriptions.map(async (sub) => {
+        // 2. Deduplication Logic: Filter unique endpoints
+        const uniqueSubscriptions = [];
+        const seenEndpoints = new Set();
+
+        for (const sub of user.pushSubscriptions) {
+            if (!seenEndpoints.has(sub.endpoint)) {
+                seenEndpoints.add(sub.endpoint);
+                uniqueSubscriptions.push(sub);
+            }
+        }
+
+        // 3. Send Notifications
+        const promises = uniqueSubscriptions.map(async (sub) => {
             try {
                 await webPush.sendNotification(sub, notificationPayload);
             } catch (error) {

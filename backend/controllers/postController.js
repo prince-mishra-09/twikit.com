@@ -214,7 +214,7 @@ export const likeUnlikePost = TryCatch(async (req, res) => {
         await sendPushNotification(post.owner, {
             title: "New Like",
             body: `${req.user.name} liked your post`,
-            url: `/post/${post._id}`,
+            url: `/post/${post._id.toString()}`,
         });
     }
 
@@ -274,7 +274,7 @@ export const commentonPost = TryCatch(async (req, res) => {
         await sendPushNotification(post.owner, {
             title: "New Comment",
             body: `${req.user.name} commented on your post`,
-            url: `/post/${post._id}?commentId=${newCommentId}`,
+            url: `/post/${post._id.toString()}?commentId=${newCommentId.toString()}`,
         });
     }
 
