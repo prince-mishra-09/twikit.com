@@ -75,7 +75,7 @@ const Notifications = () => {
             <div className="w-full max-w-xl px-4 py-6 pb-24">
                 <div className="flex items-center gap-3 mb-6">
                     <button
-                        onClick={() => navigate(-1)}
+                        onClick={() => navigate("/")}
                         className="text-white p-2 rounded-full hover:bg-white/10 -ml-2"
                     >
                         <FaArrowLeft />

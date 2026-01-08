@@ -45,11 +45,17 @@ if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
 export const subscribeToPush = TryCatch(async (req, res) => {
     const subscription = req.body;
 
-    // Save subscription to user's pushSubscriptions array if not already present
-    // We try to avoid duplicates based on endpoint
-    await User.findByIdAndUpdate(req.user._id, {
-        $addToSet: { pushSubscriptions: subscription }
-    });
+    const user = await User.findById(req.user._id);
+
+    // Check if subscription with this endpoint already exists
+    const alreadySubscribed = user.pushSubscriptions.some(
+        (sub) => sub.endpoint === subscription.endpoint
+    );
+
+    if (!alreadySubscribed) {
+        user.pushSubscriptions.push(subscription);
+        await user.save();
+    }
 
     res.status(201).json({ message: "Subscription added" });
 });
