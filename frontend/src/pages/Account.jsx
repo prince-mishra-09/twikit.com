@@ -11,11 +11,21 @@ import { Loading } from "../components/Loading";
 import { CiEdit } from "react-icons/ci";
 import toast from "react-hot-toast";
 import { FiEdit2 } from "react-icons/fi";
+import { StoriesData } from "../context/StoriesContext";
+import StoryViewer from "../components/StoryViewer";
+import CreatePostModal from "../components/CreatePostModal";
+import { AiOutlinePlus } from "react-icons/ai";
 
 const Account = ({ user }) => {
   const navigate = useNavigate();
   const { logoutUser, updateProfilePic, updateProfileName, unmuteUser, togglePrivacy, removeFollower, unblockUser, user: loggedInUser } = UserData();
   const { posts, reels, loading } = PostData();
+  const { stories } = StoriesData();
+
+  // Story Logic
+  const myStoryGroup = stories.find(s => s.user._id === user._id);
+  const [showStoryViewer, setShowStoryViewer] = useState(false);
+  const [showCreateStory, setShowCreateStory] = useState(false);
 
   const myPosts = posts?.filter((p) => p.owner._id === user._id);
   const myReels = reels?.filter((r) => r.owner._id === user._id);
@@ -240,13 +250,20 @@ const Account = ({ user }) => {
         {/* Top Row: Picture + Stats */}
         <div className="flex flex-row items-center gap-4 w-full">
 
-          {/* Profile Image */}
-          <div className="relative shrink-0">
-            <img
-              src={user.profilePic.url}
-              alt="profile"
-              className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border border-white/20"
-            />
+          {/* Profile Image with Story Ring */}
+          <div className="relative shrink-0 cursor-pointer" onClick={() => myStoryGroup ? setShowStoryViewer(true) : setShowCreateStory(true)}>
+            <div className={`p-[3px] rounded-full ${myStoryGroup ? "bg-gradient-to-tr from-indigo-500 via-purple-500 to-orange-500" : ""}`}>
+              <img
+                src={user.profilePic.url}
+                alt="profile"
+                className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border-2 border-[#111827]"
+              />
+            </div>
+            {!myStoryGroup && (
+              <div className="absolute bottom-1 right-1 bg-blue-500 text-white rounded-full p-1 border-2 border-[#111827]">
+                <AiOutlinePlus size={14} />
+              </div>
+            )}
           </div>
 
           {/* Stats */}
@@ -352,6 +369,20 @@ const Account = ({ user }) => {
 
       {type === "saved" && <SavedPosts onBack={() => setType("post")} />}
       {showEdit && <EditProfile user={user} onBack={() => setShowEdit(false)} />}
+
+      {/* Story Viewer Overlay */}
+      {showStoryViewer && myStoryGroup && (
+        <StoryViewer
+          stories={[myStoryGroup]}
+          initialIndex={0}
+          onClose={() => setShowStoryViewer(false)}
+        />
+      )}
+
+      {/* Story Creation Modal */}
+      {showCreateStory && (
+        <CreatePostModal setShow={setShowCreateStory} initialTab="story" />
+      )}
     </div >
   );
 };
@@ -376,6 +407,11 @@ const EditProfile = ({ user, onBack }) => {
     setLoading(true);
     try {
       if (name !== user.name) {
+        if (name.trim().length > 20) {
+          toast.error("Name must be under 20 chars");
+          setLoading(false);
+          return;
+        }
         await updateProfileName(user._id, name, () => { });
       }
       if (file) {
@@ -401,7 +437,11 @@ const EditProfile = ({ user, onBack }) => {
           </button>
           <h2 className="text-xl font-bold text-white">Edit Profile</h2>
         </div>
-        <button onClick={saveHandler} disabled={loading} className="text-indigo-400 font-semibold text-lg hover:text-indigo-300 disabled:opacity-50">
+        <button
+          onClick={saveHandler}
+          disabled={loading || name.trim().length > 20 || name.trim().length === 0}
+          className="text-indigo-400 font-semibold text-lg hover:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+        >
           {loading ? "Saving..." : "Save"}
         </button>
       </div>
@@ -418,11 +458,16 @@ const EditProfile = ({ user, onBack }) => {
 
         {/* Name Input */}
         <div className="w-full space-y-2">
-          <label className="text-gray-400 text-sm ml-1">Name</label>
+          <div className="flex justify-between items-center ml-1">
+            <label className="text-gray-400 text-sm">Name</label>
+            <span className={`text-xs font-medium transition-colors ${name.length > 20 ? "text-red-500" : "text-gray-500"}`}>
+              {name.length}/20
+            </span>
+          </div>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full bg-[#1F2937] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors"
+            className={`w-full bg-[#1F2937] border rounded-xl px-4 py-3 text-white focus:outline-none transition-colors ${name.length > 20 ? "border-red-500 focus:border-red-500" : "border-white/10 focus:border-indigo-500"}`}
             placeholder="Enter your name"
           />
         </div>

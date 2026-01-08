@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { IoChatbubbleEllipsesOutline, IoNotificationsOutline } from "react-icons/io5";
 import AddPost from "../components/AddPost";
+import StoryRow from "../components/StoryRow"; // Import StoryRow
 import PostCard from "../components/PostCard";
 import { PostData } from "../context/PostContext";
 import { NotificationData } from "../context/NotificationContext";
@@ -86,6 +87,7 @@ const Home = () => {
 
         {/* Posts */}
         <div className="mt-4">
+          <StoryRow />
           {loading ? (
             <Loading />
           ) : posts && posts.length > 0 ? (

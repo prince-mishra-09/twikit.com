@@ -1,4 +1,4 @@
-import React, { useState,useRef } from "react";
+import React, { useState, useRef } from "react";
 
 
 import { Link, useNavigate } from "react-router-dom";
@@ -13,8 +13,8 @@ const Register = () => {
   const [file, setFile] = useState("");
   const [filePrev, setFilePrev] = useState("");
   const [error, setError] = useState("");
-const [showPassword, setShowPassword] = useState(false);
-const fileInputRef = useRef(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const fileInputRef = useRef(null);
 
   const { registerUser, loading } = UserData();
   const { fetchPosts } = PostData();
@@ -49,6 +49,9 @@ const fileInputRef = useRef(null);
     e.preventDefault();
 
     // Username validation
+    if (name.trim().length > 20) {
+      return setError("Username must be under 20 characters");
+    }
     if (name.trim().length < 3) {
       return setError("Username must be at least 3 characters long");
     }
@@ -119,38 +122,38 @@ const fileInputRef = useRef(null);
         <form className="mt-6 space-y-4" onSubmit={submitHandler}>
           {/* Profile Image */}
           <div className="flex justify-center">
-  <div
-    onClick={() => fileInputRef.current.click()}
-    className="relative cursor-pointer group"
-  >
-    {filePrev ? (
-      <img
-        src={filePrev}
-        alt="profile"
-        className="w-28 h-28 rounded-full object-cover border border-white/20"
-      />
-    ) : (
-      <div className="w-28 h-28 rounded-full bg-[#0B0F14] border border-dashed border-white/20 flex items-center justify-center text-gray-500 text-sm">
-        Upload
-      </div>
-    )}
+            <div
+              onClick={() => fileInputRef.current.click()}
+              className="relative cursor-pointer group"
+            >
+              {filePrev ? (
+                <img
+                  src={filePrev}
+                  alt="profile"
+                  className="w-28 h-28 rounded-full object-cover border border-white/20"
+                />
+              ) : (
+                <div className="w-28 h-28 rounded-full bg-[#0B0F14] border border-dashed border-white/20 flex items-center justify-center text-gray-500 text-sm">
+                  Upload
+                </div>
+              )}
 
-    {/* Hover overlay */}
-    <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs transition">
-      Change Photo
-    </div>
-  </div>
+              {/* Hover overlay */}
+              <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs transition">
+                Change Photo
+              </div>
+            </div>
 
-  {/* Hidden file input */}
-  <input
-    type="file"
-    accept="image/*"
-    ref={fileInputRef}
-    onChange={changeFileHandler}
-    className="hidden"
-    required
-  />
-</div>
+            {/* Hidden file input */}
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={changeFileHandler}
+              className="hidden"
+              required
+            />
+          </div>
 
 
           <input
@@ -172,22 +175,22 @@ const fileInputRef = useRef(null);
           />
 
           <div className="relative">
-  <input
-    type={showPassword ? "text" : "password"}
-    placeholder="Password"
-    value={password}
-    onChange={(e) => setPassword(e.target.value)}
-    className="w-full px-4 py-3 pr-12 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400 transition"
-    required
-  />
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 pr-12 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400 transition"
+              required
+            />
 
-  <span
-    onClick={() => setShowPassword(!showPassword)}
-    className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-white transition select-none"
-  >
-    {showPassword ? "🙈" : "👁️"}
-  </span>
-</div>
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-white transition select-none"
+            >
+              {showPassword ? "🙈" : "👁️"}
+            </span>
+          </div>
 
 
           <select

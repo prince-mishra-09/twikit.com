@@ -9,9 +9,12 @@ import { UserData } from "../context/UserContext";
 import Modal from "../components/Modal";
 import { SocketData } from "../context/SocketContext";
 import { useNavigate } from "react-router-dom"; // Added for redirect
+import { StoriesData } from "../context/StoriesContext";
+import StoryViewer from "../components/StoryViewer";
 
 const UserAccount = ({ user: loggedInUser }) => {
   const { posts, reels } = PostData();
+  const { stories } = StoriesData();
   const { followUser } = UserData();
   const { onlineUsers } = SocketData();
   const params = useParams();
@@ -163,6 +166,10 @@ const UserAccount = ({ user: loggedInUser }) => {
 
   if (loading) return <Loading />;
 
+  // Story Logic
+  const userStoryGroup = stories.find(s => s.user._id === user?._id);
+  const [showStoryViewer, setShowStoryViewer] = useState(false);
+
   return (
     <div className="min-h-screen bg-[#0B0F14] flex flex-col items-center gap-6 pb-24 px-3">
 
@@ -212,11 +219,18 @@ const UserAccount = ({ user: loggedInUser }) => {
         <div className="flex items-center gap-6">
 
           {/* PROFILE IMAGE */}
-          <img
-            src={user.profilePic.url}
-            alt="profile"
-            className="w-24 h-24 rounded-full object-cover border border-white/20"
-          />
+          <div
+            className="relative cursor-pointer"
+            onClick={() => userStoryGroup && setShowStoryViewer(true)}
+          >
+            <div className={`p-[3px] rounded-full ${userStoryGroup ? "bg-gradient-to-tr from-indigo-500 via-purple-500 to-orange-500" : ""}`}>
+              <img
+                src={user.profilePic.url}
+                alt="profile"
+                className="w-24 h-24 rounded-full object-cover border-2 border-[#111827]"
+              />
+            </div>
+          </div>
 
           {/* STATS */}
           <div className="flex flex-1 justify-around text-center">
@@ -297,6 +311,15 @@ const UserAccount = ({ user: loggedInUser }) => {
         ) : (
           <p className="text-gray-500 text-center py-4">No reels yet</p>
         ))}
+
+      {/* Story Viewer Overlay */}
+      {showStoryViewer && userStoryGroup && (
+        <StoryViewer
+          stories={[userStoryGroup]}
+          initialIndex={0}
+          onClose={() => setShowStoryViewer(false)}
+        />
+      )}
     </div>
   );
 };

@@ -16,6 +16,7 @@ import TwikitLanding from "./pages/TwikitLanding";
 import PostDetail from "./pages/PostDetail";
 import { SocketData } from "./context/SocketContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import { StoriesProvider } from "./context/StoriesContext";
 import Notifications from "./pages/Notifications";
 import { useEffect } from "react";
 
@@ -52,7 +53,7 @@ function App() {
     <>
       <Toaster position="top-center" />
       <Toaster position="top-center" />
-      {loading ? <Loading /> : <BrowserRouter><NotificationProvider>
+      {loading ? <Loading /> : <BrowserRouter><NotificationProvider><StoriesProvider>
         <Routes>
           <Route path="/landing" element={<TwikitLanding />} />
           <Route path="/" element={isAuth ? <Home /> : <Login />} />
@@ -69,7 +70,7 @@ function App() {
 
         </Routes>
         {isAuth && <NavigationBar />}
-      </NotificationProvider></BrowserRouter>}
+      </StoriesProvider></NotificationProvider></BrowserRouter>}
     </>
   );
 }
