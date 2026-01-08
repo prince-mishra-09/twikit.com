@@ -58,10 +58,20 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
     useEffect(() => {
         if (isPaused || showInsights || isDeleting || showDeleteModal) return;
 
-        setProgress(0);
+        // If Video: Don't run timer. Let video events handle it.
+        const isVideo = currentStory?.mediaUrl?.includes(".mp4") || currentStory?.mediaUrl?.includes(".webm");
+        if (isVideo) return;
+
+        // If Image: Run Timer (10ms for smoothness)
+        // Note: progress is NOT reset here, it allows resuming correctly.
+        // It MUST be reset when changing stories (in nextStory/prevStory).
+        // If Image/Text: Use requestAnimationFrame for 60fps smoothness
+        // Note: progress is NOT reset here, it allows resuming correctly.
+        // It MUST be reset when changing stories (in nextStory/prevStory).
+        let animationFrameId;
         const startTime = Date.now() - (progress / 100 * duration);
 
-        intervalRef.current = setInterval(() => {
+        const animate = () => {
             const elapsed = Date.now() - startTime;
             const p = (elapsed / duration) * 100;
 
@@ -69,14 +79,17 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
                 nextStory();
             } else {
                 setProgress(p);
+                animationFrameId = requestAnimationFrame(animate);
             }
-        }, 50);
+        };
 
-        return () => clearInterval(intervalRef.current);
-    }, [storyIndex, userIndex, duration, isPaused, showInsights, isDeleting, showDeleteModal]);
+        animationFrameId = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [storyIndex, userIndex, duration, isPaused, showInsights, isDeleting, showDeleteModal, currentStory]);
 
 
     const nextStory = () => {
+        setProgress(0); // Reset progress for new story
         if (storyIndex < currentUserStories.stories.length - 1) {
             setStoryIndex(prev => prev + 1);
         } else {
@@ -90,6 +103,7 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
     };
 
     const prevStory = () => {
+        setProgress(0); // Reset progress
         if (storyIndex > 0) {
             setStoryIndex(prev => prev - 1);
         } else {
@@ -99,7 +113,6 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
                 setStoryIndex(stories[prevUserIdx].stories.length - 1);
             } else {
                 setStoryIndex(0);
-                setProgress(0);
             }
         }
     };
@@ -173,9 +186,9 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
                 {/* Progress Bars */}
                 <div className="absolute top-4 left-0 w-full px-2 flex gap-1 z-20">
                     {currentUserStories.stories.map((s, i) => (
-                        <div key={s._id} className="h-0.5 flex-1 bg-white/30 rounded-full overflow-hidden">
+                        <div key={s._id} className="h-0.5 flex-1 bg-black/40 backdrop-blur-sm rounded-full overflow-hidden shadow-sm">
                             <div
-                                className="h-full bg-white transition-all duration-75 ease-linear"
+                                className="h-full bg-white ease-linear shadow-[0_0_10px_rgba(255,255,255,0.7)]"
                                 style={{
                                     width: i < storyIndex ? "100%" : i === storyIndex ? `${progress}%` : "0%"
                                 }}
@@ -196,11 +209,11 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
                         src={currentUserStories.user.profilePic?.url || "https://placehold.co/400"}
                         className="w-8 h-8 rounded-full border border-white/20"
                     />
-                    <div className="flex flex-col">
+                    <div className="flex flex-col gap-0.5">
                         <span className="text-white font-bold text-sm leading-none drop-shadow-md">
                             {currentUserStories.user.name.length > 20 ? currentUserStories.user.name.slice(0, 20) + "..." : currentUserStories.user.name}
                         </span>
-                        <span className="text-white/80 text-[10px] leading-none">
+                        <span className="text-white/80 text-[10px] leading-none drop-shadow-md">
                             {new Date(currentStory.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                     </div>

@@ -19,7 +19,7 @@ export const StoriesProvider = ({ children }) => {
         const handleNewStory = (story) => {
             console.log("Socket: New Story Received:", story);
             setStories(prev => {
-                const existingUserGroup = prev.find(g => g.user._id === story.user._id);
+                const existingUserGroup = prev.find(g => String(g.user._id) === String(story.user._id));
 
                 if (existingUserGroup) {
                     console.log("Updating existing group");
@@ -30,7 +30,7 @@ export const StoriesProvider = ({ children }) => {
                         stories: [...existingUserGroup.stories, story]
                     };
                     // Move to front
-                    return [updatedGroup, ...prev.filter(g => g.user._id !== story.user._id)];
+                    return [updatedGroup, ...prev.filter(g => String(g.user._id) !== String(story.user._id))];
                 } else {
                     console.log("Creating new group");
                     // New user appearing in feed (rare but possible if sync issue or first story)
@@ -46,7 +46,7 @@ export const StoriesProvider = ({ children }) => {
             setStories(prev => prev.map(group => {
                 // Debug: Log comparison
                 // console.log("Comparing", group.user._id, user._id);
-                if (group.user._id !== user._id) return group; // Not my stories
+                if (String(group.user._id) !== String(user._id)) return group; // Not my stories
 
                 console.log("Updating my story view stats");
                 return {
