@@ -238,19 +238,19 @@ const Account = ({ user }) => {
         </div>
 
         {/* Top Row: Picture + Stats */}
-        <div className="flex flex-col md:flex-row items-center gap-6">
+        <div className="flex flex-row items-center gap-4 w-full">
 
           {/* Profile Image */}
-          <div className="relative">
+          <div className="relative shrink-0">
             <img
               src={user.profilePic.url}
               alt="profile"
-              className="w-24 h-24 rounded-full object-cover border border-white/20"
+              className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border border-white/20"
             />
           </div>
 
           {/* Stats */}
-          <div className="flex flex-1 justify-around text-center w-full md:w-auto mt-4 md:mt-0">
+          <div className="flex flex-1 justify-around text-center">
             {/* POSTS COUNT */}
             <div className="cursor-pointer">
               <p className="text-white font-bold text-lg">{myPosts?.length || 0}</p>
