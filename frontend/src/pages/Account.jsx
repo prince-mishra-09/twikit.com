@@ -144,12 +144,7 @@ const Account = ({ user }) => {
       <div className="w-full max-w-xl bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6 mt-4 relative">
 
         {/* Settings Menu Button */}
-        <button
-          onClick={() => setShowSettings(!showSettings)}
-          className="absolute top-4 right-4 text-white text-2xl p-2 hover:bg-white/10 rounded-full transition-colors z-20"
-        >
-          <IoMenu />
-        </button>
+
 
         {/* Settings Dropdown */}
         {showSettings && (
@@ -158,7 +153,7 @@ const Account = ({ user }) => {
               className="fixed inset-0 z-[25] cursor-default"
               onClick={() => setShowSettings(false)}
             />
-            <div className="absolute top-14 right-4 w-52 bg-[#1F2937] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[30] animate-in slide-in-from-top-2 fade-in duration-200">
+            <div className="absolute top-14 right-4 w-52 bg-[#1F2937] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[100] animate-in slide-in-from-top-2 fade-in duration-200">
               <button
                 onClick={() => {
                   togglePrivacy();
@@ -227,115 +222,138 @@ const Account = ({ user }) => {
                 Logout
               </button>
             </div>
-          </>
+          </div>
+      </>
         )}
 
-        {/* Top Row */}
-        <div className="flex items-center gap-6">
+      {/* HEADER ROW: Name & Menu */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-white tracking-wide">{user.name}</h2>
 
-          {/* Profile Image */}
-          <div className="relative">
-            <img
-              src={user.profilePic.url}
-              alt="profile"
-              className="w-24 h-24 rounded-full object-cover border border-white/20"
-            />
-          </div>
-
-          {/* Stats */}
-          <div className="flex flex-1 justify-around text-center">
-            <div onClick={() => setShow(true)} className="cursor-pointer">
-              <p className="text-white font-semibold">{user.followers.length}</p>
-              <p className="text-gray-400 text-xs">followers</p>
-            </div>
-            <div onClick={() => setShow1(true)} className="cursor-pointer">
-              <p className="text-white font-semibold">{user.followings.length}</p>
-              <p className="text-gray-400 text-xs">following</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Name + Info */}
-        <div className="mt-4">
-          <p className="text-white font-semibold flex items-center gap-2">
-            {user.name}
-          </p>
-
-          <p className="text-gray-400 text-sm">{user.email}</p>
-          <p className="text-gray-400 text-sm">{user.gender}</p>
-        </div>
-      </div>
-      {/* ================= END PROFILE CARD ================= */}
-
-
-
-      {showUpdatePass && (
-        <form
-          onSubmit={updatePassword}
-          className="bg-[#111827]/90 border border-white/10 rounded-xl p-4 w-full max-w-md space-y-3"
-        >
-          <input
-            type="password"
-            className="w-full px-3 py-2 rounded-lg bg-[#0B0F14] border border-white/10 text-white"
-            placeholder="Old password"
-            value={oldPassword}
-            onChange={(e) => setOldPassword(e.target.value)}
-          />
-          <input
-            type="password"
-            className="w-full px-3 py-2 rounded-lg bg-[#0B0F14] border border-white/10 text-white"
-            placeholder="New password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-          />
-          <button className="w-full bg-indigo-500 text-white py-2 rounded-lg">
-            Update
-          </button>
-        </form>
-      )}
-
-      {/* Toggle */}
-      <div className="flex gap-6 bg-[#111827]/90 border border-white/10 rounded-xl px-6 py-2 max-w-xs w-full justify-center">
         <button
-          onClick={() => setType("post")}
-          className={type === "post" ? "text-indigo-400" : "text-gray-400"}
+          onClick={() => setShowSettings(!showSettings)}
+          className="text-white text-2xl p-2 hover:bg-white/10 rounded-full transition-colors"
         >
-          Posts
-        </button>
-        <button
-          onClick={() => setType("reel")}
-          className={type === "reel" ? "text-indigo-400" : "text-gray-400"}
-        >
-          Reels
+          <IoMenu />
         </button>
       </div>
 
-      {/* Content */}
-      {/* Content */}
-      {type === "post" && (
-        <div className="w-full max-w-xl space-y-4">
-          {myPosts?.length
-            ? myPosts.map((e) => (
-              <PostCard type="post" value={e} key={e._id} />
-            ))
-            : <p className="text-gray-500 text-center py-4">No posts yet</p>}
+      {/* Top Row: Picture + Stats */}
+      <div className="flex flex-col md:flex-row items-center gap-6">
+
+        {/* Profile Image */}
+        <div className="relative">
+          <img
+            src={user.profilePic.url}
+            alt="profile"
+            className="w-24 h-24 rounded-full object-cover border border-white/20"
+          />
         </div>
-      )}
 
-      {type === "reel" &&
-        (myReels?.length ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl mx-auto pb-4">
-            {myReels.map((reel) => (
-              <div key={reel._id} id={reel._id} className="account-reel flex justify-center w-full aspect-[9/16] bg-gray-900 rounded-lg overflow-hidden relative group">
-                <PostCard type="reel" value={reel} isActive={activeReelId === reel._id} />
-              </div>
-            ))}
+        {/* Stats */}
+        <div className="flex flex-1 justify-around text-center w-full md:w-auto mt-4 md:mt-0">
+          {/* POSTS COUNT */}
+          <div className="cursor-pointer">
+            <p className="text-white font-bold text-lg">{myPosts?.length || 0}</p>
+            <p className="text-gray-400 text-xs uppercase tracking-wider">Posts</p>
           </div>
-        ) : <p className="text-gray-500 text-center py-4">No reels yet</p>)}
 
-      {type === "saved" && <SavedPosts onBack={() => setType("post")} />}
-      {showEdit && <EditProfile user={user} onBack={() => setShowEdit(false)} />}
+          <div onClick={() => setShow(true)} className="cursor-pointer">
+            <p className="text-white font-semibold">{user.followers.length}</p>
+            <p className="text-gray-400 text-xs">followers</p>
+          </div>
+          <div onClick={() => setShow1(true)} className="cursor-pointer">
+            <p className="text-white font-semibold">{user.followings.length}</p>
+            <p className="text-gray-400 text-xs">following</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Info (Email/Gender) */}
+      <div className="mt-6 border-t border-white/5 pt-4">
+        {/* Name moved to top */}
+
+        <p className="text-gray-400 text-sm">{user.email}</p>
+        <p className="text-gray-400 text-sm">{user.gender}</p>
+      </div>
     </div>
+      {/* ================= END PROFILE CARD ================= */ }
+
+
+
+  {
+    showUpdatePass && (
+      <form
+        onSubmit={updatePassword}
+        className="bg-[#111827]/90 border border-white/10 rounded-xl p-4 w-full max-w-md space-y-3"
+      >
+        <input
+          type="password"
+          className="w-full px-3 py-2 rounded-lg bg-[#0B0F14] border border-white/10 text-white"
+          placeholder="Old password"
+          value={oldPassword}
+          onChange={(e) => setOldPassword(e.target.value)}
+        />
+        <input
+          type="password"
+          className="w-full px-3 py-2 rounded-lg bg-[#0B0F14] border border-white/10 text-white"
+          placeholder="New password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+        />
+        <button className="w-full bg-indigo-500 text-white py-2 rounded-lg">
+          Update
+        </button>
+      </form>
+    )
+  }
+
+  {/* Toggle */ }
+  <div className="flex gap-6 bg-[#111827]/90 border border-white/10 rounded-xl px-6 py-2 max-w-xs w-full justify-center">
+    <button
+      onClick={() => setType("post")}
+      className={type === "post" ? "text-indigo-400" : "text-gray-400"}
+    >
+      Posts
+    </button>
+    <button
+      onClick={() => setType("reel")}
+      className={type === "reel" ? "text-indigo-400" : "text-gray-400"}
+    >
+      Reels
+    </button>
+  </div>
+
+  {/* Content */ }
+  {/* Content */ }
+  {
+    type === "post" && (
+      <div className="w-full max-w-xl space-y-4">
+        {myPosts?.length
+          ? myPosts.map((e) => (
+            <PostCard type="post" value={e} key={e._id} />
+          ))
+          : <p className="text-gray-500 text-center py-4">No posts yet</p>}
+      </div>
+    )
+  }
+
+  {
+    type === "reel" &&
+    (myReels?.length ? (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl mx-auto pb-4">
+        {myReels.map((reel) => (
+          <div key={reel._id} id={reel._id} className="account-reel flex justify-center w-full aspect-[9/16] bg-gray-900 rounded-lg overflow-hidden relative group">
+            <PostCard type="reel" value={reel} isActive={activeReelId === reel._id} />
+          </div>
+        ))}
+      </div>
+    ) : <p className="text-gray-500 text-center py-4">No reels yet</p>)
+  }
+
+  { type === "saved" && <SavedPosts onBack={() => setType("post")} /> }
+  { showEdit && <EditProfile user={user} onBack={() => setShowEdit(false)} /> }
+    </div >
   );
 };
 
