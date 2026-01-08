@@ -400,3 +400,18 @@ export const saveUnsavePost = TryCatch(async (req, res) => {
         });
     }
 });
+// ... existing code ...
+
+export const getPost = TryCatch(async (req, res) => {
+    const post = await Post.findById(req.params.id)
+        .populate("owner", "-password")
+        .populate("comments.user", "-password");
+
+    if (!post) {
+        return res.status(404).json({
+            message: "No Post with this id",
+        });
+    }
+
+    res.json(post);
+});

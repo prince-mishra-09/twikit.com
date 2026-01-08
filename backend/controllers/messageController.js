@@ -71,7 +71,7 @@ export const sendMessage = TryCatch(async (req, res) => {
   await sendPushNotification(recieverId, {
     title: "New Message",
     body: `New message from ${req.user.name}`,
-    url: `/chat/${chat._id}`,
+    url: `/chat`,
   });
 
   res.status(201).json(newMessage);
