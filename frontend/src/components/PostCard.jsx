@@ -239,14 +239,14 @@ const PostCard = ({ value, type, isActive, commentId }) => {
           </div>
 
           {/* DELETE (if owner) */}
-          {value.owner._id === user._id && (
+          {user && value.owner._id === user._id && (
             <button onClick={deleteHandler} className="text-white text-2xl drop-shadow-lg opacity-80 hover:opacity-100">
               <MdDelete />
             </button>
           )}
 
           {/* MENU (if NOT owner) */}
-          {value.owner._id !== user._id && (
+          {user && value.owner._id !== user._id && (
             <div className="relative">
               <button
                 onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
@@ -295,7 +295,7 @@ const PostCard = ({ value, type, isActive, commentId }) => {
             </Link>
 
             {/* FOLLOW BUTTON */}
-            {user._id !== value.owner._id && (
+            {user && user._id !== value.owner._id && (
               <button
                 onClick={followHandler}
                 className={`text-xs px-3 py-1 rounded-lg backdrop-blur-md transition border ${isFollowed
@@ -402,7 +402,7 @@ const PostCard = ({ value, type, isActive, commentId }) => {
 
           {/* Delete / Follow / Menu Button Overlay */}
           <div className="pointer-events-auto flex items-center gap-2">
-            {value.owner._id === user._id ? (
+            {user && value.owner._id === user._id ? (
               <button
                 onClick={deleteHandler}
                 className="bg-black/40 backdrop-blur-md p-2 rounded-full text-white/80 hover:text-red-500 hover:bg-black/60 transition-all"
@@ -612,7 +612,7 @@ const PostCard = ({ value, type, isActive, commentId }) => {
                           </span>
                         </div>
 
-                        {(user._id === c.user?._id || user._id === value.owner._id) && (
+                        {(user?._id === c.user?._id || user?._id === value.owner._id) && (
                           <button
                             onClick={() => setDeleteModal({ show: true, commentId: c._id })}
                             className="text-gray-400 hover:text-white p-1"
@@ -691,7 +691,7 @@ const PostCard = ({ value, type, isActive, commentId }) => {
                   <input
                     type="text"
                     className="w-full bg-gray-800 text-white text-sm rounded-full px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 border border-transparent placeholder:text-gray-500"
-                    placeholder={`Comment as ${user.name}...`}
+                    placeholder={`Comment as ${user?.name}...`}
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                   />
