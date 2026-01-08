@@ -63,6 +63,7 @@ export const getStoryFeed = async (req, res) => {
             expiresAt: { $gt: new Date() }, // Only active stories
         })
             .populate("user", "name profilePic")
+            .populate("viewers", "name profilePic") // Populate viewers
             .sort({ createdAt: 1 }); // Oldest first usually for stories
 
         // Group stories by user for UI
@@ -104,6 +105,40 @@ export const getStoryFeed = async (req, res) => {
     }
 };
 
+export const getStoriesByUser = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const user = await User.findById(userId);
+
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        // Logic: active stories only
+        const stories = await Story.find({
+            user: userId,
+            expiresAt: { $gt: new Date() },
+        })
+            .populate("user", "name profilePic")
+            .populate("viewers", "name profilePic")
+            .sort({ createdAt: 1 });
+
+        if (stories.length === 0) return res.json(null);
+
+        // Return in same format as feed group
+        const group = {
+            user: {
+                _id: user._id,
+                name: user.name,
+                profilePic: user.profilePic
+            },
+            stories: stories
+        };
+
+        res.status(200).json(group);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 export const viewStory = async (req, res) => {
     try {
         const storyId = req.params.id;
@@ -116,7 +151,7 @@ export const viewStory = async (req, res) => {
             return res.status(404).json({ message: "Story not found" });
         }
 
-        if (!story.viewers.includes(userId)) {
+        if (story.user.toString() !== userId.toString() && !story.viewers.includes(userId)) {
             story.viewers.push(userId);
             await story.save();
         }

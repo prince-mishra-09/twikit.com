@@ -7,7 +7,7 @@ const StoriesContext = createContext();
 export const StoriesProvider = ({ children }) => {
     const [stories, setStories] = useState([]); // Array of grouped stories
     const [loading, setLoading] = useState(false);
-    const { isAuth } = UserData();
+    const { isAuth, user } = UserData();
 
     async function fetchStories() {
         if (!isAuth) return;
@@ -47,10 +47,33 @@ export const StoriesProvider = ({ children }) => {
         }
     }
 
+    async function fetchUserStories(userId) {
+        try {
+            const { data } = await axios.get(`/api/story/user/${userId}`);
+            return data;
+        } catch (error) {
+            console.error("Error fetching user stories:", error);
+            return null;
+        }
+    }
+
     async function viewStory(storyId) {
         try {
             await axios.post(`/api/story/view/${storyId}`);
-            // We could update local state to mark as seen if we tracked it in UI
+
+            // Feature 1 & 4 Optimistic Update: Mark as viewed locally
+            // We assume backend adds our ID to 'views'. We do the same.
+            setStories(prev => prev.map(group => ({
+                ...group,
+                stories: group.stories.map(s => {
+                    if (s.user._id === user._id) return s; // Don't count self views
+
+                    return s._id === storyId
+                        ? { ...s, viewers: [...(s.viewers || []), { _id: user._id }] }
+                        : s
+                })
+            })));
+
         } catch (error) {
             console.error("Error viewing story:", error);
         }
@@ -90,6 +113,7 @@ export const StoriesProvider = ({ children }) => {
                 addStory,
                 viewStory,
                 deleteStory,
+                fetchUserStories,
             }}
         >
             {children}

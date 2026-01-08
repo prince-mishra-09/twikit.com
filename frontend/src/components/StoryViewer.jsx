@@ -274,7 +274,7 @@ const StoryViewer = ({ stories, initialIndex, onClose }) => {
                         <div className="flex items-center gap-2 text-white">
                             <IoEyeSharp className="text-xl" />
                             <span className="font-bold text-lg">
-                                {currentStory.views?.length || 0}
+                                {currentStory.viewers?.filter(v => v._id !== currentUserStories.user._id).length || 0}
                             </span>
                             <span className="text-gray-400 text-sm">Viewers</span>
                         </div>
@@ -288,13 +288,15 @@ const StoryViewer = ({ stories, initialIndex, onClose }) => {
 
                     {/* Viewers List */}
                     <div className="flex-1 overflow-y-auto px-4 pb-4 scrollbar-hide">
-                        {currentStory.views && currentStory.views.length > 0 ? (
-                            currentStory.views.map((viewer, idx) => (
-                                <div key={idx} className="flex items-center gap-3 py-2 border-b border-gray-800 last:border-0">
-                                    <img src={viewer.profilePic?.url || "https://placehold.co/100"} className="w-10 h-10 rounded-full bg-gray-700" />
-                                    <span className="text-white font-medium">{viewer.name || "Unknown User"}</span>
-                                </div>
-                            ))
+                        {currentStory.viewers?.filter(v => v._id !== currentUserStories.user._id).length > 0 ? (
+                            currentStory.viewers
+                                .filter(v => v._id !== currentUserStories.user._id)
+                                .map((viewer, idx) => (
+                                    <div key={idx} className="flex items-center gap-3 py-2 border-b border-gray-800 last:border-0">
+                                        <img src={viewer.profilePic?.url || "https://placehold.co/100"} className="w-10 h-10 rounded-full bg-gray-700" />
+                                        <span className="text-white font-medium">{viewer.name || "Unknown User"}</span>
+                                    </div>
+                                ))
                         ) : (
                             <div className="h-full flex flex-col items-center justify-center text-gray-500">
                                 <IoEyeSharp className="text-4xl mb-2 opacity-20" />

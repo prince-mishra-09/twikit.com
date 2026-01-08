@@ -73,24 +73,40 @@ const StoryRow = () => {
                 </div>
 
                 {/* OTHER USERS STORIES */}
-                {otherStories.map((group, idx) => (
-                    <div
-                        key={group.user._id}
-                        className="flex flex-col items-center gap-1.5 min-w-[70px] cursor-pointer"
-                        onClick={() => setSelectedStoryIndex(myStoryGroup ? idx + 1 : idx)}
-                    >
-                        <div className="w-[66px] h-[66px] rounded-full p-[2px] bg-gradient-to-tr from-indigo-500 via-purple-500 to-orange-500 transition-transform duration-300 hover:scale-105">
-                            <img
-                                src={group.user.profilePic?.url || "https://placehold.co/400"}
-                                alt={group.user.name}
-                                className="w-full h-full rounded-full object-cover border-2 border-[#0B0F14]"
-                            />
-                        </div>
-                        <span className="text-xs text-center text-white truncate w-[70px]">
-                            {group.user.name.split(" ")[0]}
-                        </span>
-                    </div>
-                ))}
+                {otherStories
+                    .sort((a, b) => {
+                        // helper to check if all stories viewed
+                        const aSeen = a.stories.every(s => s.viewers.some(v => v._id === user._id || v === user._id));
+                        const bSeen = b.stories.every(s => s.viewers.some(v => v._id === user._id || v === user._id));
+                        // if a is seen and b is not, a goes last (1)
+                        if (aSeen && !bSeen) return 1;
+                        if (!aSeen && bSeen) return -1;
+                        return 0;
+                    })
+                    .map((group, idx) => {
+                        const isAllSeen = group.stories.every(s => s.viewers.some(v => v._id === user._id || v === user._id));
+                        return (
+                            <div
+                                key={group.user._id}
+                                className="flex flex-col items-center gap-1.5 min-w-[70px] cursor-pointer"
+                                onClick={() => setSelectedStoryIndex(myStoryGroup ? idx + 1 : idx)}
+                            >
+                                <div className={`w-[66px] h-[66px] rounded-full p-[2px] transition-transform duration-300 hover:scale-105 ${isAllSeen
+                                    ? "bg-gray-700" // Gray Ring for Viewed
+                                    : "bg-gradient-to-tr from-indigo-500 via-purple-500 to-orange-500"
+                                    }`}>
+                                    <img
+                                        src={group.user.profilePic?.url || "https://placehold.co/400"}
+                                        alt={group.user.name}
+                                        className={`w-full h-full rounded-full object-cover border-2 ${isAllSeen ? "border-gray-800 opacity-80" : "border-[#0B0F14]"}`}
+                                    />
+                                </div>
+                                <span className={`text-xs text-center truncate w-[70px] ${isAllSeen ? "text-gray-500" : "text-white"}`}>
+                                    {group.user.name.split(" ")[0]}
+                                </span>
+                            </div>
+                        );
+                    })}
 
                 {loading && stories.length === 0 && (
                     // Skeleton loader

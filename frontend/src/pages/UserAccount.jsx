@@ -14,7 +14,7 @@ import StoryViewer from "../components/StoryViewer";
 
 const UserAccount = ({ user: loggedInUser }) => {
   const { posts, reels } = PostData();
-  const { stories } = StoriesData();
+  const { stories, fetchUserStories, fetchStories } = StoriesData();
   const { followUser } = UserData();
   const { onlineUsers } = SocketData();
   const params = useParams();
@@ -121,6 +121,10 @@ const UserAccount = ({ user: loggedInUser }) => {
     } else if (message === "User Followed") {
       setFollowed(true);
       setRequested(false);
+      // Feature 3: Refresh Main Feed Stories immediately
+      fetchStories();
+      // Also refresh local story for this user
+      loadSpecificStory();
     } else if (message === "User Unfollowed") {
       setFollowed(false);
       setRequested(false);
@@ -167,8 +171,24 @@ const UserAccount = ({ user: loggedInUser }) => {
   }, [showMenu]);
 
   // Story Logic
-  const userStoryGroup = stories.find(s => s.user._id === user?._id);
+  // Check main feed first
+  let userStoryGroup = stories.find(s => s.user._id === user?._id);
   const [showStoryViewer, setShowStoryViewer] = useState(false);
+  const [localStory, setLocalStory] = useState(null);
+
+  // Feature 2: If not in feed, fetch directly (for public access)
+  const loadSpecificStory = async () => {
+    if (user && !userStoryGroup) {
+      const data = await fetchUserStories(user._id);
+      if (data) setLocalStory(data);
+    }
+  };
+
+  useEffect(() => {
+    loadSpecificStory();
+  }, [user?._id, followed]); // Refetch on follow change too
+
+  const activeStory = userStoryGroup || localStory;
 
   if (loading) return <Loading />;
 
@@ -223,9 +243,9 @@ const UserAccount = ({ user: loggedInUser }) => {
           {/* PROFILE IMAGE */}
           <div
             className="relative cursor-pointer"
-            onClick={() => userStoryGroup && setShowStoryViewer(true)}
+            onClick={() => activeStory && setShowStoryViewer(true)}
           >
-            <div className={`p-[3px] rounded-full ${userStoryGroup ? "bg-gradient-to-tr from-indigo-500 via-purple-500 to-orange-500" : ""}`}>
+            <div className={`p-[3px] rounded-full ${activeStory ? "bg-gradient-to-tr from-indigo-500 via-purple-500 to-orange-500" : ""}`}>
               <img
                 src={user.profilePic.url}
                 alt="profile"
@@ -315,9 +335,9 @@ const UserAccount = ({ user: loggedInUser }) => {
         ))}
 
       {/* Story Viewer Overlay */}
-      {showStoryViewer && userStoryGroup && (
+      {showStoryViewer && activeStory && (
         <StoryViewer
-          stories={[userStoryGroup]}
+          stories={[activeStory]}
           initialIndex={0}
           onClose={() => setShowStoryViewer(false)}
         />
