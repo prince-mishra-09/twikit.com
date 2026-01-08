@@ -65,7 +65,7 @@ function App() {
           <Route path="/notifications" element={isAuth ? <Notifications /> : <Login />} />
           <Route path="/login" element={!isAuth ? <Login /> : <Home />} />
           <Route path="*" element={<NotFound />} />
-          <Route path="/post/:id" element={<PostDetail />} />
+          <Route path="/post/:id" element={isAuth ? <PostDetail /> : <Login />} />
 
         </Routes>
         {isAuth && <NavigationBar />}

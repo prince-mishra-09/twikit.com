@@ -96,7 +96,7 @@ const PostCard = ({ value, type, isActive, commentId }) => {
 
   useEffect(() => {
     // Check if post is like
-    if (value.likes && value.likes?.includes(user._id)) setIsLike(true);
+    if (value.likes && user && value.likes?.includes(user._id)) setIsLike(true);
     else setIsLike(false);
   }, [value, user._id]);
 

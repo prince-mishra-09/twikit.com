@@ -97,7 +97,7 @@ const ChatPage = ({ user }) => {
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
               <button
-                onClick={() => navigate(-1)}
+                onClick={() => navigate("/")}
                 className="text-white p-2 rounded-full hover:bg-white/10"
               >
                 <FaArrowLeft />
