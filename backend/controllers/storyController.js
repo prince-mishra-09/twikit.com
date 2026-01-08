@@ -112,6 +112,17 @@ export const getStoriesByUser = async (req, res) => {
 
         if (!user) return res.status(404).json({ message: "User not found" });
 
+        // Feature 3: Private Account Check
+        if (user.isPrivate) {
+            // Check if requesting user is following target user or IS the target user
+            const isFollowing = user.followers.includes(req.user._id);
+            const isSelf = user._id.toString() === req.user._id.toString();
+
+            if (!isFollowing && !isSelf) {
+                return res.status(403).json({ message: "Private Account" });
+            }
+        }
+
         // Logic: active stories only
         const stories = await Story.find({
             user: userId,

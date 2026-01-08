@@ -20,6 +20,8 @@ const UserAccount = ({ user: loggedInUser }) => {
   const params = useParams();
   const navigate = useNavigate();
 
+
+
   // Redirect to account if checking own profile
   useEffect(() => {
     if (loggedInUser && params.id === loggedInUser._id) {
@@ -256,6 +258,15 @@ const UserAccount = ({ user: loggedInUser }) => {
 
           {/* STATS */}
           <div className="flex flex-1 justify-around text-center">
+
+            {/* POSTS COUNT */}
+            <div className="cursor-pointer">
+              <p className="text-white font-semibold">
+                {myPosts?.length || 0}
+              </p>
+              <p className="text-gray-400 text-xs">posts</p>
+            </div>
+
             <div
               className="cursor-pointer"
               onClick={() => setShow(true)}

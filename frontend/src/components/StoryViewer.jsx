@@ -5,8 +5,10 @@ import { MdDelete } from "react-icons/md";
 import { StoriesData } from "../context/StoriesContext";
 import { UserData } from "../context/UserContext";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const StoryViewer = ({ stories, initialIndex, onClose }) => {
+    const navigate = useNavigate();
     const [userIndex, setUserIndex] = useState(initialIndex);
     const [storyIndex, setStoryIndex] = useState(0);
     const [progress, setProgress] = useState(0);
@@ -183,7 +185,13 @@ const StoryViewer = ({ stories, initialIndex, onClose }) => {
                 </div>
 
                 {/* Header (User Info) - Glass Effect */}
-                <div className="absolute top-8 left-4 z-20 flex items-center gap-3 bg-black/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-lg">
+                <div
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onClose();
+                        navigate(`/user/${currentUserStories.user._id}`);
+                    }}
+                    className="absolute top-8 left-4 z-20 flex items-center gap-3 bg-black/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-lg cursor-pointer hover:bg-black/30 transition">
                     <img
                         src={currentUserStories.user.profilePic?.url || "https://placehold.co/400"}
                         className="w-8 h-8 rounded-full border border-white/20"
