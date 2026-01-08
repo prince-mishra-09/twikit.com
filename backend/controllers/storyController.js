@@ -38,13 +38,16 @@ export const createStory = async (req, res) => {
         const fullStory = await Story.findById(story._id).populate("user", "name profilePic");
 
         // Notify followers
+        // Notify followers
         const user = await User.findById(req.user._id);
-        user.followers.forEach(followerId => {
-            const socketId = getReceiverSocketId(followerId.toString());
-            if (socketId) {
-                io.to(socketId).emit("story:new", fullStory);
-            }
-        });
+
+        // Use Room-based emission via io.to(userId)
+        // Ensure user is connected in socket room named by their userId
+        if (user.followers && user.followers.length > 0) {
+            user.followers.forEach(followerId => {
+                io.to(followerId.toString()).emit("story:new", fullStory);
+            });
+        }
 
         res.status(201).json({
             message: "Story created successfully",
@@ -179,15 +182,12 @@ export const viewStory = async (req, res) => {
             await story.save();
 
             // Notify owner
-            const ownerSocketId = getReceiverSocketId(story.user.toString());
-            if (ownerSocketId) {
-                // Populate viewer details for the socket event
-                const viewerUser = await User.findById(userId).select("name profilePic");
-                io.to(ownerSocketId).emit("story:view", {
-                    storyId,
-                    viewer: viewerUser
-                });
-            }
+            // Use Room-based emission directly to user ID
+            const viewerUser = await User.findById(userId).select("name profilePic");
+            io.to(story.user.toString()).emit("story:view", {
+                storyId,
+                viewer: viewerUser
+            });
         }
 
         res.status(200).json({ message: "Viewed" });
