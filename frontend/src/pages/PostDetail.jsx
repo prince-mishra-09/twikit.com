@@ -42,20 +42,31 @@ const PostDetail = () => {
   return (
     <div className="min-h-screen bg-[#0B0F14] px-4 py-6">
       <div className="max-w-xl mx-auto">
+        <Link to="/" className="inline-flex items-center gap-2 text-white mb-4 hover:bg-white/10 px-3 py-1.5 rounded-full transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+          </svg>
+          Back to Home
+        </Link>
+
         <Post value={post} commentId={commentId} />
 
-        <h3 className="text-white mt-8 mb-4">More posts</h3>
+        <h3 className="text-white mt-8 mb-4 font-semibold text-lg">More posts</h3>
 
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2 mb-8">
           {morePosts.map(p => (
             <Link key={p._id} to={`/post/${p._id}`}>
               <img
                 src={p.image.url}
-                className="aspect-square object-cover rounded-lg"
+                className="aspect-square object-cover rounded-lg hover:opacity-80 transition-opacity"
               />
             </Link>
           ))}
         </div>
+
+        <Link to="/" className="block w-full text-center py-3 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/20 transition-all">
+          Go to Home
+        </Link>
       </div>
     </div>
   );

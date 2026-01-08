@@ -40,18 +40,31 @@ const PostCard = ({ value, type, isActive, commentId }) => {
   }, [user, value.owner]);
 
   // DEEP LINK COMMENT SCROLL
+  // DEEP LINK COMMENT SCROLL
+  const hasOpenedComment = useRef(false);
+
+  // Reset ref when commentId changes
   useEffect(() => {
-    if (commentId && show) {
-      setTimeout(() => {
-        const element = document.getElementById(`comment-${commentId}`);
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "center" });
-          // Optional: Add highlight effect via state or assume the class in render handles it
-        }
-      }, 500); // Small delay to allow drawer animation
-    } else if (commentId && !show) {
-      // If commentId exists but drawer not open, open it
-      setShow(true);
+    hasOpenedComment.current = false;
+  }, [commentId]);
+
+  useEffect(() => {
+    if (commentId) {
+      if (!show && !hasOpenedComment.current) {
+        setShow(true);
+        hasOpenedComment.current = true;
+      }
+
+      if (show) {
+        setTimeout(() => {
+          const element = document.getElementById(`comment-${commentId}`);
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth", block: "center" });
+            element.classList.add("bg-white/10");
+            setTimeout(() => element.classList.remove("bg-white/10"), 2000);
+          }
+        }, 500);
+      }
     }
   }, [commentId, show]);
 
