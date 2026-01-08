@@ -73,26 +73,28 @@ const UserAccount = ({ user: loggedInUser }) => {
 
   // Real-time update for profile stats
   const { socket } = SocketData();
+
   useEffect(() => {
-    if (socket && user && user._id) {
-      const handleFollow = (data) => {
-        if (data.followingId === user._id) {
-          // Optimistically update the followers list to reflect change instantly
-          setUser((prev) => {
-            const isFollower = prev.followers.includes(data.followerId);
-            return {
-              ...prev,
-              followers: isFollower
-                ? prev.followers.filter(id => id !== data.followerId)
-                : [...prev.followers, data.followerId]
-            };
-          });
-        }
-      };
-      socket.on("userFollowed", handleFollow);
-      return () => socket.off("userFollowed", handleFollow);
-    }
-  }, [socket, user?._id]); // improved dependency to user._id
+    if (!socket || !user?._id) return;
+
+    const handleFollow = (data) => {
+      if (data.followingId === user._id) {
+        setUser((prev) => {
+          if (!prev) return prev; // Safety check
+          const isFollower = prev.followers.includes(data.followerId);
+          return {
+            ...prev,
+            followers: isFollower
+              ? prev.followers.filter(id => id !== data.followerId)
+              : [...prev.followers, data.followerId]
+          };
+        });
+      }
+    };
+
+    socket.on("userFollowed", handleFollow);
+    return () => socket.off("userFollowed", handleFollow);
+  }, [socket, user?._id]);
 
   const followHandler = async () => {
     // Optimistic Logic
@@ -164,11 +166,11 @@ const UserAccount = ({ user: loggedInUser }) => {
     return () => window.removeEventListener('click', closeMenu);
   }, [showMenu]);
 
-  if (loading) return <Loading />;
-
   // Story Logic
   const userStoryGroup = stories.find(s => s.user._id === user?._id);
   const [showStoryViewer, setShowStoryViewer] = useState(false);
+
+  if (loading) return <Loading />;
 
   return (
     <div className="min-h-screen bg-[#0B0F14] flex flex-col items-center gap-6 pb-24 px-3">
