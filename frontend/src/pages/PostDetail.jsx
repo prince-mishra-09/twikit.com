@@ -42,7 +42,7 @@ const PostDetail = () => {
   return (
     <div className="min-h-screen bg-[#0B0F14] px-4 py-6">
       <div className="max-w-xl mx-auto">
-        <Post post={post} commentId={commentId} />
+        <Post value={post} commentId={commentId} />
 
         <h3 className="text-white mt-8 mb-4">More posts</h3>
 
