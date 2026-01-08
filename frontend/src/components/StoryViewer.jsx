@@ -7,10 +7,10 @@ import { UserData } from "../context/UserContext";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-const StoryViewer = ({ stories, initialIndex, onClose }) => {
+const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) => {
     const navigate = useNavigate();
     const [userIndex, setUserIndex] = useState(initialIndex);
-    const [storyIndex, setStoryIndex] = useState(0);
+    const [storyIndex, setStoryIndex] = useState(initialStoryIndex);
     const [progress, setProgress] = useState(0);
 
     const { viewStory, deleteStory } = StoriesData();

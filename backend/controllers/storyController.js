@@ -2,6 +2,7 @@ import { Story } from "../models/storyModel.js";
 import User from "../models/userModel.js";
 import getDataUrl from "../utils/urlGenerator.js";
 import cloudinary from "cloudinary";
+import { getReceiverSocketId, io } from "../socket/socket.js";
 
 export const createStory = async (req, res) => {
     try {
@@ -34,9 +35,20 @@ export const createStory = async (req, res) => {
             expiresAt,
         });
 
+        const fullStory = await Story.findById(story._id).populate("user", "name profilePic");
+
+        // Notify followers
+        const user = await User.findById(req.user._id);
+        user.followers.forEach(followerId => {
+            const socketId = getReceiverSocketId(followerId.toString());
+            if (socketId) {
+                io.to(socketId).emit("story:new", fullStory);
+            }
+        });
+
         res.status(201).json({
             message: "Story created successfully",
-            story,
+            story: fullStory,
         });
     } catch (error) {
         res.status(500).json({
@@ -165,8 +177,20 @@ export const viewStory = async (req, res) => {
         if (story.user.toString() !== userId.toString() && !story.viewers.includes(userId)) {
             story.viewers.push(userId);
             await story.save();
+
+            // Notify owner
+            const ownerSocketId = getReceiverSocketId(story.user.toString());
+            if (ownerSocketId) {
+                // Populate viewer details for the socket event
+                const viewerUser = await User.findById(userId).select("name profilePic");
+                io.to(ownerSocketId).emit("story:view", {
+                    storyId,
+                    viewer: viewerUser
+                });
+            }
         }
 
+        res.status(200).json({ message: "Viewed" });
     } catch (error) {
         res.status(500).json({
             message: error.message,

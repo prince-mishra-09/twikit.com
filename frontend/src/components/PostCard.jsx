@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { MdDelete } from "react-icons/md";
 import { SocketData } from "../context/SocketContext";
+import StoryAvatar from "./StoryAvatar";
 
 
 const PostCard = ({ value, type, isActive, commentId }) => {
@@ -345,6 +346,10 @@ const PostCard = ({ value, type, isActive, commentId }) => {
               {value.comments && value.comments.length > 0 ? (
                 value.comments.map((c, i) => (
                   <div key={i} className="flex gap-2 items-start text-white">
+                    <StoryAvatar
+                      user={{ _id: c.user, name: c.name, profilePic: c.profilePic }}
+                      size="w-8 h-8"
+                    />
                     <div className="text-sm bg-white/5 p-2 rounded-lg rounded-tl-none">
                       <span className="font-bold text-gray-300 mr-2 block text-xs mb-1">{c.name}</span>
                       {c.comment}
@@ -396,13 +401,9 @@ const PostCard = ({ value, type, isActive, commentId }) => {
             className="flex items-center gap-3 pointer-events-auto"
           >
             <div className="relative">
-              <img
-                src={value.owner?.profilePic?.url}
-                className="w-10 h-10 rounded-full border-2 border-white/20"
-                alt=""
-              />
+              <StoryAvatar user={value.owner} />
               {onlineUsers?.includes(value.owner._id) && (
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-black" />
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-black z-10" />
               )}
             </div>
             <div className="flex flex-col">
@@ -608,10 +609,9 @@ const PostCard = ({ value, type, isActive, commentId }) => {
                       }`}
                   >
                     <Link to={`/user/${c.user?._id}`} className="shrink-0">
-                      <img
-                        src={c.user?.profilePic?.url || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"}
-                        className="w-8 h-8 rounded-full border border-white/10"
-                        alt=""
+                      <StoryAvatar
+                        user={c.user}
+                        size="w-8 h-8"
                       />
                     </Link>
                     <div className="flex flex-col flex-1">

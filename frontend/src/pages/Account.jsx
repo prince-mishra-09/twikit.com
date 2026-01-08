@@ -14,6 +14,7 @@ import { FiEdit2 } from "react-icons/fi";
 import { StoriesData } from "../context/StoriesContext";
 import StoryViewer from "../components/StoryViewer";
 import CreatePostModal from "../components/CreatePostModal";
+import StoryAvatar from "../components/StoryAvatar";
 import { AiOutlinePlus } from "react-icons/ai";
 
 const Account = ({ user }) => {
@@ -251,16 +252,16 @@ const Account = ({ user }) => {
         <div className="flex flex-row items-center gap-4 w-full">
 
           {/* Profile Image with Story Ring */}
-          <div className="relative shrink-0 cursor-pointer" onClick={() => myStoryGroup ? setShowStoryViewer(true) : setShowCreateStory(true)}>
-            <div className={`p-[3px] rounded-full ${myStoryGroup ? "bg-gradient-to-tr from-indigo-500 via-purple-500 to-orange-500" : ""}`}>
-              <img
-                src={user.profilePic.url}
-                alt="profile"
-                className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border-2 border-[#111827]"
-              />
-            </div>
+          <div className="relative shrink-0">
+            <StoryAvatar
+              user={user}
+              size="w-20 h-20 md:w-24 md:h-24"
+              onClick={() => myStoryGroup ? setShowStoryViewer(true) : setShowCreateStory(true)}
+            />
             {!myStoryGroup && (
-              <div className="absolute bottom-1 right-1 bg-blue-500 text-white rounded-full p-1 border-2 border-[#111827]">
+              <div
+                className="absolute bottom-1 right-1 bg-blue-500 text-white rounded-full p-1 border-2 border-[#111827] cursor-pointer pointer-events-none"
+              >
                 <AiOutlinePlus size={14} />
               </div>
             )}

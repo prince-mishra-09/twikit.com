@@ -124,6 +124,12 @@ const StoryRow = () => {
                 <StoryViewer
                     stories={viewerStories}
                     initialIndex={selectedStoryIndex}
+                    initialStoryIndex={() => {
+                        const group = viewerStories[selectedStoryIndex];
+                        if (!group) return 0;
+                        const firstUnseen = group.stories.findIndex(s => !s.viewers.some(v => v._id === user._id));
+                        return firstUnseen !== -1 ? firstUnseen : 0;
+                    }}
                     onClose={() => setSelectedStoryIndex(null)}
                 />
             )}

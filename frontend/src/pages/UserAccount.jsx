@@ -11,6 +11,7 @@ import { SocketData } from "../context/SocketContext";
 import { useNavigate } from "react-router-dom"; // Added for redirect
 import { StoriesData } from "../context/StoriesContext";
 import StoryViewer from "../components/StoryViewer";
+import StoryAvatar from "../components/StoryAvatar";
 
 const UserAccount = ({ user: loggedInUser }) => {
   const { posts, reels } = PostData();
@@ -243,17 +244,12 @@ const UserAccount = ({ user: loggedInUser }) => {
         <div className="flex items-center gap-6">
 
           {/* PROFILE IMAGE */}
-          <div
-            className="relative cursor-pointer"
-            onClick={() => activeStory && setShowStoryViewer(true)}
-          >
-            <div className={`p-[3px] rounded-full ${activeStory ? "bg-gradient-to-tr from-indigo-500 via-purple-500 to-orange-500" : ""}`}>
-              <img
-                src={user.profilePic.url}
-                alt="profile"
-                className="w-24 h-24 rounded-full object-cover border-2 border-[#111827]"
-              />
-            </div>
+          <div className="relative">
+            <StoryAvatar
+              user={user}
+              size="w-20 h-20"
+              onClick={() => activeStory && setShowStoryViewer(true)}
+            />
           </div>
 
           {/* STATS */}
