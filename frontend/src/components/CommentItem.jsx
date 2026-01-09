@@ -1,0 +1,163 @@
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { BsThreeDotsVertical } from "react-icons/bs";
+import StoryAvatar from "./StoryAvatar";
+import { format } from "date-fns";
+import { UserData } from "../context/UserContext";
+
+const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, activeCommentMenuId, toggleCommentMenu, onReplyAdded, onDelete }) => {
+    const { user } = UserData();
+    const [showReplyInput, setShowReplyInput] = useState(false);
+    const [replyText, setReplyText] = useState("");
+    const [showReplies, setShowReplies] = useState(false);
+
+    const isOwner = user?._id === comment.user?._id || user?._id === postOwnerId;
+
+    const handleReply = async (e) => {
+        e.preventDefault();
+        if (!replyText.trim()) return;
+
+        const newReply = await addComment(postId, replyText, setReplyText, () => { }, comment._id);
+        setShowReplyInput(false);
+
+        if (newReply) {
+            onReplyAdded(comment._id, newReply);
+            setShowReplies(true);
+        }
+    };
+
+    const handleDelete = async () => {
+        await deleteComment(postId, comment._id);
+        onDelete(comment._id);
+        // Toggle menu off
+        toggleCommentMenu(comment._id);
+    };
+
+    const formatCommentDate = (dateString) => {
+        if (!dateString) return "just now";
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+
+        if (diffInSeconds < 60) return "just now";
+        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m`;
+        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h`;
+        if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d`;
+        return `${Math.floor(diffInSeconds / 604800)}w`;
+    };
+
+    return (
+        <div className="flex flex-col gap-2">
+            {/* Main Comment */}
+            <div className="flex gap-3 items-start p-2 rounded-lg hover:bg-white/5 transition-colors group">
+                <Link to={`/user/${comment.user?._id}`} className="shrink-0">
+                    <StoryAvatar user={comment.user} size="w-8 h-8" />
+                </Link>
+
+                <div className="flex flex-col flex-1">
+                    <div className="flex items-baseline justify-between w-full">
+                        <div className="flex items-baseline gap-2">
+                            <Link to={`/user/${comment.user?._id}`}>
+                                <span className="text-sm font-semibold text-white hover:underline">{comment.user?.name}</span>
+                            </Link>
+                            <span className="text-xs text-gray-400">{formatCommentDate(comment.createdAt)}</span>
+                        </div>
+
+                        {isOwner && (
+                            <div className="relative">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); toggleCommentMenu(comment._id); }}
+                                    className={`text-gray-400 hover:text-white p-1 transition-opacity ${activeCommentMenuId === comment._id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                                >
+                                    <BsThreeDotsVertical className="text-xs" />
+                                </button>
+                                {/* Delete Modal for this specific comment */}
+                                {activeCommentMenuId === comment._id && (
+                                    <div className="absolute right-0 top-full mt-1 bg-[#2D3748] p-2 rounded items-center flex gap-2 z-50 shadow-lg border border-white/10 w-32 animate-in fade-in zoom-in-95 duration-100">
+                                        <button onClick={handleDelete} className="text-xs text-red-500 font-bold hover:underline">Delete</button>
+                                        <button onClick={() => toggleCommentMenu(comment._id)} className="text-xs text-white hover:underline">Cancel</button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    <p className="text-sm text-gray-200 mt-0.5 leading-tight whitespace-pre-wrap">{comment.comment}</p>
+
+                    {/* Actions: Reply Button */}
+                    <div className="flex gap-4 mt-1">
+                        <button
+                            onClick={() => setShowReplyInput(!showReplyInput)}
+                            className="text-xs text-gray-400 font-semibold hover:text-white"
+                        >
+                            Reply
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Reply Input */}
+            {showReplyInput && (
+                <form onSubmit={handleReply} className="pl-12 pr-4 flex gap-2 items-center animate-in slide-in-from-top-1">
+                    <input
+                        autoFocus
+                        type="text"
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        placeholder={`Reply to ${comment.user?.name}...`}
+                        className="flex-1 bg-transparent border-b border-gray-600 focus:border-white text-sm text-white py-1 focus:outline-none"
+                    />
+                    <button type="submit" disabled={!replyText.trim()} className="text-xs font-bold text-indigo-400 hover:text-white disabled:opacity-50">
+                        Post
+                    </button>
+                </form>
+            )}
+
+            {/* View Replies Toggle */}
+            {comment.replies && comment.replies.length > 0 && (
+                <div className="pl-12">
+                    {!showReplies ? (
+                        <button onClick={() => setShowReplies(true)} className="flex items-center gap-2 my-1">
+                            <div className="w-8 h-[1px] bg-gray-600"></div>
+                            <span className="text-xs text-gray-400 font-semibold hover:text-white">View {comment.replies.length} replies</span>
+                        </button>
+                    ) : (
+                        <div className="flex flex-col gap-3 mt-2 border-l-2 border-gray-700 pl-4">
+                            <div onClick={() => setShowReplies(false)} className="cursor-pointer text-xs text-gray-500 mb-1 hover:text-white">Hide replies</div>
+                            {comment.replies.map((reply) => (
+                                <div key={reply._id} className="flex gap-2 items-start opacity-90">
+                                    <Link to={`/user/${reply.user?._id}`} className="shrink-0">
+                                        <StoryAvatar user={reply.user} size="w-6 h-6" />
+                                    </Link>
+                                    <div className="flex flex-col flex-1">
+                                        <div className="flex items-baseline gap-2">
+                                            <span className="text-xs font-bold text-white">{reply.user?.name}</span>
+                                            <span className="text-[10px] text-gray-400">{formatCommentDate(reply.createdAt)}</span>
+                                            {/* Simple delete for reply */}
+                                            {(user?._id === reply.user?._id || user?._id === postOwnerId) && (
+                                                <button
+                                                    onClick={async () => {
+                                                        if (confirm("Delete reply?")) {
+                                                            await deleteComment(postId, reply._id);
+                                                            onDelete(reply._id, comment._id);
+                                                        }
+                                                    }}
+                                                    className="text-[10px] text-gray-500 hover:text-red-500 ml-auto"
+                                                >
+                                                    Delete
+                                                </button>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-gray-300 mt-0.5">{reply.comment}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default CommentItem;

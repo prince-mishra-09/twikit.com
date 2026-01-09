@@ -13,6 +13,7 @@ import messageRoutes from "./routes/messageRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import feedRoutes from "./routes/feedRoutes.js";
 import storyRoutes from "./routes/storyRoutes.js";
+import commentRoutes from "./routes/commentRoutes.js";
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/feed", feedRoutes);
 app.use("/api/story", storyRoutes);
+app.use("/api/comment", commentRoutes);
 
 app.get("/", (req, res) => {
   res.send("TWIKIT API RUNNING");

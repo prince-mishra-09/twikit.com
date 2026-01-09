@@ -30,26 +30,10 @@ const postSchema = new mongoose.Schema({
     },
   ],
 
-  comments: [
-    {
-      user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-      name: {
-        type: String,
-        required: true,
-      },
-      comment: {
-        type: String,
-        required: true,
-      },
-      createdAt: {
-        type: Date,
-        default: Date.now,
-      },
-    },
-  ],
+  commentsCount: {
+    type: Number,
+    default: 0,
+  },
 });
 
 export const Post = mongoose.model("Post", postSchema);

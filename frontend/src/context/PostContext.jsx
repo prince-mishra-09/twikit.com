@@ -56,15 +56,17 @@ export const PostContextProvider = ({ children }) => {
     }
   }
 
-  async function addComment(id, comment, setComment, setShow) {
+  async function addComment(id, comment, setComment, setShow, parentComment = null) {
     try {
-      const { data } = await axios.post("/api/post/comment/" + id, {
+      const { data } = await axios.post("/api/comment/" + id, {
         comment,
+        parentComment,
       });
       toast.success(data.message);
       fetchPosts();
       setComment("");
       setShow(false);
+      return data.comment; // Return the new comment to update UI
     } catch (error) {
       toast.error(error.response.data.message);
     }
@@ -86,9 +88,7 @@ export const PostContextProvider = ({ children }) => {
 
   async function deleteComment(id, commentId) {
     try {
-      const { data } = await axios.delete(
-        `/api/post/comment/${id}?commentId=${commentId}`
-      );
+      const { data } = await axios.delete(`/api/comment/${commentId}`);
 
       toast.success(data.message);
       fetchPosts();

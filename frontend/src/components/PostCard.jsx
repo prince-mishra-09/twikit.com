@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import axios from "axios";
 import { createPortal } from "react-dom";
 import { BsChatFill, BsThreeDotsVertical, BsBookmark, BsBookmarkFill } from "react-icons/bs";
 import { IoHeartOutline, IoHeartSharp } from "react-icons/io5";
@@ -9,6 +10,7 @@ import { Link } from "react-router-dom";
 import { MdDelete } from "react-icons/md";
 import { SocketData } from "../context/SocketContext";
 import StoryAvatar from "./StoryAvatar";
+import CommentItem from "./CommentItem";
 
 
 const PostCard = ({ value, type, isActive, commentId }) => {
@@ -22,15 +24,104 @@ const PostCard = ({ value, type, isActive, commentId }) => {
   const [expanded, setExpanded] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
+  // ... (previous imports)
+
   // Menu State
   const [showMenu, setShowMenu] = useState(false);
   const [isHidden, setIsHidden] = useState(false); // Optimistic filtering
 
-  // Comment Delete State
+  // Comment Delete Menu State (Lifted from CommentItem)
+  const [activeCommentMenuId, setActiveCommentMenuId] = useState(null);
+
+  // Comment Delete State (Confirmation Modal - keep existing or unify? User asked for 3-dot menu fix)
+  // The user said "har comment me agar daba de toh sabla delete cancel dikhata h... ek baar me ek ka dikhe"
+  // This refers to the small popup in CommentItem. 
+  // We will control that via activeCommentMenuId.
+
   const [deleteModal, setDeleteModal] = useState({ show: false, commentId: null });
   const longPressTimer = useRef(null);
   const captionLimit = 40; // Characters to show before truncating
   const [isFollowed, setIsFollowed] = useState(false);
+
+  // New Comment State
+  const [comments, setComments] = useState([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+
+  // Fetch Comments on Drawer Open
+  const fetchComments = async () => {
+    // Only fetch if empty or specifically requested? 
+    // For now, keep fetching but we will rely on optimistic updates for actions.
+    setLoadingComments(true);
+    try {
+      const { data } = await axios.get("/api/comment/" + value._id);
+      setComments(data.comments);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  useEffect(() => {
+    if (show) {
+      fetchComments();
+    }
+  }, [show, value._id]);
+
+  // --- Handlers for Optimistic Updates ---
+
+  const handleNewComment = (newComment) => {
+    setComments((prev) => [newComment, ...prev]);
+  };
+
+  const handleNewReply = (parentId, newReply) => {
+    setComments((prev) =>
+      prev.map((c) =>
+        c._id === parentId
+          ? { ...c, replies: [...(c.replies || []), newReply] }
+          : c
+      )
+    );
+  };
+
+  const handleDeleteLocal = (commentId, parentId = null) => {
+    if (parentId) {
+      // Delete reply
+      setComments((prev) =>
+        prev.map((c) =>
+          c._id === parentId
+            ? { ...c, replies: c.replies.filter(r => r._id !== commentId) }
+            : c
+        )
+      );
+    } else {
+      // Delete top-level
+      setComments((prev) => prev.filter((c) => c._id !== commentId));
+    }
+  };
+
+  const toggleCommentMenu = (commentId) => {
+    setActiveCommentMenuId(prev => prev === commentId ? null : commentId);
+  };
+
+  // ... (useEffects)
+
+  const addCommentHandler = async (e) => {
+    e.preventDefault();
+    if (!comment.trim()) return;
+
+    // Optimistic Update can be tricky if we don't have the real ID yet.
+    // But addComment returns the real comment. So we wait for it.
+    // The delay should be minimal.
+
+    const newComment = await addComment(value._id, comment, setComment, () => { });
+    if (newComment) {
+      handleNewComment({ ...newComment, replies: [] }); // Add empty replies array just in case
+    }
+    // No need to fetchComments()
+  };
+
+
 
   // ... useEffects for Follow / Like / Scroll match existing ...
 
@@ -96,7 +187,7 @@ const PostCard = ({ value, type, isActive, commentId }) => {
     if (show && commentsRef.current) {
       commentsRef.current.scrollTop = 0;
     }
-  }, [show, value.comments]);
+  }, [show]);
 
   // ... Reel States ...
   const videoRef = useRef(null);
@@ -148,10 +239,7 @@ const PostCard = ({ value, type, isActive, commentId }) => {
     setTimeout(() => setShowHeart(false), 700);
   };
 
-  const addCommentHandler = (e) => {
-    e.preventDefault();
-    addComment(value._id, comment, setComment, setShow);
-  };
+
 
   const deleteHandler = () => deletePost(value._id);
 
@@ -242,7 +330,7 @@ const PostCard = ({ value, type, isActive, commentId }) => {
             <button onClick={() => setShow(!show)} className="text-3xl text-white drop-shadow-lg transition-transform active:scale-95">
               <BsChatFill />
             </button>
-            <span className="text-white text-xs font-medium drop-shadow-md">{value.comments.length}</span>
+            <span className="text-white text-xs font-medium drop-shadow-md">{value.commentsCount || 0}</span>
           </div>
 
           {/* SAVE */}
@@ -343,18 +431,23 @@ const PostCard = ({ value, type, isActive, commentId }) => {
               <button onClick={() => setShow(false)} className="text-gray-400 p-1 hover:text-white">✕</button>
             </div>
             <div className="flex-1 overflow-y-auto mb-4 custom-scrollbar flex flex-col gap-3">
-              {value.comments && value.comments.length > 0 ? (
-                value.comments.map((c, i) => (
-                  <div key={i} className="flex gap-2 items-start text-white">
-                    <StoryAvatar
-                      user={{ _id: c.user, name: c.name, profilePic: c.profilePic }}
-                      size="w-8 h-8"
-                    />
-                    <div className="text-sm bg-white/5 p-2 rounded-lg rounded-tl-none">
-                      <span className="font-bold text-gray-300 mr-2 block text-xs mb-1">{c.name}</span>
-                      {c.comment}
-                    </div>
-                  </div>
+              {loadingComments ? (
+                <div className="text-center text-white py-4">Loading comments...</div>
+              ) : comments && comments.length > 0 ? (
+                comments.map((c) => (
+                  <CommentItem
+                    key={c._id}
+                    comment={c}
+                    postId={value._id}
+                    addComment={addComment}
+                    deleteComment={deleteComment}
+                    postOwnerId={value.owner._id}
+                    refreshComments={fetchComments}
+                    activeCommentMenuId={activeCommentMenuId}
+                    toggleCommentMenu={toggleCommentMenu}
+                    onReplyAdded={handleNewReply}
+                    onDelete={handleDeleteLocal}
+                  />
                 ))
               ) : (
                 <p className="text-gray-500 text-sm text-center">Be the first to comment</p>
@@ -530,7 +623,7 @@ const PostCard = ({ value, type, isActive, commentId }) => {
             >
               <BsChatFill className="text-white" />
             </button>
-            <span className="text-white font-semibold text-sm">{value.comments.length}</span>
+            <span className="text-white font-semibold text-sm">{value.commentsCount || 0}</span>
           </div>
 
           {/* Bookmark Group */}
@@ -560,12 +653,12 @@ const PostCard = ({ value, type, isActive, commentId }) => {
         )}
 
         {/* View Comments Link */}
-        {value.comments.length > 0 && (
+        {value.commentsCount > 0 && (
           <button
             onClick={() => setShow(!show)}
             className="text-gray-500 text-xs font-medium"
           >
-            View all {value.comments.length} comments
+            View all {value.commentsCount} comments
           </button>
         )}
       </div>
@@ -596,47 +689,25 @@ const PostCard = ({ value, type, isActive, commentId }) => {
 
             {/* Comments List */}
             <div ref={commentsRef} className="flex-1 overflow-y-auto px-4 py-2 space-y-4 custom-scrollbar relative">
-              {value.comments && value.comments.length > 0 ? (
-                // Assuming backend sends them sorted.
-                // We reverse locally?
-                // BE CAREFUL: commentId scroll needs to match the rendered order.
-                // Original code: [...value.comments].reverse().map
-                [...value.comments].reverse().map((c, i) => (
-                  <div
-                    key={i}
-                    id={`comment-${c._id}`}
-                    className={`flex gap-3 items-start animate-in slide-in-from-bottom fade-in duration-300 p-2 rounded-lg transition-colors ${commentId === c._id ? "bg-white/10 border border-indigo-500/30" : ""
-                      }`}
-                  >
-                    <Link to={`/user/${c.user?._id}`} className="shrink-0">
-                      <StoryAvatar
-                        user={c.user}
-                        size="w-8 h-8"
-                      />
-                    </Link>
-                    <div className="flex flex-col flex-1">
-                      <div className="flex items-baseline justify-between w-full">
-                        <div className="flex items-baseline gap-2">
-                          <Link to={`/user/${c.user?._id}`}>
-                            <span className="text-sm font-semibold text-white hover:underline">{c.name}</span>
-                          </Link>
-                          <span className="text-xs text-gray-400">
-                            {formatCommentDate(c.createdAt)}
-                          </span>
-                        </div>
-
-                        {(user?._id === c.user?._id || user?._id === value.owner._id) && (
-                          <button
-                            onClick={() => setDeleteModal({ show: true, commentId: c._id })}
-                            className="text-gray-400 hover:text-white p-1"
-                          >
-                            <BsThreeDotsVertical className="text-sm" />
-                          </button>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-200 mt-0.5 leading-tight">{c.comment}</p>
-                    </div>
-                  </div>
+              {loadingComments ? (
+                <div className="flex justify-center items-center h-40">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+                </div>
+              ) : comments && comments.length > 0 ? (
+                comments.map((c) => (
+                  <CommentItem
+                    key={c._id}
+                    comment={c}
+                    postId={value._id}
+                    addComment={addComment}
+                    deleteComment={deleteComment}
+                    postOwnerId={value.owner._id}
+                    refreshComments={fetchComments}
+                    activeCommentMenuId={activeCommentMenuId}
+                    toggleCommentMenu={toggleCommentMenu}
+                    onReplyAdded={handleNewReply}
+                    onDelete={handleDeleteLocal}
+                  />
                 ))
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
@@ -688,11 +759,7 @@ const PostCard = ({ value, type, isActive, commentId }) => {
               </div>
 
               <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  // Pass empty function as setShow to prevent closing drawer
-                  addComment(value._id, comment, setComment, () => { });
-                }}
+                onSubmit={addCommentHandler}
                 className="flex gap-3 items-center"
               >
                 <img

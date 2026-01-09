@@ -106,10 +106,7 @@ export const getAllPosts = TryCatch(async (req, res) => {
     })
         .sort({ createdAt: -1 })
         .populate("owner", "-password")
-        .populate({
-            path: "comments.user",
-            select: "-password",
-        });
+        .populate("owner", "-password");
 
     const reels = await Post.find({
         type: "reel",
@@ -118,10 +115,7 @@ export const getAllPosts = TryCatch(async (req, res) => {
     })
         .sort({ createdAt: -1 })
         .populate("owner", "-password")
-        .populate({
-            path: "comments.user",
-            select: "-password",
-        });
+        .populate("owner", "-password");
 
     const filterPosts = (items) => {
         return items.filter(item => {
@@ -139,14 +133,6 @@ export const getAllPosts = TryCatch(async (req, res) => {
             // Filter Likes
             if (item.likes && item.likes.length > 0) {
                 item.likes = item.likes.filter(id => id && !hiddenUserIds.includes(id.toString()));
-            }
-            // Filter Comments
-            if (item.comments && item.comments.length > 0) {
-                item.comments = item.comments.filter(comment => {
-                    if (!comment.user) return false;
-                    const commentUserId = comment.user._id ? comment.user._id.toString() : comment.user.toString();
-                    return !hiddenUserIds.includes(commentUserId);
-                });
             }
             return item;
         });
@@ -224,110 +210,7 @@ export const likeUnlikePost = TryCatch(async (req, res) => {
 });
 
 
-export const commentonPost = TryCatch(async (req, res) => {
-    const post = await Post.findById(req.params.id);
 
-    if (!post)
-        return res.status(404).json({
-            message: "No Post with this id",
-        });
-
-    post.comments.push({
-        user: req.user._id,
-        name: req.user.name,
-        comment: req.body.comment,
-    });
-
-    await post.save();
-
-    // Populate user details for real-time update
-    await post.populate({
-        path: "comments.user",
-        select: "name profilePic",
-    });
-
-    // Real-time emit
-    io.emit("postCommentUpdated", {
-        postId: post._id,
-        comments: post.comments,
-    });
-
-    // NOTIFICATION LOGIC
-    if (post.owner.toString() !== req.user._id.toString()) {
-        const notification = await Notification.create({
-            receiver: post.owner,
-            sender: req.user._id,
-            type: "comment",
-            postId: post._id,
-        });
-
-        await notification.populate("sender", "name profilePic");
-        await notification.populate("postId", "post");
-        io.to(post.owner.toString()).emit("notification:new", notification);
-
-        // Get the last added comment's ID
-        const newComment = post.comments[post.comments.length - 1];
-        const newCommentId = newComment._id;
-
-        // SEND PUSH NOTIFICATION
-        console.log("Sending Push Notification for Comment...");
-        await sendPushNotification(post.owner, {
-            title: "New Comment",
-            body: `${req.user.name} commented on your post`,
-            url: `/post/${post._id.toString()}?commentId=${newCommentId.toString()}`,
-        });
-    }
-
-    res.json({
-        message: "Comment Added",
-    });
-});
-
-export const deleteComment = TryCatch(async (req, res) => {
-    const post = await Post.findById(req.params.id);
-
-    if (!post)
-        return res.status(404).json({
-            message: "No Post with this id",
-        });
-    // console.log(req.query.commentId);
-
-    if (!req.query.commentId)
-        return res.status(404).json({
-            // console.log();
-
-            message: "Please give comment id",
-        });
-
-    const commentIndex = post.comments.findIndex(
-        (item) => item._id.toString() === req.query.commentId.toString()
-    );
-
-    if (commentIndex === -1) {
-        return res.status(400).json({
-            message: "Comment not found",
-        });
-    }
-
-    const comment = post.comments[commentIndex];
-
-    if (
-        post.owner.toString() === req.user._id.toString() ||
-        comment.user.toString() === req.user._id.toString()
-    ) {
-        post.comments.splice(commentIndex, 1);
-
-        await post.save();
-
-        return res.json({
-            message: "Comment deleted",
-        });
-    } else {
-        return res.status(400).json({
-            message: "Yor are not allowed to delete this comment",
-        });
-    }
-});
 
 export const editCaption = TryCatch(async (req, res) => {
     const post = await Post.findById(req.params.id);
@@ -404,8 +287,7 @@ export const saveUnsavePost = TryCatch(async (req, res) => {
 
 export const getPost = TryCatch(async (req, res) => {
     const post = await Post.findById(req.params.id)
-        .populate("owner", "-password")
-        .populate("comments.user", "-password");
+        .populate("owner", "-password");
 
     if (!post) {
         return res.status(404).json({
