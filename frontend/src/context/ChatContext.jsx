@@ -107,15 +107,17 @@ export const ChatContextProvider = ({ children }) => {
     try {
       const { data } = await axios.post("/api/messages", {
         recieverId: id,
-        message: "",
+        message: "Hi", // Send initial message to create chat? Or empty string works? User code had "".
       });
-      // Refresh chats
-      // We can trigger a refresh or add manually. simpler to refresh.
-      // getAllChats(); // We need to expose this or pass it.
-      // For now let's just push to state if not exists?
-      // But backend returns "newMessage", not "chat".
+
+      // Update local chats state if new
+      if (!chats.find((c) => c._id === data._id)) {
+        setChats((prev) => [data, ...prev]);
+      }
+
+      return data;
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message);
       console.log(error);
     }
   }

@@ -1,4 +1,5 @@
 import User from "../models/userModel.js";
+import { Post } from "../models/postModel.js";
 import { Notification } from "../models/Notification.js";
 import tryCatch from "../utils/tryCatch.js";
 import bcrypt from 'bcrypt'
@@ -157,11 +158,26 @@ export const userFollowerandFollowingData = tryCatch(async (req, res) => {
 export const updateProfile = tryCatch(async (req, res) => {
   const user = await User.findById(req.user._id);
 
-  const { name, bio, link } = req.body;
+  const { name, bio, link, username } = req.body;
 
   if (name) user.name = name;
-  if (bio !== undefined) user.bio = bio; // Allow empty string to clear
+  if (bio !== undefined) user.bio = bio;
   if (link !== undefined) user.link = link;
+
+  if (username) {
+    const usernameRegex = /^[a-z0-9_]+$/;
+    if (!usernameRegex.test(username)) {
+      return res.status(400).json({ message: "Invalid username format" });
+    }
+
+    if (username !== user.username) {
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already taken" });
+      }
+      user.username = username;
+    }
+  }
 
   const file = req.file;
   if (file) {
@@ -206,19 +222,48 @@ export const updatePassword = tryCatch(async (req, res) => {
 
 
 export const searchUsers = tryCatch(async (req, res) => {
-  const search = req.query.search || "";
+  const searchRaw = req.query.search || "";
+  const search = searchRaw.replace(/^@/, "").trim();
 
-  if (!search.trim()) {
-    return res.json([]);
+  if (!search) {
+    return res.json({ users: [], posts: [] });
   }
 
+  const regex = new RegExp(search, "i");
+
   const users = await User.find({
-    name: { $regex: search, $options: "i" },
+    $or: [
+      { name: regex },
+      { username: regex }
+    ],
     _id: { $ne: req.user._id, $nin: req.user.blockedUsers },
     blockedUsers: { $ne: req.user._id }
-  }).select("name profilePic");
+  }).select("name username profilePic bio");
 
-  res.json(users);
+  // Priority Sort: Exact Username > StartsWith Username > Name
+  users.sort((a, b) => {
+    const aU = a.username || "";
+    const bU = b.username || "";
+    // Exact match top priority
+    if (aU === search && bU !== search) return -1;
+    if (bU === search && aU !== search) return 1;
+    // Starts with second priority
+    if (aU.startsWith(search) && !bU.startsWith(search)) return -1;
+    if (bU.startsWith(search) && !aU.startsWith(search)) return 1;
+    return 0;
+  });
+
+  // Fetch posts from top results
+  const topUserIds = users.slice(0, 10).map(u => u._id);
+
+  const posts = await Post.find({
+    owner: { $in: topUserIds }
+  })
+    .sort({ createdAt: -1 })
+    .limit(10)
+    .populate("owner", "name username profilePic");
+
+  res.json({ users, posts });
 });
 
 

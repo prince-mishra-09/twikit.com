@@ -14,6 +14,7 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import feedRoutes from "./routes/feedRoutes.js";
 import storyRoutes from "./routes/storyRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
+import { migrateUsernames } from "./utils/migration.js";
 
 dotenv.config();
 
@@ -55,5 +56,6 @@ const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, async () => {
   await connectDB();
+  await migrateUsernames();
   console.log(`Server running on http://localhost:${PORT}`);
 });

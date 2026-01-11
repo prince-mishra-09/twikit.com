@@ -48,18 +48,14 @@ const ChatPage = ({ user }) => {
     }
 
     try {
-
       const { data } = await axios.get(
         "/api/user/all?search=" + query.trim()
       );
-      setUsers(data);
+      setUsers(data.users || []);
     } catch (error) {
       console.log(error);
     }
   }
-
-
-
 
   useEffect(() => {
     if (query.trim()) {
@@ -69,17 +65,10 @@ const ChatPage = ({ user }) => {
     }
   }, [query]);
 
-
-
-  useEffect(() => {
-    // Chats are now fetched in Context on app load
-  }, [chats]); // Optional dependency update or remove useEffect entirely if not needed
-
   async function createNewChat(id) {
-    await createChat(id);
+    const chat = await createChat(id);
     setSearch(false);
-    // getAllChats(); // Context handles this
-    setSelectedChat(null);
+    setSelectedChat(chat);
   }
 
   /* ================= UI ================= */
@@ -138,7 +127,10 @@ const ChatPage = ({ user }) => {
                       className="w-9 h-9 rounded-full object-cover"
                       alt=""
                     />
-                    <p className="text-white text-sm">{u.name}</p>
+                    <div className="flex flex-col">
+                      <p className="text-white text-sm font-semibold">@{u.username || u.name.toLowerCase().replace(/\s+/g, '_')}</p>
+                      <p className="text-gray-500 text-xs">{u.name}</p>
+                    </div>
                   </div>
                 ))
               ) : (
@@ -169,13 +161,11 @@ const ChatPage = ({ user }) => {
           className={`${selectedChat ? "flex" : "hidden md:flex"
             } flex-1 flex flex-col`}
         >
-
-
           {selectedChat === null ? (
             <div className="flex flex-1 items-center justify-center text-center px-4">
               <div>
                 <p className="text-2xl text-white font-semibold">
-                  Hello {user.name} 👋
+                  Hello {user?.name || "User"} 👋
                 </p>
                 <p className="text-gray-400 mt-2">
                   Select a chat to start conversation

@@ -235,10 +235,18 @@ const MessageContainer = ({ selectedChat, setChats }) => {
 
           {/* INPUT */}
           <div className="flex-none border-t border-white/10 bg-[#111827]/80 backdrop-blur-md z-10 p-2 pb-4 md:pb-2">
-            <MessageInput
-              setMessages={setMessages}
-              selectedChat={selectedChat}
-            />
+            {otherUser?.isPrivate && !user?.followings?.includes(otherUser._id) ? (
+              <div className="flex justify-center items-center py-4 bg-gray-800/30 rounded-lg mx-2 my-1 border border-white/5">
+                <p className="text-gray-400 text-sm">
+                  Follow <span className="font-bold text-white">@{otherUser.username || otherUser.name.toLowerCase().replace(/\s+/g, '_')}</span> to message them
+                </p>
+              </div>
+            ) : (
+              <MessageInput
+                setMessages={setMessages}
+                selectedChat={selectedChat}
+              />
+            )}
           </div>
         </>
       )}

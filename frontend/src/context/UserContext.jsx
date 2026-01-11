@@ -101,9 +101,9 @@ export const UserContextProvider = ({ children }) => {
     }
   }
 
-  async function updateProfileInfo(id, { name, bio, link }, setShowInput) {
+  async function updateProfileInfo(id, { name, username, bio, link }, setShowInput) {
     try {
-      const { data } = await axios.put("/api/user/" + id, { name, bio, link });
+      const { data } = await axios.put("/api/user/" + id, { name, username, bio, link });
       toast.success(data.message);
       fetchUser();
       if (setShowInput) setShowInput(false);
@@ -203,18 +203,25 @@ export const UserContextProvider = ({ children }) => {
 
     try {
       const register = await navigator.serviceWorker.register("/sw.js");
-
       const publicVapidKey = "BDEaakozjRUhtyPzgDajIBVFpiXIQBi36jcO3rmiyRXEIDk8DmRxRrUi7VNI0mi9NQ6r_i_Hq_K5rJD0HlNQhl8"; // Generated Key
 
-      const subscription = await register.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
-      });
+      let subscription = await register.pushManager.getSubscription();
+
+      if (!subscription) {
+        subscription = await register.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
+        });
+      }
 
       await axios.post("/api/notifications/subscribe", subscription);
       // toast.success("Notifications Enabled!");
     } catch (error) {
-      console.error("Push Error:", error);
+      if (error.name === 'AbortError') {
+        process.env.NODE_ENV === 'development' && console.warn("Push subscription skipped (AbortError).");
+      } else {
+        console.error("Push Error:", error);
+      }
     }
   }
 

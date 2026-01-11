@@ -124,7 +124,7 @@ const Notifications = () => {
                                 <div className="flex-1">
                                     <p className="text-sm">
                                         <span className="font-semibold text-gray-200">
-                                            {n.sender.name}
+                                            @{n.sender.username || n.sender.name?.toLowerCase().replace(/\s+/g, '_')}
                                         </span>{" "}
                                         <span className="text-gray-400">
                                             {getNotificationMessage(n.type)}

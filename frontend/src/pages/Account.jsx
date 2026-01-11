@@ -245,7 +245,10 @@ const Account = ({ user }) => {
         {/* HEADER ROW: Name & Menu */}
         {/* HEADER ROW: Name & Menu */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-white tracking-wide">{user.name}</h2>
+          <div>
+            <h2 className="text-2xl font-bold text-white tracking-wide">{user.name}</h2>
+            <p className="text-gray-400 text-sm">@{user.username || user.name?.toLowerCase().replace(/\s+/g, '_')}</p>
+          </div>
 
           <button
             onClick={() => setShowSettings(!showSettings)}
@@ -412,6 +415,7 @@ const Account = ({ user }) => {
 const EditProfile = ({ user, onBack }) => {
   const { updateProfileInfo, updateProfilePic } = UserData();
   const [name, setName] = useState(user.name || "");
+  const [username, setUsername] = useState(user.username || "");
   const [bio, setBio] = useState(user.bio || "");
   const [link, setLink] = useState(user.link || "");
   const [file, setFile] = useState(null);
@@ -457,9 +461,9 @@ const EditProfile = ({ user, onBack }) => {
         }
       }
 
-      // Update Info (Name, Bio, Link - passed object)
+      // Update Info (Name, Username, Bio, Link - passed object)
       // Only call if changed? Generic Update handles it.
-      await updateProfileInfo(user._id, { name, bio, link }, () => { });
+      await updateProfileInfo(user._id, { name, username, bio, link }, () => { });
 
       if (file) {
         const formdata = new FormData();
@@ -517,6 +521,18 @@ const EditProfile = ({ user, onBack }) => {
             className={`w-full bg-[#1F2937] border rounded-xl px-4 py-3 text-white focus:outline-none transition-colors ${name.length > 20 ? "border-red-500 focus:border-red-500" : "border-white/10 focus:border-indigo-500"}`}
             placeholder="Enter your name"
           />
+        </div>
+
+        {/* Username Input */}
+        <div className="w-full space-y-1">
+          <label className="text-gray-400 text-sm ml-1">Username</label>
+          <input
+            value={username}
+            onChange={(e) => setUsername(e.target.value.toLowerCase().trim())}
+            className="w-full bg-[#1F2937] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors"
+            placeholder="unique_username"
+          />
+          <p className="text-xs text-gray-500 ml-1">Must be unique, lowercase, no spaces.</p>
         </div>
 
         {/* Bio Input */}
