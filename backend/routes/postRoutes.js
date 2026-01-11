@@ -13,6 +13,7 @@ router.post("/like/:id", isAuth, likeUnlikePost)
 router.put("/caption/:id", isAuth, editCaption)
 router.post("/save/:id", isAuth, saveUnsavePost)
 router.delete("/:id", isAuth, deletePost)
+router.get("/random", isAuth, getRandomPosts)
 router.get("/:id", isAuth, getPost)
 
 

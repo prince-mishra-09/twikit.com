@@ -54,6 +54,7 @@ export const NotificationProvider = ({ children }) => {
                 else if (newNotification.type === "follow") toastMessage = "started following you";
                 else if (newNotification.type === "follow_request") toastMessage = "sent you a follow request";
                 else if (newNotification.type === "request_accepted") toastMessage = "accepted your follow request";
+                else if (newNotification.type === "comment_reply") toastMessage = "replied on your comment";
 
                 toast.success(`${newNotification.sender?.name || "Someone"} ${toastMessage}`);
             });

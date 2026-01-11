@@ -25,6 +25,10 @@ const notificationSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "Message",
         },
+        relatedComment: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Comment",
+        },
         isRead: {
             type: Boolean,
             default: false,

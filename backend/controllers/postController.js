@@ -286,14 +286,23 @@ export const saveUnsavePost = TryCatch(async (req, res) => {
 // ... existing code ...
 
 export const getPost = TryCatch(async (req, res) => {
-    const post = await Post.findById(req.params.id)
-        .populate("owner", "-password");
+    console.log("getPost ID:", req.params.id); // Debug log
 
-    if (!post) {
-        return res.status(404).json({
-            message: "No Post with this id",
-        });
+    try {
+        const post = await Post.findById(req.params.id).populate("owner", "-password");
+
+        if (!post) {
+            return res.status(404).json({
+                message: "No Post with this id",
+            });
+        }
+
+        res.json(post);
+    } catch (error) {
+        console.error("getPost Error:", error);
+        if (error.name === "CastError") {
+            return res.status(404).json({ message: "Invalid Post ID" });
+        }
+        throw error;
     }
-
-    res.json(post);
 });

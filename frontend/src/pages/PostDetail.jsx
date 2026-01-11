@@ -8,6 +8,7 @@ const PostDetail = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const commentId = searchParams.get("commentId");
+  const openComments = searchParams.get("openComments") === "true";
 
   const [post, setPost] = useState(null);
   const [morePosts, setMorePosts] = useState([]);
@@ -49,17 +50,26 @@ const PostDetail = () => {
           Back to Home
         </Link>
 
-        <Post value={post} commentId={commentId} />
+        <Post value={post} commentId={commentId} openComments={openComments} />
 
         <h3 className="text-white mt-8 mb-4 font-semibold text-lg">More posts</h3>
 
         <div className="grid grid-cols-3 gap-2 mb-8">
           {morePosts.map(p => (
             <Link key={p._id} to={`/post/${p._id}`}>
-              <img
-                src={p.image.url}
-                className="aspect-square object-cover rounded-lg hover:opacity-80 transition-opacity"
-              />
+              {p.post?.url && (
+                p.type === "reel" ? (
+                  <video
+                    src={p.post.url}
+                    className="aspect-square object-cover rounded-lg hover:opacity-80 transition-opacity"
+                  />
+                ) : (
+                  <img
+                    src={p.post.url}
+                    className="aspect-square object-cover rounded-lg hover:opacity-80 transition-opacity"
+                  />
+                )
+              )}
             </Link>
           ))}
         </div>

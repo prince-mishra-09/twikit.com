@@ -62,6 +62,7 @@ export const createComment = TryCatch(async (req, res) => {
             sender: req.user._id,
             type,
             postId,
+            relatedComment: newComment._id,
         });
 
         await notification.populate("sender", "name profilePic");

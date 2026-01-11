@@ -1,29 +1,49 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import StoryAvatar from "./StoryAvatar";
 import { format } from "date-fns";
 import { UserData } from "../context/UserContext";
 
-const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, activeCommentMenuId, toggleCommentMenu, onReplyAdded, onDelete }) => {
+const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, activeCommentMenuId, toggleCommentMenu, onReplyAdded, onDelete, activeCommentId, setReplyingTo }) => {
     const { user } = UserData();
-    const [showReplyInput, setShowReplyInput] = useState(false);
-    const [replyText, setReplyText] = useState("");
     const [showReplies, setShowReplies] = useState(false);
+
+    // Auto-expand if activeCommentId is one of the replies
+    useEffect(() => {
+        if (!activeCommentId || !comment.replies) return;
+
+        // Convert to string for safe comparison
+        const targetId = String(activeCommentId);
+        const match = comment.replies.find(r => String(r._id) === targetId);
+
+        console.log("Reply Expand Check:", {
+            parentId: comment._id,
+            targetId,
+            repliesCount: comment.replies.length,
+            matchFound: !!match
+        });
+
+        if (match) {
+            console.log("MATCH FOUND! Expanding replies for parent:", comment._id);
+            setShowReplies(true);
+
+            // Scroll to the specific reply after expansion?
+            setTimeout(() => {
+                const element = document.getElementById(`comment-${targetId}`);
+                if (element) {
+                    element.scrollIntoView({ behavior: "smooth", block: "center" });
+                    element.classList.add("bg-white/10");
+                    setTimeout(() => element.classList.remove("bg-white/10"), 2000);
+                }
+            }, 500); // Wait for expansion animation
+        }
+    }, [activeCommentId, comment.replies]);
 
     const isOwner = user?._id === comment.user?._id || user?._id === postOwnerId;
 
-    const handleReply = async (e) => {
-        e.preventDefault();
-        if (!replyText.trim()) return;
-
-        const newReply = await addComment(postId, replyText, setReplyText, () => { }, comment._id);
-        setShowReplyInput(false);
-
-        if (newReply) {
-            onReplyAdded(comment._id, newReply);
-            setShowReplies(true);
-        }
+    const handleReplyClick = () => {
+        setReplyingTo({ id: comment._id, user: comment.user });
     };
 
     const handleDelete = async () => {
@@ -47,7 +67,7 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
     };
 
     return (
-        <div className="flex flex-col gap-2">
+        <div id={`comment-${comment._id}`} className="flex flex-col gap-2 transition-colors duration-500 rounded-lg">
             {/* Main Comment */}
             <div className="flex gap-3 items-start p-2 rounded-lg hover:bg-white/5 transition-colors group">
                 <Link to={`/user/${comment.user?._id}`} className="shrink-0">
@@ -67,7 +87,7 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
                             <div className="relative">
                                 <button
                                     onClick={(e) => { e.stopPropagation(); toggleCommentMenu(comment._id); }}
-                                    className={`text-gray-400 hover:text-white p-1 transition-opacity ${activeCommentMenuId === comment._id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                                    className={`text-gray-400 hover:text-white p-1 transition-opacity ${activeCommentMenuId === comment._id ? 'opacity-100' : 'opacity-100'}`}
                                 >
                                     <BsThreeDotsVertical className="text-xs" />
                                 </button>
@@ -87,7 +107,7 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
                     {/* Actions: Reply Button */}
                     <div className="flex gap-4 mt-1">
                         <button
-                            onClick={() => setShowReplyInput(!showReplyInput)}
+                            onClick={handleReplyClick}
                             className="text-xs text-gray-400 font-semibold hover:text-white"
                         >
                             Reply
@@ -95,23 +115,6 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
                     </div>
                 </div>
             </div>
-
-            {/* Reply Input */}
-            {showReplyInput && (
-                <form onSubmit={handleReply} className="pl-12 pr-4 flex gap-2 items-center animate-in slide-in-from-top-1">
-                    <input
-                        autoFocus
-                        type="text"
-                        value={replyText}
-                        onChange={(e) => setReplyText(e.target.value)}
-                        placeholder={`Reply to ${comment.user?.name}...`}
-                        className="flex-1 bg-transparent border-b border-gray-600 focus:border-white text-sm text-white py-1 focus:outline-none"
-                    />
-                    <button type="submit" disabled={!replyText.trim()} className="text-xs font-bold text-indigo-400 hover:text-white disabled:opacity-50">
-                        Post
-                    </button>
-                </form>
-            )}
 
             {/* View Replies Toggle */}
             {comment.replies && comment.replies.length > 0 && (
@@ -125,7 +128,7 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
                         <div className="flex flex-col gap-3 mt-2 border-l-2 border-gray-700 pl-4">
                             <div onClick={() => setShowReplies(false)} className="cursor-pointer text-xs text-gray-500 mb-1 hover:text-white">Hide replies</div>
                             {comment.replies.map((reply) => (
-                                <div key={reply._id} className="flex gap-2 items-start opacity-90">
+                                <div id={`comment-${reply._id}`} key={reply._id} className="flex gap-2 items-start opacity-90 transition-colors duration-500 rounded-lg p-1">
                                     <Link to={`/user/${reply.user?._id}`} className="shrink-0">
                                         <StoryAvatar user={reply.user} size="w-6 h-6" />
                                     </Link>

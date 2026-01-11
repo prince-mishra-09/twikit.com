@@ -13,7 +13,7 @@ import StoryAvatar from "./StoryAvatar";
 import CommentItem from "./CommentItem";
 
 
-const PostCard = ({ value, type, isActive, commentId }) => {
+const PostCard = ({ value, type, isActive, commentId, openComments }) => {
   const { user, followUser, savePost, hidePost, muteUser, blockUser } = UserData();
   const { likePost, addComment, deletePost, deleteComment } = PostData();
 
@@ -46,6 +46,7 @@ const PostCard = ({ value, type, isActive, commentId }) => {
   // New Comment State
   const [comments, setComments] = useState([]);
   const [loadingComments, setLoadingComments] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null); // { id, user }
 
   // Fetch Comments on Drawer Open
   const fetchComments = async () => {
@@ -114,10 +115,17 @@ const PostCard = ({ value, type, isActive, commentId }) => {
     // But addComment returns the real comment. So we wait for it.
     // The delay should be minimal.
 
-    const newComment = await addComment(value._id, comment, setComment, () => { });
+    const parentId = replyingTo ? replyingTo.id : null;
+
+    const newComment = await addComment(value._id, comment, setComment, () => { }, parentId);
     if (newComment) {
-      handleNewComment({ ...newComment, replies: [] }); // Add empty replies array just in case
+      if (parentId) {
+        handleNewReply(parentId, newComment);
+      } else {
+        handleNewComment({ ...newComment, replies: [] });
+      }
     }
+    setReplyingTo(null); // Clear reply state
     // No need to fetchComments()
   };
 
@@ -131,34 +139,36 @@ const PostCard = ({ value, type, isActive, commentId }) => {
     }
   }, [user, value.owner]);
 
-  // DEEP LINK COMMENT SCROLL
+
   // DEEP LINK COMMENT SCROLL
   const hasOpenedComment = useRef(false);
 
   // Reset ref when commentId changes
+  // 1. Open drawer if commentId is present or openComments is true
   useEffect(() => {
-    hasOpenedComment.current = false;
-  }, [commentId]);
-
-  useEffect(() => {
-    if (commentId) {
-      if (!show && !hasOpenedComment.current) {
-        setShow(true);
-        hasOpenedComment.current = true;
-      }
-
-      if (show) {
-        setTimeout(() => {
-          const element = document.getElementById(`comment-${commentId}`);
-          if (element) {
-            element.scrollIntoView({ behavior: "smooth", block: "center" });
-            element.classList.add("bg-white/10");
-            setTimeout(() => element.classList.remove("bg-white/10"), 2000);
-          }
-        }, 500);
-      }
+    if ((commentId || openComments) && !show && !hasOpenedComment.current) {
+      setShow(true);
+      hasOpenedComment.current = true; // Fix: Mark as handled so it doesn't re-open on close
     }
-  }, [commentId, show]);
+    // Clear reply state when drawer closes
+    if (!show) setReplyingTo(null);
+  }, [commentId, openComments, show]);
+
+  // 2. Scroll to comment once loaded
+  useEffect(() => {
+    if (commentId && show && comments && comments.length > 0 && !hasOpenedComment.current) {
+      // Short timeout to ensure DOM render
+      setTimeout(() => {
+        const element = document.getElementById(`comment-${commentId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "auto", block: "center" });
+          element.classList.add("bg-white/10");
+          setTimeout(() => element.classList.remove("bg-white/10"), 2000);
+          hasOpenedComment.current = true; // Mark as scrolled
+        }
+      }, 100);
+    }
+  }, [commentId, show, comments]);
 
   // Ensure menu closes when clicking outside
   useEffect(() => {
@@ -704,9 +714,11 @@ const PostCard = ({ value, type, isActive, commentId }) => {
                     postOwnerId={value.owner._id}
                     refreshComments={fetchComments}
                     activeCommentMenuId={activeCommentMenuId}
+                    activeCommentId={commentId}
                     toggleCommentMenu={toggleCommentMenu}
                     onReplyAdded={handleNewReply}
                     onDelete={handleDeleteLocal}
+                    setReplyingTo={setReplyingTo}
                   />
                 ))
               ) : (
@@ -744,6 +756,14 @@ const PostCard = ({ value, type, isActive, commentId }) => {
 
             {/* Input Area - Fixed at bottom of drawer */}
             <div className="p-4 border-t border-gray-700 bg-[#1F2937] rounded-b-none lg:rounded-b-3xl pb-6 md:pb-4">
+              {/* Replying Banner */}
+              {replyingTo && (
+                <div className="flex justify-between items-center bg-gray-800 px-4 py-2 rounded-t-lg mb-2 mx-1">
+                  <span className="text-xs text-gray-300">Replying to <span className="text-indigo-400 font-bold">@{replyingTo.user.name}</span></span>
+                  <button onClick={() => setReplyingTo(null)} className="text-gray-400 hover:text-white">✕</button>
+                </div>
+              )}
+
               {/* Emoji Bar */}
               <div className="flex justify-between mb-3 px-2">
                 {["❤️", "🙌", "🔥", "👏", "😢", "😍", "😂"].map((emoji) => (
@@ -771,9 +791,10 @@ const PostCard = ({ value, type, isActive, commentId }) => {
                   <input
                     type="text"
                     className="w-full bg-gray-800 text-white text-sm rounded-full px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 border border-transparent placeholder:text-gray-500"
-                    placeholder={`Comment as ${user?.name}...`}
+                    placeholder={replyingTo ? "Write a reply..." : `Comment as ${user?.name}...`}
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
+                    autoFocus={!!replyingTo}
                   />
                   <button
                     type="submit"

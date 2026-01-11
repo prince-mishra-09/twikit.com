@@ -49,6 +49,22 @@ const Notifications = () => {
         }
     };
 
+    const getPostLink = (n) => {
+        if (!n.postId) return "#";
+        let url = `/post/${n.postId._id || n.postId}`;
+        const params = new URLSearchParams();
+
+        if (n.relatedComment) {
+            const commentId = n.relatedComment._id || n.relatedComment;
+            params.append("commentId", String(commentId));
+        } else if (n.type === "comment" || n.type === "comment_reply") {
+            params.append("openComments", "true");
+        }
+
+        const queryString = params.toString();
+        return queryString ? `${url}?${queryString}` : url;
+    };
+
     const getNotificationMessage = (type) => {
         switch (type) {
             case "like":
@@ -61,6 +77,8 @@ const Notifications = () => {
                 return "sent you a follow request";
             case "request_accepted":
                 return "accepted your follow request";
+            case "comment_reply":
+                return "replied on your comment";
             case "message":
                 return "sent you a new message";
             default:
@@ -135,7 +153,7 @@ const Notifications = () => {
                                 </div>
 
                                 {n.postId && (
-                                    <Link to={`/post/${n.postId._id || n.postId}`}>
+                                    <Link to={getPostLink(n)}>
                                         {n.postId?.post?.url ? (
                                             n.postId.type === 'reel' ? (
                                                 <video src={n.postId.post.url} className="w-10 h-10 rounded-lg object-cover border border-white/10" />
