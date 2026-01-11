@@ -20,6 +20,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
   const { likePost, addComment, deletePost, deleteComment } = PostData();
 
   const [isLike, setIsLike] = useState(false);
+  const [likeCount, setLikeCount] = useState(value.likes?.length || 0); // Optimistic like count
   const [show, setShow] = useState(false);
   const [showImage, setShowImage] = useState(false);
   const [comment, setComment] = useState("");
@@ -263,9 +264,20 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
   }, [isActive, type]);
 
 
-  const likeHandler = () => {
-    setIsLike(!isLike);
-    likePost(value._id);
+
+  const likeHandler = async () => {
+    // Optimistic UI update
+    const newLikeState = !isLike;
+    setIsLike(newLikeState);
+    setLikeCount(newLikeState ? likeCount + 1 : likeCount - 1);
+
+    try {
+      await likePost(value._id);
+    } catch (error) {
+      // Revert on error
+      setIsLike(!newLikeState);
+      setLikeCount(newLikeState ? likeCount - 1 : likeCount + 1);
+    }
   };
 
   const handleDoubleClick = () => {
@@ -995,4 +1007,13 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
   );
 };
 
-export default PostCard;
+// Memoize PostCard to prevent unnecessary re-renders
+export default React.memo(PostCard, (prevProps, nextProps) => {
+  // Only re-render if post ID or likes changed
+  return (
+    prevProps.value._id === nextProps.value._id &&
+    prevProps.value.likes?.length === nextProps.value.likes?.length &&
+    prevProps.isActive === nextProps.isActive &&
+    prevProps.commentId === nextProps.commentId
+  );
+});

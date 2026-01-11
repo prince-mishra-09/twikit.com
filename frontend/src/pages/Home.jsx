@@ -10,7 +10,7 @@ import { ChatData } from "../context/ChatContext";
 import { SkeletonPost } from "../components/Skeleton";
 
 const Home = () => {
-  const { posts, loading } = PostData();
+  const { posts, loading, fetchNextPage, loadingMore, pagination } = PostData();
   const { unreadCount } = NotificationData();
   const { totalUnreadMessages } = ChatData();
 
@@ -93,11 +93,26 @@ const Home = () => {
               {[...Array(3)].map((_, i) => <SkeletonPost key={i} />)}
             </div>
           ) : posts && posts.length > 0 ? (
-            <div className="space-y-4">
-              {posts.map((post) => (
-                <PostCard key={post._id} value={post} type="post" />
-              ))}
-            </div>
+            <>
+              <div className="space-y-4">
+                {posts.map((post) => (
+                  <PostCard key={post._id} value={post} type="post" />
+                ))}
+              </div>
+
+              {/* Load More Button */}
+              {pagination.hasMorePosts && (
+                <div className="flex justify-center mt-6">
+                  <button
+                    onClick={fetchNextPage}
+                    disabled={loadingMore}
+                    className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-full hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {loadingMore ? "Loading..." : "Load More Posts"}
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="flex flex-col items-center justify-center h-[60vh] text-center w-full z-10 relative">
               <h3 className="text-2xl font-bold text-white mb-2">No posts yet</h3>

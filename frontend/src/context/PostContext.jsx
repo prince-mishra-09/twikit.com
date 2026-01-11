@@ -9,20 +9,47 @@ export const PostContextProvider = ({ children }) => {
   const [posts, setPosts] = useState([]);
   const [reels, setReels] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    hasMorePosts: true,
+    hasMoreReels: true
+  });
   const { socket } = SocketData();
 
 
-  async function fetchPosts() {
+  async function fetchPosts(page = 1) {
     try {
-      const { data } = await axios.get("/api/post/all");
+      const { data } = await axios.get(`/api/post/all?page=${page}&limit=20`);
 
-      setPosts(data.posts);
-      setReels(data.reels);
+      if (page === 1) {
+        setPosts(data.posts);
+        setReels(data.reels);
+      } else {
+        // Append new posts for pagination
+        setPosts(prev => [...prev, ...data.posts]);
+        setReels(prev => [...prev, ...data.reels]);
+      }
+
+      setPagination({
+        page: data.pagination.page,
+        hasMorePosts: data.pagination.hasMorePosts,
+        hasMoreReels: data.pagination.hasMoreReels
+      });
+
       setLoading(false);
+      setLoadingMore(false);
     } catch (error) {
       console.log(error);
       setLoading(false);
+      setLoadingMore(false);
     }
+  }
+
+  async function fetchNextPage() {
+    if (!pagination.hasMorePosts || loadingMore) return;
+    setLoadingMore(true);
+    await fetchPosts(pagination.page + 1);
   }
 
   const [addLoading, setAddLoading] = useState(false);
@@ -160,6 +187,9 @@ export const PostContextProvider = ({ children }) => {
         fetchPosts,
         deletePost,
         deleteComment,
+        fetchNextPage,
+        loadingMore,
+        pagination
       }}
     >
       {children}

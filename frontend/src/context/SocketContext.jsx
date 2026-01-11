@@ -21,7 +21,21 @@ export const SocketContextProvider = ({ children }) => {
 
     setSocket(socket);
 
+    // Initial online users list
     socket.on("getOnlineUser", setOnlineUsers);
+
+    // Handle individual user coming online
+    socket.on("userOnline", (userId) => {
+      setOnlineUsers((prev) => {
+        if (prev.includes(userId)) return prev;
+        return [...prev, userId];
+      });
+    });
+
+    // Handle individual user going offline
+    socket.on("userOffline", (userId) => {
+      setOnlineUsers((prev) => prev.filter((id) => id !== userId));
+    });
 
     return () => socket.close();
   }, [user?._id]);
