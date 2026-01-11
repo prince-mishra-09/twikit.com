@@ -3,16 +3,23 @@ import nodemailer from '../utils/nodemailerWrapper.js';
 
 class EmailService {
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT),
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
-    });
+    this.transporter = null;
     this.adminEmail = process.env.ADMIN_EMAIL;
+  }
+
+  getTransporter() {
+    if (!this.transporter) {
+      this.transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT),
+        secure: false,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS
+        }
+      });
+    }
+    return this.transporter;
   }
 
   // Send alert email
@@ -80,7 +87,7 @@ class EmailService {
     };
 
     try {
-      const info = await this.transporter.sendMail(mailOptions);
+      const info = await this.getTransporter().sendMail(mailOptions);
       console.log('✅ Alert email sent:', info.messageId);
       return info;
     } catch (error) {
@@ -92,7 +99,7 @@ class EmailService {
   // Test email connection
   async testConnection() {
     try {
-      await this.transporter.verify();
+      await this.getTransporter().verify();
       console.log('✅ Email service is ready');
       return true;
     } catch (error) {

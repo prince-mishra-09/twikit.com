@@ -3,15 +3,22 @@ import nodemailer from './nodemailerWrapper.js';
 
 class OTPEmailService {
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT),
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
-    });
+    this.transporter = null;
+  }
+
+  getTransporter() {
+    if (!this.transporter) {
+      this.transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT),
+        secure: false,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS
+        }
+      });
+    }
+    return this.transporter;
   }
 
   // Generate 4-digit OTP
@@ -78,7 +85,7 @@ class OTPEmailService {
     };
 
     try {
-      const info = await this.transporter.sendMail(mailOptions);
+      const info = await this.getTransporter().sendMail(mailOptions);
       console.log(`✅ OTP sent to ${email}:`, info.messageId);
       return { success: true, messageId: info.messageId };
     } catch (error) {
@@ -90,7 +97,7 @@ class OTPEmailService {
   // Test email connection
   async testConnection() {
     try {
-      await this.transporter.verify();
+      await this.getTransporter().verify();
       console.log("✅ OTP Email service is ready");
       return true;
     } catch (error) {
