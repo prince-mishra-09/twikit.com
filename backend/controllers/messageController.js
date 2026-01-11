@@ -4,9 +4,11 @@ import { getReceiverSocketId, io } from "../socket/socket.js";
 import { Notification } from "../models/Notification.js";
 import TryCatch from "../utils/tryCatch.js";
 import { sendPushNotification } from "./notificationController.js";
+import { Post } from "../models/postModel.js";
+import User from "../models/userModel.js";
 
 export const sendMessage = TryCatch(async (req, res) => {
-  const { recieverId, message } = req.body;
+  const { recieverId, message, sharedContent } = req.body;
 
   const senderId = req.user._id;
 
@@ -14,6 +16,35 @@ export const sendMessage = TryCatch(async (req, res) => {
     return res.status(400).json({
       message: "Please give reciever id",
     });
+
+  /* PRIVACY CHECK FOR SHARED CONTENT */
+  if (sharedContent) {
+    const { type, contentId } = sharedContent;
+
+    if (type === "post" || type === "reel") {
+      const post = await Post.findById(contentId).populate("owner");
+      if (!post) return res.status(404).json({ message: "Content not found" });
+
+      const owner = post.owner;
+      // If owner is private, receiver MUST follow owner (or be the owner)
+      if (owner.isPrivate && owner._id.toString() !== recieverId.toString()) {
+        const receiverUser = await User.findById(recieverId);
+        if (!receiverUser.followings.includes(owner._id)) {
+          return res.status(403).json({ message: "Receiver cannot view this private content" });
+        }
+      }
+    } else if (type === "profile") {
+      const profileUser = await User.findById(contentId);
+      if (!profileUser) return res.status(404).json({ message: "User not found" });
+
+      if (profileUser.isPrivate && profileUser._id.toString() !== recieverId.toString()) {
+        const receiverUser = await User.findById(recieverId);
+        if (!receiverUser.followings.includes(profileUser._id)) {
+          return res.status(403).json({ message: "Receiver cannot view this private profile" });
+        }
+      }
+    }
+  }
 
   let chat = await Chat.findOne({
     users: { $all: [senderId, recieverId] },
@@ -23,7 +54,7 @@ export const sendMessage = TryCatch(async (req, res) => {
     chat = new Chat({
       users: [senderId, recieverId],
       latestMessage: {
-        text: message || "New Chat",
+        text: message || (sharedContent ? "Shared content" : "New Chat"),
         sender: senderId,
       },
     });
@@ -31,8 +62,8 @@ export const sendMessage = TryCatch(async (req, res) => {
     await chat.save();
   }
 
-  // IF NO MESSAGE, JUST RETURN CHAT (For "Start Chat" feature)
-  if (!message) {
+  // IF NO MESSAGE AND NO SHARED CONTENT, JUST RETURN CHAT
+  if (!message && !sharedContent) {
     return res.status(200).json({ message: "Chat initiated", chat });
   }
 
@@ -40,6 +71,7 @@ export const sendMessage = TryCatch(async (req, res) => {
     chatId: chat._id,
     sender: senderId,
     text: message,
+    sharedContent,
   });
 
   await newMessage.save();

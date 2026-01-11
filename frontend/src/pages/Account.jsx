@@ -14,8 +14,11 @@ import { FiEdit2 } from "react-icons/fi";
 import { StoriesData } from "../context/StoriesContext";
 import StoryViewer from "../components/StoryViewer";
 import CreatePostModal from "../components/CreatePostModal";
+
 import StoryAvatar from "../components/StoryAvatar";
 import { AiOutlinePlus } from "react-icons/ai";
+import ShareModal from "../components/ShareModal";
+import { BsShare } from "react-icons/bs";
 
 const Account = ({ user }) => {
   const navigate = useNavigate();
@@ -65,7 +68,9 @@ const Account = ({ user }) => {
   const [showMuted, setShowMuted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+
   const [showBlocked, setShowBlocked] = useState(false);
+  const [shareModal, setShareModal] = useState(false);
 
   const [followersData, setFollowersData] = useState([]);
   const [followingsData, setFollowingsData] = useState([]);
@@ -178,6 +183,16 @@ const Account = ({ user }) => {
                 <div className={`w-8 h-4 rounded-full relative transition-colors ${user.isPrivate ? "bg-indigo-500" : "bg-gray-600"}`}>
                   <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-transform ${user.isPrivate ? "left-4.5" : "left-0.5"}`} style={{ left: user.isPrivate ? '18px' : '2px' }} />
                 </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShareModal(true);
+                  setShowSettings(false);
+                }}
+                className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
+              >
+                <BsShare /> Share Profile
               </button>
 
               <button
@@ -408,6 +423,20 @@ const Account = ({ user }) => {
       {showCreateStory && (
         <CreatePostModal setShow={setShowCreateStory} initialTab="story" />
       )}
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={shareModal}
+        onClose={() => setShareModal(false)}
+        content={{
+          type: "profile",
+          contentId: user._id,
+          preview: {
+            title: user.name,
+            image: user.profilePic?.url,
+            username: user.username || user.name
+          }
+        }}
+      />
     </div >
   );
 };

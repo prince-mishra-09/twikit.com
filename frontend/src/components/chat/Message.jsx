@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { BsCheckAll } from "react-icons/bs";
+import { Link } from "react-router-dom";
 
 const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, setActiveMessageId }) => {
   const longPressTimer = useRef(null);
@@ -35,7 +36,31 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
           : "bg-[#1F2937] text-gray-100 rounded-bl-sm border border-white/10"
           }`}
       >
-        <span className="break-words max-w-full leading-relaxed">{message.text}</span>
+        {/* SHARED CONTENT CARD */}
+        {message.sharedContent && (
+          <Link
+            to={message.sharedContent.type === 'profile' ? `/user/${message.sharedContent.contentId}` : `/post/${message.sharedContent.contentId}`}
+            className={`block mb-2 rounded-xl overflow-hidden border border-white/10 ${ownMessage ? "bg-white/10" : "bg-black/20"}`}
+          >
+            {/* Image Preview */}
+            {message.sharedContent.preview?.image && (
+              <img
+                src={message.sharedContent.preview.image}
+                alt="Shared"
+                className="w-full h-32 object-cover"
+              />
+            )}
+            {/* Text Preview */}
+            <div className="p-2">
+              <p className="text-xs font-semibold truncate opacity-90">@{message.sharedContent.preview?.username}</p>
+              <p className={`text-xs truncate ${ownMessage ? "text-gray-200" : "text-gray-400"}`}>
+                {message.sharedContent.preview?.title || (message.sharedContent.type === 'profile' ? 'Shared Profile' : 'Shared Post')}
+              </p>
+            </div>
+          </Link>
+        )}
+
+        {message.text && <span className="break-words max-w-full leading-relaxed block">{message.text}</span>}
 
         {/* Time & Read Receipt */}
         <div className={`text-[10px] flex items-center gap-1 ml-auto shrink-0 ${ownMessage ? "text-gray-200" : "text-gray-400"}`}>

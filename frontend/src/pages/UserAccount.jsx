@@ -12,6 +12,8 @@ import { useNavigate } from "react-router-dom"; // Added for redirect
 import { StoriesData } from "../context/StoriesContext";
 import StoryViewer from "../components/StoryViewer";
 import StoryAvatar from "../components/StoryAvatar";
+import ShareModal from "../components/ShareModal";
+import { BsShare } from "react-icons/bs";
 
 const UserAccount = ({ user: loggedInUser }) => {
   const { posts, reels } = PostData();
@@ -157,6 +159,7 @@ const UserAccount = ({ user: loggedInUser }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [showBlock, setShowBlock] = useState(false);
   const { blockUser } = UserData();
+  const [shareModal, setShareModal] = useState(false);
 
   const handleBlock = () => {
     if (confirm("Are you sure? This user will not be able to find your profile, posts, or story.")) {
@@ -233,6 +236,15 @@ const UserAccount = ({ user: loggedInUser }) => {
                   </button>
                   <button className="w-full text-left px-4 py-3 text-gray-300 hover:bg-white/5 text-sm">
                     Report
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShareModal(true);
+                      setShowMenu(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-gray-300 hover:bg-white/5 text-sm flex items-center gap-2 border-t border-white/5"
+                  >
+                    <BsShare /> Share Profile
                   </button>
                 </div>
               )}
@@ -347,6 +359,22 @@ const UserAccount = ({ user: loggedInUser }) => {
           stories={[activeStory]}
           initialIndex={0}
           onClose={() => setShowStoryViewer(false)}
+        />
+      )}
+      {/* Share Modal */}
+      {user && (
+        <ShareModal
+          isOpen={shareModal}
+          onClose={() => setShareModal(false)}
+          content={{
+            type: "profile",
+            contentId: user._id,
+            preview: {
+              title: user.name,
+              image: user.profilePic?.url,
+              username: user.username || user.name
+            }
+          }}
         />
       )}
     </div>
