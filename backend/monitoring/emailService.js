@@ -4,7 +4,6 @@ import nodemailer from '../utils/nodemailerWrapper.js';
 class EmailService {
   constructor() {
     this.transporter = null;
-    this.adminEmail = process.env.ADMIN_EMAIL;
   }
 
   getTransporter() {
@@ -81,7 +80,7 @@ class EmailService {
 
     const mailOptions = {
       from: `"Twikit Monitoring" <${process.env.SMTP_USER}>`,
-      to: this.adminEmail,
+      to: process.env.ADMIN_EMAIL,
       subject: subject,
       html: html
     };

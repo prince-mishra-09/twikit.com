@@ -41,20 +41,33 @@ const Register = () => {
     e.preventDefault();
     setError("");
 
+    console.log("=== SEND OTP DEBUG ===");
+    console.log("Email state value:", email);
+    console.log("Email type:", typeof email);
+    console.log("Email length:", email?.length);
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return setError("Please enter a valid email address");
     }
 
     setLoading(true);
+    console.log("Sending OTP to:", email);
 
     try {
-      const { data } = await axios.post("/api/auth/send-otp", { email });
+      console.log("Making API call to /api/auth/send-otp");
+      console.log("Request body:", { email });
+      const { data } = await axios.post("/api/auth/send-otp", { email }, {
+        timeout: 30000 // 30 second timeout
+      });
+      console.log("OTP sent successfully:", data);
       setEmailSent(true);
       setStep(2);
       setError("");
     } catch (error) {
-      setError(error.response?.data?.message || "Failed to send OTP");
+      console.error("OTP send error:", error);
+      console.error("Error response:", error.response?.data);
+      setError(error.response?.data?.message || error.message || "Failed to send OTP");
     } finally {
       setLoading(false);
     }
@@ -330,18 +343,19 @@ const Register = () => {
               />
             </div>
 
-            {/* Username (optional) */}
+            {/* Username (required) */}
             <div>
               <label className="text-gray-300 text-sm mb-2 block">
-                Username <span className="text-gray-500">(optional)</span>
+                Username <span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="johndoe"
+                  placeholder="Choose a unique username"
                   value={username}
                   onChange={handleUsernameChange}
                   className="w-full px-4 py-3 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400 transition"
+                  required
                 />
                 {checkingUsername && (
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">

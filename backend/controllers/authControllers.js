@@ -18,6 +18,21 @@ const registerUser = tryCatch(async (req, res) => {
         });
     }
 
+    // Validate username is provided
+    if (!username) {
+        return res.status(400).json({
+            message: "Username is required"
+        });
+    }
+
+    // Validate username format
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    if (!usernameRegex.test(username)) {
+        return res.status(400).json({
+            message: "Username must be 3-20 characters (alphanumeric and underscore only)"
+        });
+    }
+
     // Check if email already exists
     let user = await User.findOne({ email });
 
@@ -27,14 +42,12 @@ const registerUser = tryCatch(async (req, res) => {
         });
     }
 
-    // Check if username already exists (if provided)
-    if (username) {
-        const existingUsername = await User.findOne({ username });
-        if (existingUsername) {
-            return res.status(400).json({
-                message: "Username already taken",
-            });
-        }
+    // Check if username already exists
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+        return res.status(400).json({
+            message: "Username already taken. Please choose another one.",
+        });
     }
 
     const fileUrl = getDataUrl(file)
@@ -55,6 +68,13 @@ const registerUser = tryCatch(async (req, res) => {
         }
     })
 
+    // Send welcome email
+    try {
+        await otpEmailService.sendWelcomeEmail(email, name, username || 'User');
+    } catch (emailError) {
+        console.error("Failed to send welcome email:", emailError);
+        // Don't fail registration if email fails
+    }
 
     generateToken(user._id, res)
 
