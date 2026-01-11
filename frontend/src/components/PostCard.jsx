@@ -983,6 +983,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
         content={{
           type: type === "reel" ? "reel" : "post",
           contentId: value._id,
+          owner: value.owner, // Include owner for private restriction
           preview: {
             title: value.caption,
             image: value.post.url,
