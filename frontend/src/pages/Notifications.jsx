@@ -51,6 +51,15 @@ const Notifications = () => {
 
     const getPostLink = (n) => {
         if (!n.postId) return "#";
+
+        // REEL CHECK: 
+        // We know type is populated now (from previous fix)
+        // Check n.postId.type OR if it lacks type but looks like a reel? 
+        // We rely on type being populated. 
+        if (n.postId.type === 'reel') {
+            return `/reels?id=${n.postId._id || n.postId}`;
+        }
+
         let url = `/post/${n.postId._id || n.postId}`;
         const params = new URLSearchParams();
 
@@ -108,10 +117,11 @@ const Notifications = () => {
                         notifications.map((n) => (
                             <div
                                 key={n._id}
-                                className={`flex items-center gap-4 p-4 rounded-2xl border ${!n.isRead
+                                className={`relative flex items-center gap-4 p-4 rounded-2xl border ${!n.isRead
                                     ? "bg-[#111827] border-indigo-500/30 shadow-[0_0_10px_rgba(99,102,241,0.1)]"
                                     : "bg-[#111827]/40 border-white/5 opacity-80"
-                                    } transition-all duration-300 hover:opacity-100`}
+                                    } transition-all duration-300 hover:opacity-100 cursor-pointer`}
+                                onClick={() => navigate(getPostLink(n))}
                             >
                                 <Link to={`/user/${n.sender._id}`} className="shrink-0">
                                     <img
@@ -123,12 +133,12 @@ const Notifications = () => {
 
                                 <div className="flex-1">
                                     <p className="text-sm">
-                                        <span className="font-semibold text-gray-200">
+                                        <Link to={`/user/${n.sender._id}`} className="font-semibold text-gray-200 hover:underline" onClick={(e) => e.stopPropagation()}>
                                             @{n.sender.username || n.sender.name?.toLowerCase().replace(/\s+/g, '_')}
-                                        </span>{" "}
-                                        <span className="text-gray-400">
+                                        </Link>{" "}
+                                        <Link to={getPostLink(n)} className="text-gray-400 hover:text-gray-300" onClick={(e) => e.stopPropagation()}>
                                             {getNotificationMessage(n.type)}
-                                        </span>
+                                        </Link>
                                     </p>
                                     <p className="text-xs text-gray-500 mt-1">
                                         {format(new Date(n.createdAt), "MMM do, h:mm a")}
@@ -156,7 +166,7 @@ const Notifications = () => {
                                     <Link to={getPostLink(n)}>
                                         {n.postId?.post?.url ? (
                                             n.postId.type === 'reel' ? (
-                                                <video src={n.postId.post.url} className="w-10 h-10 rounded-lg object-cover border border-white/10" />
+                                                <video src={n.postId.post.url} className="w-10 h-10 rounded-lg object-cover border border-white/10" muted playsInline loop autoPlay />
                                             ) : (
                                                 <img
                                                     src={n.postId.post.url}

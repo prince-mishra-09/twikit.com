@@ -7,6 +7,21 @@ const Reels = () => {
   const { reels, loading } = PostData();
   const [currentReelId, setCurrentReelId] = useState(null);
 
+  // Logic to handle deep link
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const reelId = params.get("id");
+
+    if (reelId && reels && reels.length > 0) {
+      setTimeout(() => {
+        const element = document.getElementById(reelId);
+        if (element) {
+          element.scrollIntoView({ behavior: "auto" });
+        }
+      }, 500); // Delay to ensure rendering
+    }
+  }, [reels]);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
