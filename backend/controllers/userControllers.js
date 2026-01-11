@@ -225,20 +225,33 @@ export const searchUsers = tryCatch(async (req, res) => {
   const searchRaw = req.query.search || "";
   const search = searchRaw.replace(/^@/, "").trim();
 
-  if (!search) {
+  if (!search && !req.query.restrictToFollowersOf) {
     return res.json({ users: [], posts: [] });
   }
 
   const regex = new RegExp(search, "i");
 
-  const users = await User.find({
-    $or: [
-      { name: regex },
-      { username: regex }
-    ],
+  const query = {
     _id: { $ne: req.user._id, $nin: req.user.blockedUsers },
     blockedUsers: { $ne: req.user._id }
-  }).select("name username profilePic bio");
+  };
+
+  if (search) {
+    query.$or = [
+      { name: regex },
+      { username: regex }
+    ];
+  }
+
+  if (req.query.restrictToFollowersOf) {
+    const targetUser = await User.findById(req.query.restrictToFollowersOf);
+    if (targetUser) {
+      // Must be in targetUser's followers
+      query._id.$in = targetUser.followers;
+    }
+  }
+
+  const users = await User.find(query).select("name username profilePic bio");
 
   // Priority Sort: Exact Username > StartsWith Username > Name
   users.sort((a, b) => {

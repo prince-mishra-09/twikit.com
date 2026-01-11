@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { FaSearch, FaTimes, FaPaperPlane } from "react-icons/fa";
 import { ChatData } from "../context/ChatContext";
 import { UserData } from "../context/UserContext";
@@ -16,20 +17,27 @@ const ShareModal = ({ isOpen, onClose, content }) => {
 
     // SEARCH LOGIC
     useEffect(() => {
-        if (!query.trim()) {
+        // If query is empty but we have restriction, we still fetch "suggestions"
+        const isRestricted = content?.owner?.isPrivate && content.owner._id;
+
+        if (!query.trim() && !isRestricted) {
             setUsers([]);
             return;
         }
         const timer = setTimeout(async () => {
             try {
-                const { data } = await axios.get("/api/user/all?search=" + query);
+                let searchUrl = `/api/user/all?search=${query}`;
+                if (content?.owner?.isPrivate && content.owner._id) {
+                    searchUrl += `&restrictToFollowersOf=${content.owner._id}`;
+                }
+                const { data } = await axios.get(searchUrl);
                 setUsers(data.users || []);
             } catch (error) {
                 console.log(error);
             }
         }, 500);
         return () => clearTimeout(timer);
-    }, [query]);
+    }, [query, content]);
 
     const toggleUser = (user) => {
         setSelectedUsers(prev => {
@@ -44,6 +52,9 @@ const ShareModal = ({ isOpen, onClose, content }) => {
         setLoading(true);
         try {
             // Send to all selected users
+            console.log("Sending shared content:", content);
+            console.log("Recipients:", selectedUsers);
+
             const promises = selectedUsers.map(user =>
                 axios.post("/api/messages", {
                     recieverId: user._id,
@@ -52,7 +63,8 @@ const ShareModal = ({ isOpen, onClose, content }) => {
                 })
             );
 
-            await Promise.all(promises);
+            const responses = await Promise.all(promises);
+            console.log("Share responses:", responses);
 
             toast.success(`Sent to ${selectedUsers.length} users!`);
             onClose();
@@ -68,7 +80,7 @@ const ShareModal = ({ isOpen, onClose, content }) => {
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm p-4">
             <div className="bg-[#111827] w-full max-w-md rounded-2xl border border-white/10 overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
 
@@ -84,8 +96,10 @@ const ShareModal = ({ isOpen, onClose, content }) => {
                 <div className="p-4 space-y-4 flex-none">
                     {/* Content Preview */}
                     <div className="bg-[#1F2937]/50 p-3 rounded-xl flex items-center gap-3 border border-white/5">
-                        {content.preview.image && (
-                            <img src={content.preview.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                        {content.type === "reel" ? (
+                            <video src={content.preview.image} className="w-10 h-10 rounded-lg object-cover bg-black" muted />
+                        ) : (
+                            content.preview.image && <img src={content.preview.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
                         )}
                         <div className="flex-1 min-w-0">
                             <p className="text-white text-sm font-medium truncate">{content.preview.title || "Content"}</p>
@@ -104,12 +118,19 @@ const ShareModal = ({ isOpen, onClose, content }) => {
                             onChange={(e) => setQuery(e.target.value)}
                         />
                     </div>
+                    {/* Restriction Hint */}
+                    {content?.owner?.isPrivate && (
+                        <p className="px-1 mt-1.5 text-[10px] text-yellow-500/80 flex items-center gap-1">
+                            <span className="w-1 h-1 rounded-full bg-yellow-500"></span>
+                            Searching only followers of {content.owner.username || "private account"}
+                        </p>
+                    )}
                 </div>
 
                 {/* LIST - GRID LAYOUT */}
                 <div className="flex-1 overflow-y-auto px-4 pb-2">
                     <div className="grid grid-cols-4 gap-4">
-                        {query ? (
+                        {query || (content?.owner?.isPrivate && content.owner._id) ? (
                             users.length > 0 ? users.map(u => (
                                 <UserItem
                                     key={u._id}
@@ -177,7 +198,8 @@ const ShareModal = ({ isOpen, onClose, content }) => {
                     </div>
                 )}
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

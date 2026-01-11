@@ -209,6 +209,15 @@ export const likeUnlikePost = TryCatch(async (req, res) => {
     });
 });
 
+export const addPostView = TryCatch(async (req, res) => {
+    // Increment view count directly
+    await Post.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } });
+
+    res.json({
+        message: "View added",
+    });
+});
+
 
 
 

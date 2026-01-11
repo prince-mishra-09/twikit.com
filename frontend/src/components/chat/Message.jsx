@@ -39,22 +39,52 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
         {/* SHARED CONTENT CARD */}
         {message.sharedContent && (
           <Link
-            to={message.sharedContent.type === 'profile' ? `/user/${message.sharedContent.contentId}` : `/post/${message.sharedContent.contentId}`}
+            to={
+              message.sharedContent.type === 'profile'
+                ? `/user/${message.sharedContent.contentId}`
+                : message.sharedContent.type === 'reel'
+                  ? `/reels`
+                  : `/post/${message.sharedContent.contentId}`
+            }
             className={`block mb-2 rounded-xl overflow-hidden border border-white/10 ${ownMessage ? "bg-white/10" : "bg-black/20"}`}
           >
-            {/* Image Preview */}
-            {message.sharedContent.preview?.image && (
-              <img
-                src={message.sharedContent.preview.image}
-                alt="Shared"
-                className="w-full h-32 object-cover"
-              />
-            )}
+            {/* Image/Video Preview */}
+            {/* Image/Video Preview */}
+            <div className={message.sharedContent.type === 'reel' ? "aspect-[9/16] w-32 relative bg-black" : "w-full h-32"}>
+              {message.sharedContent.preview?.image && (
+                message.sharedContent.type === 'reel' ? (
+                  <video
+                    src={message.sharedContent.preview.image}
+                    className="w-full h-full object-cover absolute inset-0"
+                    muted
+                    playsInline
+                  />
+                ) : (
+                  <img
+                    src={message.sharedContent.preview.image}
+                    alt="Shared"
+                    className="w-full h-full object-cover"
+                  />
+                )
+              )}
+              {message.sharedContent.type === 'reel' && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/10 pointer-events-none">
+                  {/* Reel Icon Overlay */}
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-white drop-shadow-lg">
+                    <path fillRule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
+            </div>
+
             {/* Text Preview */}
             <div className="p-2">
               <p className="text-xs font-semibold truncate opacity-90">@{message.sharedContent.preview?.username}</p>
               <p className={`text-xs truncate ${ownMessage ? "text-gray-200" : "text-gray-400"}`}>
-                {message.sharedContent.preview?.title || (message.sharedContent.type === 'profile' ? 'Shared Profile' : 'Shared Post')}
+                {message.sharedContent.preview?.title || (
+                  message.sharedContent.type === 'profile' ? 'Shared Profile' :
+                    message.sharedContent.type === 'reel' ? 'Shared Reel' : 'Shared Post'
+                )}
               </p>
             </div>
           </Link>

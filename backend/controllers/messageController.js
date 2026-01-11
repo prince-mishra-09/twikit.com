@@ -26,21 +26,39 @@ export const sendMessage = TryCatch(async (req, res) => {
       if (!post) return res.status(404).json({ message: "Content not found" });
 
       const owner = post.owner;
-      // If owner is private, receiver MUST follow owner (or be the owner)
+
+      // 1. SENDER CHECK: Sender must follow owner (or be owner)
+      if (owner.isPrivate && owner._id.toString() !== senderId.toString()) {
+        const senderUser = await User.findById(senderId); // Should be in req.user, but ensuring fresh data
+        if (!senderUser.followings.includes(owner._id.toString())) {
+          return res.status(403).json({ message: "You cannot share this private content" });
+        }
+      }
+
+      // 2. RECEIVER CHECK: Receiver must follow owner (or be owner)
       if (owner.isPrivate && owner._id.toString() !== recieverId.toString()) {
         const receiverUser = await User.findById(recieverId);
-        if (!receiverUser.followings.includes(owner._id)) {
-          return res.status(403).json({ message: "Receiver cannot view this private content" });
+        if (!receiverUser.followings.includes(owner._id.toString())) {
+          return res.status(403).json({ message: "Receiver follows needed to view this" });
         }
       }
     } else if (type === "profile") {
       const profileUser = await User.findById(contentId);
       if (!profileUser) return res.status(404).json({ message: "User not found" });
 
+      // 1. SENDER CHECK
+      if (profileUser.isPrivate && profileUser._id.toString() !== senderId.toString()) {
+        const senderUser = await User.findById(senderId);
+        if (!senderUser.followings.includes(profileUser._id.toString())) {
+          return res.status(403).json({ message: "You cannot share this private profile" });
+        }
+      }
+
+      // 2. RECEIVER CHECK
       if (profileUser.isPrivate && profileUser._id.toString() !== recieverId.toString()) {
         const receiverUser = await User.findById(recieverId);
-        if (!receiverUser.followings.includes(profileUser._id)) {
-          return res.status(403).json({ message: "Receiver cannot view this private profile" });
+        if (!receiverUser.followings.includes(profileUser._id.toString())) {
+          return res.status(403).json({ message: "Receiver follows needed to view this" });
         }
       }
     }
@@ -78,7 +96,7 @@ export const sendMessage = TryCatch(async (req, res) => {
 
   await chat.updateOne({
     latestMessage: {
-      text: message,
+      text: message || (sharedContent ? "Shared content" : "Attachment"),
       sender: senderId,
     },
     updatedAt: new Date(),

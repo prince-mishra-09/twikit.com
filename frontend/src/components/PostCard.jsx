@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { createPortal } from "react-dom";
 import { BsChatFill, BsThreeDotsVertical, BsBookmark, BsBookmarkFill } from "react-icons/bs";
-import { IoHeartOutline, IoHeartSharp, IoPaperPlaneOutline } from "react-icons/io5";
+import { IoHeartOutline, IoHeartSharp, IoPaperPlaneOutline, IoEyeOutline } from "react-icons/io5";
 import { UserData } from "../context/UserContext";
 import { PostData } from "../context/PostContext";
 import { format } from "date-fns";
@@ -225,7 +225,29 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
     }
   }, [user, value.owner, value._id]);
 
-  // ... Reel Autoplay Effect (same as original) ...
+  // View Count Logic
+  const [viewTracked, setViewTracked] = useState(false);
+
+  const handleTimeUpdate = () => {
+    if (!videoRef.current || viewTracked) return;
+    const { currentTime, duration } = videoRef.current;
+
+    // Default duration to avoid NaN. Track if > 5% played
+    if (duration > 0 && currentTime / duration > 0.05) {
+      setViewTracked(true);
+      // Call API to register view
+      try {
+        axios.post(`/api/post/view/${value._id}`);
+      } catch (error) {
+        console.error("Failed to track view", error);
+      }
+    }
+  };
+
+
+
+
+
   useEffect(() => {
     if (type === "reel" && videoRef.current) {
       if (isActive) {
@@ -310,7 +332,8 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
             loop
             playsInline
             muted={false}
-            onTimeUpdate={() => {
+            onTimeUpdate={(e) => {
+              handleTimeUpdate(); // Trigger view count check
               if (videoRef.current) {
                 const current = videoRef.current.currentTime;
                 const duration = videoRef.current.duration;
@@ -332,6 +355,16 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
         <div className="absolute bottom-16 right-4 flex flex-col gap-6 items-center z-30">
           {/* LIKE */}
           <div className="flex flex-col items-center gap-1">
+            {/* View Count (Reels Only) */}
+            {type === 'reel' && (
+              <div className="flex flex-col items-center animate-fade-in mb-2">
+                <IoEyeOutline size={24} className="text-white" />
+                <span className="text-white text-xs font-medium mt-1">
+                  {(value.views || 0) + (viewTracked ? 1 : 0)}
+                </span>
+                <span className="text-[10px] text-gray-400">Views</span>
+              </div>
+            )}
             <button onClick={likeHandler} className="text-3xl drop-shadow-lg transition-transform active:scale-95">
               {isLike ? <IoHeartSharp className="text-red-500" /> : <IoHeartOutline className="text-white" />}
             </button>
@@ -349,7 +382,10 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
           {/* SAVE */}
           <div className="flex flex-col items-center gap-1">
             <button
-              onClick={() => setShareModal(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShareModal(true);
+              }}
               className="text-2xl drop-shadow-lg transition-transform active:scale-95 mb-2"
             >
               <IoPaperPlaneOutline className="text-white" />
@@ -455,48 +491,41 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
             {/* Drawer */}
             <div className="relative w-full max-w-md bg-[#1F2937] rounded-t-3xl h-[60vh] md:h-[75vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
               {/* Drawer Handle */}
-              <div className="w-full flex justify-center pt-3 pb-1" onClick={() => setShow(false)}>
+              <div className="flex justify-center pt-3 pb-1">
                 <div className="w-12 h-1.5 bg-gray-600 rounded-full" />
               </div>
-
-              {/* Header */}
-              <div className="flex justify-between items-center px-4 py-2 border-b border-gray-700">
-                <h3 className="text-white font-bold text-lg">Comments</h3>
-                <button onClick={() => setShow(false)} className="p-2 text-gray-400 hover:text-white">
-                  ✕
-                </button>
-              </div>
-
-              {/* Comments List */}
-              <div ref={commentsRef} className="flex-1 overflow-y-auto px-4 py-2 space-y-4 custom-scrollbar relative">
+              {/* CONTENT */}
+              <div className="flex-1 overflow-y-auto px-4 custom-scrollbar">
                 {loadingComments ? (
-                  <div className="flex justify-center items-center h-40">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+                  <div className="flex justify-center p-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
                   </div>
-                ) : comments && comments.length > 0 ? (
-                  comments.map((c) => (
-                    <CommentItem
-                      key={c._id}
-                      comment={c}
-                      postId={value._id}
-                      addComment={addComment}
-                      deleteComment={deleteComment}
-                      postOwnerId={value.owner._id}
-                      refreshComments={fetchComments}
-                      activeCommentMenuId={activeCommentMenuId}
-                      activeCommentId={commentId}
-                      toggleCommentMenu={toggleCommentMenu}
-                      onReplyAdded={handleNewReply}
-                      onDelete={handleDeleteLocal}
-                      setReplyingTo={setReplyingTo}
-                    />
-                  ))
                 ) : (
-                  <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
-                    <BsChatFill className="text-4xl opacity-20" />
-                    <p>No comments yet.</p>
-                    <p className="text-xs">Start the conversation.</p>
-                  </div>
+                  <>
+                    {/* Header */}
+                    <h3 className="text-center font-bold text-white mb-4 border-b border-gray-700 pb-2">Comments</h3>
+
+                    {comments.length === 0 ? (
+                      <div className="text-center text-gray-400 py-10">No comments yet</div>
+                    ) : (
+                      <div className="space-y-4 pb-4">
+                        {comments.map((comment) => (
+                          <CommentItem
+                            key={comment._id}
+                            comment={comment}
+                            deleteComment={deleteComment}
+                            userId={user?._id}
+                            postId={value._id}
+                            addComment={addComment}
+                            activeCommentMenuId={activeCommentMenuId}
+                            setActiveCommentMenuId={setActiveCommentMenuId}
+                            setReplyingTo={setReplyingTo}
+                            setDeleteModal={setDeleteModal}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* DELETE CONFIRMATION MODAL (Nested inside Comment Drawer) */}
@@ -580,7 +609,23 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
           </div>,
           document.body
         )}
-      </div>
+
+        <ShareModal
+          isOpen={shareModal}
+          onClose={() => setShareModal(false)}
+          content={{
+            type: "reel",
+            contentId: value._id,
+            owner: value.owner,
+            preview: {
+              title: value.caption,
+              image: value.post.url,
+              username: value.owner.username || value.owner.name
+            }
+          }}
+        />
+
+      </div >
     );
   }
 
