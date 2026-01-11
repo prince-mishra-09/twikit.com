@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { PostData } from "../context/PostContext";
 import PostCard from "../components/PostCard";
-import { Loading } from "../components/Loading";
 
 const Reels = () => {
   const { reels, loading } = PostData();
@@ -44,8 +43,6 @@ const Reels = () => {
     };
   }, [reels]);
 
-  if (loading) return <Loading />;
-
   return (
     <div className="h-[100dvh] w-full bg-[#0B0F14] overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar relative">
       {/* Back Button */}
@@ -55,7 +52,11 @@ const Reels = () => {
         </svg>
       </a>
 
-      {reels && reels.length > 0 ? (
+      {loading ? (
+        <div className="h-full w-full flex items-center justify-center">
+          <div className="animate-pulse bg-gray-800/50 w-full h-full" />
+        </div>
+      ) : reels && reels.length > 0 ? (
         reels.map((reel) => (
           <div
             key={reel._id}

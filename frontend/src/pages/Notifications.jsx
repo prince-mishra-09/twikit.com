@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa6";
 import { format } from "date-fns";
 import axios from "axios";
-import { Loading } from "../components/Loading";
+import { SkeletonUserList } from "../components/Skeleton";
 import toast from "react-hot-toast";
 
 const Notifications = () => {
@@ -95,7 +95,6 @@ const Notifications = () => {
         }
     };
 
-    if (loading) return <Loading />;
 
     return (
         <div className="min-h-screen bg-[#0B0F14] flex justify-center text-white">
@@ -113,7 +112,9 @@ const Notifications = () => {
                 </div>
 
                 <div className="space-y-4">
-                    {notifications && notifications.length > 0 ? (
+                    {loading ? (
+                        <SkeletonUserList />
+                    ) : notifications && notifications.length > 0 ? (
                         notifications.map((n) => (
                             <div
                                 key={n._id}

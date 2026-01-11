@@ -7,7 +7,7 @@ import PostCard from "../components/PostCard";
 import { PostData } from "../context/PostContext";
 import { NotificationData } from "../context/NotificationContext";
 import { ChatData } from "../context/ChatContext";
-import { Loading } from "../components/Loading";
+import { SkeletonPost } from "../components/Skeleton";
 
 const Home = () => {
   const { posts, loading } = PostData();
@@ -39,7 +39,7 @@ const Home = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  if (loading) return <Loading />;
+
 
   return (
     <div className="min-h-screen bg-[#0B0F14] flex justify-center">
@@ -89,7 +89,9 @@ const Home = () => {
         <div className="mt-4">
           <StoryRow />
           {loading ? (
-            <Loading />
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => <SkeletonPost key={i} />)}
+            </div>
           ) : posts && posts.length > 0 ? (
             <div className="space-y-4">
               {posts.map((post) => (

@@ -6,6 +6,7 @@ import { FaSearch, FaArrowLeft } from "react-icons/fa";
 import Chat from "../components/chat/Chat";
 import MessageContainer from "../components/chat/MessageContainer";
 import { SocketData } from "../context/SocketContext";
+import { SkeletonUserList } from "../components/Skeleton";
 
 const ChatPage = ({ user }) => {
   const navigate = useNavigate();
