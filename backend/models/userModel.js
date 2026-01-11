@@ -14,6 +14,15 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  bio: {
+    type: String,
+    maxLength: 120,
+    default: "",
+  },
+  link: {
+    type: String,
+    default: "",
+  },
   gender: {
     type: String,
     required: true,

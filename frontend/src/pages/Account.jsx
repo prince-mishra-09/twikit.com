@@ -152,7 +152,7 @@ const Account = ({ user }) => {
       )}
 
       {/* ================= PROFILE CARD ================= */}
-      <div className="w-full max-w-xl bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6 mt-4 relative z-30">
+      <div className="w-full max-w-xl p-4 mt-4 relative z-30">
 
         {/* Settings Menu Button */}
 
@@ -232,17 +232,24 @@ const Account = ({ user }) => {
               >
                 Logout
               </button>
+
+              <div className="px-4 py-3 border-t border-white/5 bg-[#111827]/50">
+                <p className="text-gray-400 text-xs truncate">{user.email}</p>
+                <p className="text-gray-500 text-[10px] mt-0.5 uppercase tracking-wider">{user.gender}</p>
+              </div>
             </div>
           </>
         )}
 
+        {/* HEADER ROW: Name & Menu */}
+        {/* HEADER ROW: Name & Menu */}
         {/* HEADER ROW: Name & Menu */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-white tracking-wide">{user.name}</h2>
 
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="text-white text-2xl p-2 hover:bg-white/10 rounded-full transition-colors"
+            className="text-white text-2xl p-2 hover:bg-white/10 rounded-full transition-colors shrink-0"
           >
             <IoMenu />
           </button>
@@ -286,12 +293,26 @@ const Account = ({ user }) => {
           </div>
         </div>
 
-        {/* Info (Email/Gender) */}
-        <div className="mt-6 border-t border-white/5 pt-4">
-          {/* Name moved to top */}
+        {/* Bio & Link Section (Below Profile Pic/Stats) */}
+        <div className="mt-6">
+          {user.bio ? (
+            <BioDisplay bio={user.bio} />
+          ) : (
+            user._id === loggedInUser._id && (
+              <p className="text-gray-500 text-sm italic">Tell people a little about you</p>
+            )
+          )}
 
-          <p className="text-gray-400 text-sm">{user.email}</p>
-          <p className="text-gray-400 text-sm">{user.gender}</p>
+          {user.link && (
+            <a
+              href={user.link.startsWith("http") ? user.link : `https://${user.link}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-indigo-400 text-sm mt-2 hover:underline truncate max-w-xs block flex items-center gap-1"
+            >
+              🔗 {user.link.replace(/^https?:\/\//, "")}
+            </a>
+          )}
         </div>
       </div>
       {/* ================= END PROFILE CARD ================= */}
@@ -389,8 +410,10 @@ const Account = ({ user }) => {
 };
 
 const EditProfile = ({ user, onBack }) => {
-  const { updateProfileName, updateProfilePic } = UserData();
+  const { updateProfileInfo, updateProfilePic } = UserData();
   const [name, setName] = useState(user.name || "");
+  const [bio, setBio] = useState(user.bio || "");
+  const [link, setLink] = useState(user.link || "");
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(user.profilePic.url);
   const [loading, setLoading] = useState(false);
@@ -407,14 +430,37 @@ const EditProfile = ({ user, onBack }) => {
   const saveHandler = async () => {
     setLoading(true);
     try {
-      if (name !== user.name) {
-        if (name.trim().length > 20) {
-          toast.error("Name must be under 20 chars");
+      if (name.trim().length > 20) {
+        toast.error("Name must be under 20 chars");
+        setLoading(false);
+        return;
+      }
+      if (bio.trim().length > 120) {
+        toast.error("Bio must be under 120 chars");
+        setLoading(false);
+        return;
+      }
+
+      // Link Validation
+      if (link && link.trim() !== "") {
+        const urlPattern = new RegExp('^(https?:\\/\\/)?' + // protocol
+          '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+          '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+          '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+          '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+          '(\\#[-a-z\\d_]*)?$', 'i'); // fragment locator
+
+        if (!urlPattern.test(link)) {
+          toast.error("Please enter a valid URL");
           setLoading(false);
           return;
         }
-        await updateProfileName(user._id, name, () => { });
       }
+
+      // Update Info (Name, Bio, Link - passed object)
+      // Only call if changed? Generic Update handles it.
+      await updateProfileInfo(user._id, { name, bio, link }, () => { });
+
       if (file) {
         const formdata = new FormData();
         formdata.append("file", file);
@@ -440,14 +486,14 @@ const EditProfile = ({ user, onBack }) => {
         </div>
         <button
           onClick={saveHandler}
-          disabled={loading || name.trim().length > 20 || name.trim().length === 0}
+          disabled={loading || name.trim().length > 20 || name.trim().length === 0 || bio.length > 120}
           className="text-indigo-400 font-semibold text-lg hover:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
         >
           {loading ? "Saving..." : "Save"}
         </button>
       </div>
 
-      <div className="p-8 flex flex-col items-center gap-8 w-full max-w-sm mx-auto">
+      <div className="p-8 flex flex-col items-center gap-6 w-full max-w-sm mx-auto">
         {/* Image Upload */}
         <div className="relative group cursor-pointer" onClick={() => fileInputRef.current.click()}>
           <img src={preview} alt="Profile" className="w-32 h-32 rounded-full object-cover border-4 border-[#1F2937] shadow-xl group-hover:opacity-80 transition-opacity" />
@@ -458,7 +504,7 @@ const EditProfile = ({ user, onBack }) => {
         </div>
 
         {/* Name Input */}
-        <div className="w-full space-y-2">
+        <div className="w-full space-y-1">
           <div className="flex justify-between items-center ml-1">
             <label className="text-gray-400 text-sm">Name</label>
             <span className={`text-xs font-medium transition-colors ${name.length > 20 ? "text-red-500" : "text-gray-500"}`}>
@@ -470,6 +516,33 @@ const EditProfile = ({ user, onBack }) => {
             onChange={(e) => setName(e.target.value)}
             className={`w-full bg-[#1F2937] border rounded-xl px-4 py-3 text-white focus:outline-none transition-colors ${name.length > 20 ? "border-red-500 focus:border-red-500" : "border-white/10 focus:border-indigo-500"}`}
             placeholder="Enter your name"
+          />
+        </div>
+
+        {/* Bio Input */}
+        <div className="w-full space-y-1">
+          <div className="flex justify-between items-center ml-1">
+            <label className="text-gray-400 text-sm">Bio</label>
+            <span className={`text-xs font-medium transition-colors ${bio.length > 120 ? "text-red-500" : "text-gray-500"}`}>
+              {bio.length}/120
+            </span>
+          </div>
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            className={`w-full bg-[#1F2937] border rounded-xl px-4 py-3 text-white focus:outline-none transition-colors resize-none h-24 text-sm ${bio.length > 120 ? "border-red-500 focus:border-red-500" : "border-white/10 focus:border-indigo-500"}`}
+            placeholder="Tell people a little about you..."
+          />
+        </div>
+
+        {/* Link Input */}
+        <div className="w-full space-y-1">
+          <label className="text-gray-400 text-sm ml-1">External Link</label>
+          <input
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+            className="w-full bg-[#1F2937] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors"
+            placeholder="Add a link (e.g. portfolio)"
           />
         </div>
       </div>
@@ -539,6 +612,41 @@ const SavedPosts = ({ onBack }) => {
           <p className="text-gray-500 text-center mt-20">No saved posts yet</p>
         )}
       </div>
+    </div>
+  );
+};
+
+const BioDisplay = ({ bio }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  const lines = bio.split('\n');
+  const isMultiLine = lines.length > 3;
+  const isLongText = bio.length > 80;
+  const showToggle = isMultiLine || isLongText;
+
+  let displayText = bio;
+  if (!expanded && showToggle) {
+    if (isMultiLine) {
+      displayText = lines.slice(0, 3).join('\n').slice(0, 80); // Cap at 3 lines, max 80 chars fallback
+    } else {
+      displayText = bio.slice(0, 80);
+    }
+  }
+
+  return (
+    <div className="relative">
+      <p className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed inline">
+        {displayText}
+        {!expanded && showToggle && "..."}
+        {showToggle && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="text-gray-500 text-xs ml-1 hover:text-gray-300 font-medium inline-block"
+          >
+            {expanded ? "less" : "more"}
+          </button>
+        )}
+      </p>
     </div>
   );
 };

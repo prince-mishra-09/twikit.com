@@ -101,12 +101,12 @@ export const UserContextProvider = ({ children }) => {
     }
   }
 
-  async function updateProfileName(id, name, setShowInput) {
+  async function updateProfileInfo(id, { name, bio, link }, setShowInput) {
     try {
-      const { data } = await axios.put("/api/user/" + id, { name });
+      const { data } = await axios.put("/api/user/" + id, { name, bio, link });
       toast.success(data.message);
       fetchUser();
-      setShowInput(false);
+      if (setShowInput) setShowInput(false);
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
@@ -235,7 +235,7 @@ export const UserContextProvider = ({ children }) => {
         registerUser,
         followUser,
         updateProfilePic,
-        updateProfileName,
+        updateProfileInfo,
         savePost,
         hidePost,
         muteUser,

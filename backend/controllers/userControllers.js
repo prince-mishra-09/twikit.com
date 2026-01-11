@@ -157,11 +157,11 @@ export const userFollowerandFollowingData = tryCatch(async (req, res) => {
 export const updateProfile = tryCatch(async (req, res) => {
   const user = await User.findById(req.user._id);
 
-  const { name } = req.body;
+  const { name, bio, link } = req.body;
 
-  if (name) {
-    user.name = name;
-  }
+  if (name) user.name = name;
+  if (bio !== undefined) user.bio = bio; // Allow empty string to clear
+  if (link !== undefined) user.link = link;
 
   const file = req.file;
   if (file) {
