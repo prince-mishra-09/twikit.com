@@ -101,5 +101,10 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Indexes for performance optimization
+userSchema.index({ email: 1 }, { unique: true }); // Login/auth lookups
+userSchema.index({ username: 1 }, { unique: true, sparse: true }); // Profile lookups
+userSchema.index({ name: 1 }); // Search by name
+
 const User = mongoose.model("User", userSchema);
 export default User;

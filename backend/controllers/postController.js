@@ -71,21 +71,13 @@ export const deletePost = TryCatch(async (req, res) => {
 });
 
 export const getAllPosts = TryCatch(async (req, res) => {
+    // Pagination parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20; // Default 20 posts per page
+    const skip = (page - 1) * limit;
+
     // Determine the user's hidden and muted lists if logged in
     const user = await User.findById(req.user._id);
-
-    // Filter out posts from blocked users by ensuring we use the updated lists from req.user
-    // Note: req.user.hiddenPosts and req.user.mutedUsers are populated in isAuth middleware usually, 
-    // or we can rely on the user object fetched above if we populated it there.
-    // However, the error was redeclaration. Let's just use the 'user' object we fetched at line 74 and ensure it has what we need.
-    // Ideally, we just merge the lists for the query.
-
-    // Note: We already filter by hiddenPosts (which now includes blockedUsers ids theoretically if we wanted, 
-    // but better to separate concerns or merge them).
-    // Let's explicitly exclude blocked users from 'owner' field.
-
-    // Filter out posts from blocked users. 
-    // We use the freshly fetched 'user' object to ensure we have the latest lists (muted, blocked, hidden).
 
     // 0. Fetch users who have BLOCKED the current user ('blockedBy')
     const blockedByUsers = await User.find({ blockedUsers: req.user._id }).distinct('_id');
@@ -105,7 +97,8 @@ export const getAllPosts = TryCatch(async (req, res) => {
         owner: { $nin: [...user.mutedUsers, ...hiddenUserIds] }
     })
         .sort({ createdAt: -1 })
-        .populate("owner", "-password")
+        .skip(skip)
+        .limit(limit)
         .populate("owner", "-password");
 
     const reels = await Post.find({
@@ -114,7 +107,8 @@ export const getAllPosts = TryCatch(async (req, res) => {
         owner: { $nin: [...user.mutedUsers, ...hiddenUserIds] }
     })
         .sort({ createdAt: -1 })
-        .populate("owner", "-password")
+        .skip(skip)
+        .limit(limit)
         .populate("owner", "-password");
 
     const filterPosts = (items) => {
@@ -126,7 +120,6 @@ export const getAllPosts = TryCatch(async (req, res) => {
         });
     };
 
-    // Sanitize engagement (remove likes/comments from blocked users, and if blocked BY users)
     // Sanitize engagement (remove likes/comments from blocked users AND blockedBy users)
     const sanitizeEngagement = (items) => {
         return items.map(item => {
@@ -141,9 +134,30 @@ export const getAllPosts = TryCatch(async (req, res) => {
     const sanitizedPosts = sanitizeEngagement(posts);
     const sanitizedReels = sanitizeEngagement(reels);
 
+    // Get total counts for pagination metadata
+    const totalPosts = await Post.countDocuments({
+        type: "post",
+        _id: { $nin: user.hiddenPosts },
+        owner: { $nin: [...user.mutedUsers, ...hiddenUserIds] }
+    });
+
+    const totalReels = await Post.countDocuments({
+        type: "reel",
+        _id: { $nin: user.hiddenPosts },
+        owner: { $nin: [...user.mutedUsers, ...hiddenUserIds] }
+    });
+
     res.json({
         posts: filterPosts(sanitizedPosts),
-        reels: filterPosts(sanitizedReels)
+        reels: filterPosts(sanitizedReels),
+        pagination: {
+            page,
+            limit,
+            totalPosts,
+            totalReels,
+            hasMorePosts: skip + posts.length < totalPosts,
+            hasMoreReels: skip + reels.length < totalReels
+        }
     });
 });
 

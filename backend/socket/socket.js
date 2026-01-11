@@ -26,13 +26,19 @@ io.on("connection", (socket) => {
   if (userId) {
     userSocketMap[userId] = socket.id;
     socket.join(userId);
+
+    // Broadcast to others (not self) that user is online
+    socket.broadcast.emit("userOnline", userId);
   }
 
-  io.emit("getOnlineUser", Object.keys(userSocketMap));
+  // Send current online users only to the newly connected user
+  socket.emit("getOnlineUser", Object.keys(userSocketMap));
 
   socket.on("disconnect", async () => {
     delete userSocketMap[userId];
-    io.emit("getOnlineUser", Object.keys(userSocketMap));
+
+    // Broadcast to others that user went offline
+    socket.broadcast.emit("userOffline", userId);
 
     // Update lastSeen
     try {

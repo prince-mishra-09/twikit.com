@@ -25,4 +25,9 @@ const commentSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+// Indexes for performance optimization
+commentSchema.index({ post: 1, createdAt: -1 }); // Post's comments sorted by date
+commentSchema.index({ user: 1 }); // User's comments
+commentSchema.index({ parentComment: 1 }); // Replies to a comment
+
 export const Comment = mongoose.model("Comment", commentSchema);

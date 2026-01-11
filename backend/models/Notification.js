@@ -41,4 +41,9 @@ const notificationSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+// Indexes for performance optimization
+notificationSchema.index({ receiver: 1, createdAt: -1 }); // User's notifications sorted by date
+notificationSchema.index({ receiver: 1, isRead: 1 }); // Unread notifications filter
+notificationSchema.index({ sender: 1 }); // Notifications sent by user
+
 export const Notification = mongoose.model("Notification", notificationSchema);
