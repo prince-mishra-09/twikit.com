@@ -3,11 +3,23 @@ import "./bgAnimation.css";
 import { Link, useNavigate } from "react-router-dom";
 import { UserData } from "../context/UserContext";
 import { PostData } from "../context/PostContext";
+import axios from "axios";
+import { createPortal } from "react-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  // Forgot Password Modal States
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotStep, setForgotStep] = useState(1); // 1: Email, 2: OTP, 3: New Password
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotOTP, setForgotOTP] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [forgotError, setForgotError] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   const navigate = useNavigate();
   const { loginUser, loading } = UserData();
@@ -16,6 +28,74 @@ const Login = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     loginUser(email, password, navigate, fetchPosts);
+  };
+
+  // Forgot Password: Send OTP
+  const handleSendResetOTP = async (e) => {
+    e.preventDefault();
+    setForgotError("");
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(forgotEmail)) {
+      return setForgotError("Please enter a valid email address");
+    }
+
+    setForgotLoading(true);
+
+    try {
+      const { data } = await axios.post("/api/auth/forgot-password", { email: forgotEmail });
+      setForgotStep(2);
+      setForgotError("");
+    } catch (error) {
+      setForgotError(error.response?.data?.message || "Failed to send reset code");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  // Forgot Password: Reset Password
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setForgotError("");
+
+    if (forgotOTP.length !== 4) {
+      return setForgotError("OTP must be 4 digits");
+    }
+
+    if (newPassword.length < 6) {
+      return setForgotError("Password must be at least 6 characters");
+    }
+
+    setForgotLoading(true);
+
+    try {
+      const { data } = await axios.post("/api/auth/reset-password", {
+        email: forgotEmail,
+        otp: forgotOTP,
+        newPassword
+      });
+
+      // Success - close modal and show success message
+      setShowForgotModal(false);
+      setForgotStep(1);
+      setForgotEmail("");
+      setForgotOTP("");
+      setNewPassword("");
+      alert(data.message);
+    } catch (error) {
+      setForgotError(error.response?.data?.message || "Failed to reset password");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const closeForgotModal = () => {
+    setShowForgotModal(false);
+    setForgotStep(1);
+    setForgotEmail("");
+    setForgotOTP("");
+    setNewPassword("");
+    setForgotError("");
   };
 
   if (loading) {
@@ -69,6 +149,17 @@ const Login = () => {
             </span>
           </div>
 
+          {/* Forgot Password Link */}
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={() => setShowForgotModal(true)}
+              className="text-sm text-indigo-400 hover:text-indigo-300 transition"
+            >
+              Forgot password?
+            </button>
+          </div>
+
           <button
             type="submit"
             className="w-full py-3 rounded-xl text-white font-medium bg-gradient-to-r from-indigo-500 to-cyan-500 hover:opacity-90 active:scale-[0.98] transition"
@@ -87,6 +178,124 @@ const Login = () => {
           </Link>
         </p>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotModal && createPortal(
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111827] border border-white/10 rounded-2xl shadow-2xl p-8 w-full max-w-md">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-semibold text-white">Reset Password</h2>
+              <button
+                onClick={closeForgotModal}
+                className="text-gray-400 hover:text-white text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Step Indicator */}
+            <div className="flex items-center justify-center mb-6 space-x-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${forgotStep >= 1 ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-400'}`}>
+                1
+              </div>
+              <div className={`w-12 h-0.5 ${forgotStep >= 2 ? 'bg-indigo-600' : 'bg-gray-700'}`}></div>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${forgotStep >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-400'}`}>
+                2
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {forgotError && (
+              <p className="text-red-400 text-sm text-center mb-4 bg-red-500/10 border border-red-500/20 rounded-lg p-2">
+                {forgotError}
+              </p>
+            )}
+
+            {/* Step 1: Email */}
+            {forgotStep === 1 && (
+              <form onSubmit={handleSendResetOTP} className="space-y-4">
+                <div>
+                  <label className="text-gray-300 text-sm mb-2 block">Email Address</label>
+                  <input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400 transition"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={forgotLoading}
+                  className="w-full py-3 rounded-xl text-white font-medium bg-gradient-to-r from-indigo-500 to-cyan-500 hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
+                >
+                  {forgotLoading ? "Sending..." : "Send Reset Code"}
+                </button>
+              </form>
+            )}
+
+            {/* Step 2: OTP + New Password */}
+            {forgotStep === 2 && (
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <div>
+                  <label className="text-gray-300 text-sm mb-2 block">Verification Code</label>
+                  <p className="text-gray-400 text-xs mb-3">
+                    We sent a 4-digit code to <span className="text-indigo-400">{forgotEmail}</span>
+                  </p>
+                  <input
+                    type="text"
+                    placeholder="Enter 4-digit code"
+                    value={forgotOTP}
+                    onChange={(e) => setForgotOTP(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    maxLength={4}
+                    className="w-full px-4 py-3 rounded-xl bg-[#0B0F14] border border-white/10 text-white text-center text-2xl tracking-widest placeholder-gray-500 focus:outline-none focus:border-indigo-400 transition"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-gray-300 text-sm mb-2 block">New Password</label>
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      placeholder="Enter new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full px-4 py-3 pr-12 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400 transition"
+                      required
+                    />
+                    <span
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-white transition select-none"
+                    >
+                      {showNewPassword ? "🙈" : "👁️"}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={forgotLoading || forgotOTP.length !== 4}
+                  className="w-full py-3 rounded-xl text-white font-medium bg-gradient-to-r from-indigo-500 to-cyan-500 hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
+                >
+                  {forgotLoading ? "Resetting..." : "Reset Password"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setForgotStep(1)}
+                  className="w-full py-2 text-gray-400 hover:text-white text-sm transition"
+                >
+                  ← Change Email
+                </button>
+              </form>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

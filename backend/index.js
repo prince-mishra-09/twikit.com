@@ -3,7 +3,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import cloudinary from "cloudinary";
 import express from "express";
-import { app, server } from "./socket/socket.js";
+import { app, server, io } from "./socket/socket.js";
 import { connectDB } from "./database/db.js";
 
 import authRoutes from "./routes/authRoutes.js";
@@ -15,6 +15,10 @@ import feedRoutes from "./routes/feedRoutes.js";
 import storyRoutes from "./routes/storyRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
 import { migrateUsernames } from "./utils/migration.js";
+
+// Import monitoring system
+import MonitoringService from "./monitoring/index.js";
+import metricsMiddleware from "./middleware/metricsMiddleware.js";
 
 dotenv.config();
 
@@ -37,6 +41,12 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Initialize monitoring system
+const monitoringService = new MonitoringService(io);
+
+// Add metrics middleware (must be before routes)
+app.use(metricsMiddleware(monitoringService.getMetricsCollector()));
+
 // routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
@@ -47,15 +57,27 @@ app.use("/api/feed", feedRoutes);
 app.use("/api/story", storyRoutes);
 app.use("/api/comment", commentRoutes);
 
+// Monitoring metrics endpoint (optional - for debugging)
+app.get("/api/metrics", (req, res) => {
+  const metrics = monitoringService.getCurrentMetrics();
+  res.json(metrics);
+});
+
 app.get("/", (req, res) => {
-  res.send("TWIKIT API RUNNING");
+  res.send("Server is working");
 });
 
 // server start (ONLY PLACE)
-const PORT = process.env.PORT || 5000;
+const port = process.env.PORT || 5000;
 
-server.listen(PORT, async () => {
+server.listen(port, async () => {
+  console.log(`Server is running on port ${port}`);
   await connectDB();
   await migrateUsernames();
-  console.log(`Server running on http://localhost:${PORT}`);
+
+  // Start monitoring system after server starts
+  setTimeout(() => {
+    monitoringService.start();
+  }, 5000); // Wait 5 seconds for DB connection
+  console.log(`Server running on http://localhost:${port}`);
 });
