@@ -6,34 +6,33 @@ class OTPEmailService {
     this.transporter = null;
   }
 
-  getTransporter() {
-    if (!this.transporter) {
-      const host = process.env.SMTP_HOST || 'smtp.gmail.com';
-      const port = parseInt(process.env.SMTP_PORT) || 465;
+  getTransporter(forceConfig = null) {
+    if (!this.transporter || forceConfig) {
+      const host = forceConfig?.host || process.env.SMTP_HOST || 'smtp.gmail.com';
+      const port = parseInt(forceConfig?.port || process.env.SMTP_PORT) || 465;
       const isSecure = (port === 465);
 
-      console.log(`📡 [SMTP INIT] Attempting connection to ${host}:${port} (SSL: ${isSecure})`);
+      console.log(`📡 [SMTP INIT] ${forceConfig ? 'OVERRIDE' : 'DEFAULT'} -> ${host}:${port} (SSL: ${isSecure})`);
 
       this.transporter = nodemailer.createTransport({
         host: host,
         port: port,
         secure: isSecure,
         auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS
+          user: forceConfig?.user || process.env.SMTP_USER,
+          pass: forceConfig?.pass || process.env.SMTP_PASS
         },
         debug: true,
         logger: true,
-        connectionTimeout: 15000, // Increase to 15s
-        greetingTimeout: 15000,
-        socketTimeout: 30000,
-        dnsTimeout: 10000,
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 20000,
+        dnsTimeout: 5000,
         tls: {
           rejectUnauthorized: false,
           minVersion: 'TLSv1.2'
         },
-        // Only for Port 587
-        requireTLS: !isSecure
+        requireTLS: port === 587
       });
     }
     return this.transporter;
