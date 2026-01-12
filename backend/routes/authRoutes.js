@@ -33,7 +33,8 @@ router.all('/test-email', async (req, res) => {
     const diagnostic = {
         timestamp: new Date().toISOString(),
         database: "checking...",
-        results: []
+        resend_api: "checking...",
+        email_send: "pending..."
     };
 
     try {
@@ -43,32 +44,23 @@ router.all('/test-email', async (req, res) => {
         diagnostic.database = "❌ DB Error: " + err.message;
     }
 
-    const portsToTest = [465, 587];
-    for (const port of portsToTest) {
-        const portResult = {
-            port: port,
-            verified: "checking...",
-            sent: "pending..."
-        };
+    try {
+        console.log("🧪 Diagnostic: Testing Resend API...");
+        const isReady = await Promise.race([otpEmailService.testConnection(), timeout(10000, "Resend API")]);
+        diagnostic.resend_api = isReady ? "✅ Connected to Resend API" : "❌ API Check Failed (Check Key)";
 
-        try {
-            console.log(`🧪 Diagnostic: Testing Port ${port}...`);
-            const transporter = otpEmailService.getTransporter({ port });
-
-            await Promise.race([transporter.verify(), timeout(10000, `Verify Port ${port}`)]);
-            portResult.verified = "✅ Success";
-
-            const sendResult = await Promise.race([otpEmailService.sendTestEmail(), timeout(15000, `Send Port ${port}`)]);
+        if (isReady) {
+            console.log("🧪 Diagnostic: Sending Test Email...");
+            const sendResult = await Promise.race([otpEmailService.sendTestEmail(), timeout(15000, "Resend Send")]);
             if (sendResult.success) {
-                portResult.sent = "✅ Success";
+                diagnostic.email_send = "✅ Test Email Sent to Admin";
             } else {
-                portResult.sent = "❌ Error: " + sendResult.error;
+                diagnostic.email_send = "❌ Send Failed: " + (sendResult.error || "Unknown error");
             }
-        } catch (err) {
-            console.error(`❌ Port ${port} Failed:`, err.message);
-            portResult.verified = "❌ " + err.message;
         }
-        diagnostic.results.push(portResult);
+    } catch (err) {
+        console.error("❌ Diagnostic Failed:", err.message);
+        diagnostic.resend_api = "❌ Error: " + err.message;
     }
 
     res.json(diagnostic);
