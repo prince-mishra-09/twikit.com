@@ -233,6 +233,35 @@ class OTPEmailService {
       throw error;
     }
   }
+
+  // Diagnostic: Send a real test email to the sender themselves
+  async sendTestEmail() {
+    const email = process.env.SMTP_USER;
+    const subject = "Twikit - System Diagnostic Test";
+    const html = `<h1>Diagnostic Success!</h1><p>Your SMTP server is correctly sending emails from Render.</p><p>Timestamp: ${new Date().toISOString()}</p>`;
+
+    const mailOptions = {
+      from: `"Twikit Admin" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: subject,
+      html: html
+    };
+
+    try {
+      console.log(`🧪 Diagnostic: Attempting to send test email to ${email}...`);
+      const info = await this.getTransporter().sendMail(mailOptions);
+      console.log(`✅ Diagnostic: Test email sent:`, info.messageId);
+      return { success: true, messageId: info.messageId };
+    } catch (error) {
+      console.error(`❌ Diagnostic: Test email failed:`, error);
+      return {
+        success: false,
+        error: error.message,
+        code: error.code,
+        response: error.response
+      };
+    }
+  }
 }
 
 export default new OTPEmailService();
