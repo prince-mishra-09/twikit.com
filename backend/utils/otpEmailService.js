@@ -12,7 +12,7 @@ class OTPEmailService {
       const port = parseInt(process.env.SMTP_PORT) || 465;
       const isSecure = (port === 465);
 
-      console.log(`📡 Initializing Transporter: ${host}:${port} (secure: ${isSecure})`);
+      console.log(`📡 [SMTP INIT] Attempting connection to ${host}:${port} (SSL: ${isSecure})`);
 
       this.transporter = nodemailer.createTransport({
         host: host,
@@ -22,16 +22,18 @@ class OTPEmailService {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS
         },
-        debug: true, // Show SMTP traffic in logs
-        logger: true, // Log to console
-        connectionTimeout: 10000,
-        greetingTimeout: 10000,
-        socketTimeout: 20000,
-        dnsTimeout: 5000,
+        debug: true,
+        logger: true,
+        connectionTimeout: 15000, // Increase to 15s
+        greetingTimeout: 15000,
+        socketTimeout: 30000,
+        dnsTimeout: 10000,
         tls: {
           rejectUnauthorized: false,
           minVersion: 'TLSv1.2'
-        }
+        },
+        // Only for Port 587
+        requireTLS: !isSecure
       });
     }
     return this.transporter;
