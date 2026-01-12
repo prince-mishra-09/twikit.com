@@ -7,8 +7,8 @@ const generateToken = (id, res) => {
 
   res.cookie("token", token, {
     httpOnly: true,
-    sameSite: "none",   // ✅ VERY IMPORTANT
-    secure: true,     // ✅ localhost ke liye FALSE
+    sameSite: "none",
+    secure: true, // Port to HTTPS for production cross-site cookies
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 };

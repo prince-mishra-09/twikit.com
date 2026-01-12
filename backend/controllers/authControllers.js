@@ -114,8 +114,8 @@ export const loginUser = tryCatch(async (req, res) => {
 export const logoutUser = tryCatch((req, res) => {
     res.clearCookie("token", {
         httpOnly: true,
-        sameSite: "lax",
-        secure: false,
+        sameSite: "none",
+        secure: true,
     });
 
     res.json({

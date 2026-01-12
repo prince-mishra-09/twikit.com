@@ -8,10 +8,13 @@ class OTPEmailService {
 
   getTransporter() {
     if (!this.transporter) {
+      const port = parseInt(process.env.SMTP_PORT);
+      const isSecure = port === 465 || process.env.SMTP_SECURE === 'true';
+
       this.transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT),
-        secure: false, // true for 465, false for other ports
+        port: port,
+        secure: isSecure, // true for 465, false for 587
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS
