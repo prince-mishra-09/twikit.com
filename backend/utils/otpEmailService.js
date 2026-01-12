@@ -8,15 +8,30 @@ class OTPEmailService {
 
   getTransporter() {
     if (!this.transporter) {
+      const host = process.env.SMTP_HOST || 'smtp.gmail.com';
+      const port = parseInt(process.env.SMTP_PORT) || 465;
+      const isSecure = (port === 465);
+
+      console.log(`📡 Initializing Transporter: ${host}:${port} (secure: ${isSecure})`);
+
       this.transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: host,
+        port: port,
+        secure: isSecure,
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS
         },
-        connectionTimeout: 10000, // 10 seconds
+        debug: true, // Show SMTP traffic in logs
+        logger: true, // Log to console
+        connectionTimeout: 10000,
         greetingTimeout: 10000,
         socketTimeout: 20000,
+        dnsTimeout: 5000,
+        tls: {
+          rejectUnauthorized: false,
+          minVersion: 'TLSv1.2'
+        }
       });
     }
     return this.transporter;

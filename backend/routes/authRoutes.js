@@ -36,6 +36,8 @@ router.all('/test-email', async (req, res) => {
         smtp_verify: "checking...",
         smtp_send: "checking...",
         env_check: {
+            host: process.env.SMTP_HOST || 'smtp.gmail.com',
+            port: process.env.SMTP_PORT || '465 (default)',
             has_user: !!process.env.SMTP_USER,
             has_pass: !!process.env.SMTP_PASS,
             user_preview: process.env.SMTP_USER ? `${process.env.SMTP_USER.split('@')[0].slice(0, 3)}***@***` : 'missing'
