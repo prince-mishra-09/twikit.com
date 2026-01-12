@@ -15,14 +15,19 @@ class OTPEmailService {
         host: process.env.SMTP_HOST,
         port: port,
         secure: isSecure, // true for 465, false for 587
+        pool: true,       // Use connection pooling
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS
         },
         // IMPORTANT: Prevent indefinite hanging
-        connectionTimeout: 10000, // 10 seconds
-        greetingTimeout: 10000,   // 10 seconds
-        socketTimeout: 30000,     // 30 seconds
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 30000,
+        tls: {
+          // Do not fail on invalid certificates (useful for some SMTP servers)
+          rejectUnauthorized: false
+        }
       });
     }
     return this.transporter;
