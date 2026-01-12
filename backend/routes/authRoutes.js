@@ -32,10 +32,8 @@ router.all('/test-email', async (req, res) => {
         smtp_verify: "checking...",
         smtp_send: "checking...",
         config: {
-            host: process.env.SMTP_HOST,
-            port: process.env.SMTP_PORT,
-            user: process.env.SMTP_USER,
-            secure_detected: (parseInt(process.env.SMTP_PORT) === 465 || process.env.SMTP_SECURE === 'true')
+            service: 'gmail',
+            user: process.env.SMTP_USER
         }
     };
 
