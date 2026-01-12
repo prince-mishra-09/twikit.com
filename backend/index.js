@@ -31,7 +31,7 @@ cloudinary.v2.config({
 
 // middlewares
 const allowedOrigins = [
-  "https://twiikit-com.vercel.app",
+  "https://twikit-com.vercel.app",
   "http://localhost:5173",
   "http://127.0.0.1:5173",
 ];

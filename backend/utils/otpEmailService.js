@@ -11,11 +11,15 @@ class OTPEmailService {
       this.transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: parseInt(process.env.SMTP_PORT),
-        secure: false,
+        secure: false, // true for 465, false for other ports
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS
-        }
+        },
+        // IMPORTANT: Prevent indefinite hanging
+        connectionTimeout: 10000, // 10 seconds
+        greetingTimeout: 10000,   // 10 seconds
+        socketTimeout: 30000,     // 30 seconds
       });
     }
     return this.transporter;
@@ -85,11 +89,18 @@ class OTPEmailService {
     };
 
     try {
+      console.log(`📤 Attempting to send OTP to ${email}...`);
       const info = await this.getTransporter().sendMail(mailOptions);
       console.log(`✅ OTP sent to ${email}:`, info.messageId);
       return { success: true, messageId: info.messageId };
     } catch (error) {
-      console.error(`❌ Failed to send OTP to ${email}:`, error);
+      console.error(`❌ Failed to send OTP to ${email}:`);
+      console.error("Error Details:", {
+        message: error.message,
+        code: error.code,
+        command: error.command,
+        response: error.response
+      });
       throw error;
     }
   }
