@@ -1,26 +1,7 @@
-// Email Service - Sends alert emails using nodemailer wrapper
-import nodemailer from '../utils/nodemailerWrapper.js';
+// Email Service - Sends alert emails using the Resend-based OTPEmailService
+import otpEmailService from '../utils/otpEmailService.js';
 
 class EmailService {
-  constructor() {
-    this.transporter = null;
-  }
-
-  getTransporter() {
-    if (!this.transporter) {
-      this.transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT),
-        secure: false,
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS
-        }
-      });
-    }
-    return this.transporter;
-  }
-
   // Send alert email
   async sendAlert(data) {
     const subject = `⚠️ Twikit Warning: ${data.name} at ${data.percentage}`;
@@ -78,15 +59,12 @@ class EmailService {
       </html>
     `;
 
-    const mailOptions = {
-      from: `"Twikit Monitoring" <${process.env.SMTP_USER}>`,
-      to: process.env.ADMIN_EMAIL,
-      subject: subject,
-      html: html
-    };
-
     try {
-      const info = await this.getTransporter().sendMail(mailOptions);
+      const info = await otpEmailService.sendEmail({
+        to: process.env.ADMIN_EMAIL || 'mrprimi91@gmail.com',
+        subject: subject,
+        html: html
+      });
       console.log('✅ Alert email sent:', info.messageId);
       return info;
     } catch (error) {
@@ -95,16 +73,9 @@ class EmailService {
     }
   }
 
-  // Test email connection
+  // Test connection (Using otpEmailService's test)
   async testConnection() {
-    try {
-      await this.getTransporter().verify();
-      console.log('✅ Email service is ready');
-      return true;
-    } catch (error) {
-      console.error('❌ Email service error:', error);
-      return false;
-    }
+    return otpEmailService.testConnection();
   }
 }
 
