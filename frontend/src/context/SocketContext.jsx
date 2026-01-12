@@ -2,7 +2,9 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { UserData } from "./UserContext";
 
-const EndPoint = import.meta.env.MODE === "development" ? "http://localhost:5000" : "https://twikit-backend.onrender.com";
+const EndPoint = import.meta.env.MODE === "development"
+  ? `http://${window.location.hostname}:5000`
+  : "https://twikit-backend.onrender.com";
 
 const SocketContext = createContext();
 

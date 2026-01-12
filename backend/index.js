@@ -30,9 +30,29 @@ cloudinary.v2.config({
 });
 
 // middlewares
+const allowedOrigins = [
+  "https://twiikit-com.vercel.app",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+];
+
 app.use(
   cors({
-    origin: ["https://twiikit-com.vercel.app", "http://localhost:5173"],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      const isLocalhost = origin.includes("localhost") || origin.includes("127.0.0.1");
+      // Match common local network IP patterns (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+      const isLocalNetwork = /^http:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(origin);
+
+      if (allowedOrigins.indexOf(origin) !== -1 || isLocalhost || isLocalNetwork) {
+        callback(null, true);
+      } else {
+        console.log("CORS blocked origin:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
@@ -79,5 +99,7 @@ server.listen(port, async () => {
   setTimeout(() => {
     monitoringService.start();
   }, 5000); // Wait 5 seconds for DB connection
-  console.log(`Server running on http://localhost:${port}`);
+  console.log(`Server running on:`);
+  console.log(`- Local:   http://localhost:${port}`);
+  console.log(`- Network: Use your PC's IP address (e.g., http://192.168.x.x:${port}) for real devices`);
 });
