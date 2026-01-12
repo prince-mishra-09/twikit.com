@@ -26,20 +26,25 @@ router.post('/reset-password', resetPassword);
 
 // Diagnostic routes
 router.all('/test-email', async (req, res) => {
+    const timeout = (ms, step) => new Promise((_, reject) =>
+        setTimeout(() => reject(new Error(`Timeout at step: ${step}`)), ms)
+    );
+
     const diagnostic = {
         timestamp: new Date().toISOString(),
         database: "checking...",
         smtp_verify: "checking...",
         smtp_send: "checking...",
-        config: {
-            service: 'gmail',
-            user: process.env.SMTP_USER
+        env_check: {
+            has_user: !!process.env.SMTP_USER,
+            has_pass: !!process.env.SMTP_PASS,
+            user_preview: process.env.SMTP_USER ? `${process.env.SMTP_USER.split('@')[0].slice(0, 3)}***@***` : 'missing'
         }
     };
 
     try {
         // 1. Check Database
-        await User.findOne().limit(1);
+        await Promise.race([User.findOne().limit(1), timeout(5000, "Database")]);
         diagnostic.database = "✅ Connected to MongoDB";
     } catch (err) {
         diagnostic.database = "❌ DB Error: " + err.message;
@@ -47,11 +52,14 @@ router.all('/test-email', async (req, res) => {
 
     try {
         // 2. SMTP Verify
-        await otpEmailService.testConnection();
+        console.log("🧪 Diagnostic: Verifying SMTP...");
+        await Promise.race([otpEmailService.testConnection(), timeout(10000, "SMTP Verify")]);
         diagnostic.smtp_verify = "✅ SMTP Credentials Verified";
 
         // 3. SMTP Send
-        const sendResult = await otpEmailService.sendTestEmail();
+        console.log("🧪 Diagnostic: Sending Test Email...");
+        const sendResult = await Promise.race([otpEmailService.sendTestEmail(), timeout(15000, "SMTP Send")]);
+
         if (sendResult.success) {
             diagnostic.smtp_send = "✅ Test Email Sent to " + process.env.SMTP_USER;
         } else {
@@ -59,7 +67,12 @@ router.all('/test-email', async (req, res) => {
             diagnostic.error_details = sendResult;
         }
     } catch (err) {
-        diagnostic.smtp_verify = "❌ SMTP Error: " + err.message;
+        console.error("❌ Diagnostic Route Error:", err.message);
+        if (diagnostic.smtp_verify === "checking...") {
+            diagnostic.smtp_verify = "❌ SMTP Error: " + err.message;
+        } else {
+            diagnostic.smtp_send = "❌ SMTP Error: " + err.message;
+        }
     }
 
     res.json(diagnostic);
