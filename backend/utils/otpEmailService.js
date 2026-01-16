@@ -4,7 +4,7 @@ import emailMonitor from './emailMonitor.js';
 class OTPEmailService {
   constructor() {
     this.resend = null;
-    this.fromEmail = 'onboarding@resend.dev'; // Default for unverified domains
+    this.fromEmail = 'no-reply@twikit.online'; // Verified domain email
   }
 
   getResend() {

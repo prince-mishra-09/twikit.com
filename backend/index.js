@@ -38,9 +38,10 @@ cloudinary.v2.config({
 const allowedOrigins = [
   "https://twikit-com.vercel.app",
   "https://twiikit-com.vercel.app",
+  "https://twikit.online",
+  "https://www.twikit.online",
   "http://localhost:5173",
   "http://127.0.0.1:5173",
-  process.env.CLIENT_URL,
 ];
 
 // Security Headers
