@@ -311,27 +311,39 @@ const Register = () => {
         {step === 3 && (
           <form className="mt-6 space-y-4" onSubmit={submitHandler}>
             {/* Profile Image */}
-            <div className="flex justify-center">
+            <div className="flex justify-center flex-col items-center">
               <div
                 onClick={() => fileInputRef.current.click()}
-                className="relative cursor-pointer group"
+                className={`relative cursor-pointer group w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 border-2 ${file
+                    ? "border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+                    : error && error.includes("Profile image")
+                      ? "border-red-500 shadow-[0_0_15px_rgba(239,44,44,0.3)]"
+                      : "border-dashed border-white/20 hover:border-indigo-400"
+                  }`}
               >
                 {filePrev ? (
                   <img
                     src={filePrev}
                     alt="profile"
-                    className="w-24 h-24 rounded-full object-cover border border-white/20"
+                    className="w-full h-full rounded-full object-cover"
                   />
                 ) : (
-                  <div className="w-24 h-24 rounded-full bg-[#0B0F14] border border-dashed border-white/20 flex items-center justify-center text-gray-500 text-xs">
+                  <div className="text-gray-500 text-xs text-center flex flex-col items-center">
+                    <span className="text-xl mb-1">📸</span>
                     Upload
                   </div>
                 )}
 
                 <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs transition">
-                  Change
+                  {filePrev ? "Change" : "Select"}
                 </div>
               </div>
+
+              {file && (
+                <p className="text-green-400 text-[10px] mt-2 font-medium bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
+                  Ready to go! ✨
+                </p>
+              )}
 
               <input
                 type="file"

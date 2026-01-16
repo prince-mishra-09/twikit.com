@@ -57,22 +57,26 @@ class OTPEmailService {
 
   // Send OTP email
   async sendOTP(email, otp) {
-    const subject = "Twikit - Your Verification Code";
+    const subject = "Verification Code for Twikit ⚡";
     const html = `
-      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 15px;">
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 500px; margin: auto; padding: 40px 20px; background: #ffffff; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f0f0f0;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #667eea; margin: 0; font-size: 28px;">Twikit</h1>
-          <p style="color: #6c757d; margin: 5px 0 0 0;">Secure Registration</p>
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 60px; height: 60px; line-height: 60px; border-radius: 18px; display: inline-block; color: white; font-size: 32px; font-weight: bold; box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);">T</div>
+          <h1 style="color: #1a202c; margin: 20px 0 5px 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Verify your email</h1>
+          <p style="color: #718096; margin: 0; font-size: 15px;">Secure login for Twikit</p>
         </div>
-        <div style="background: #f8f9fa; border-radius: 12px; padding: 30px; text-align: center;">
-          <p style="color: #333; margin-bottom: 25px; font-size: 16px;">Namaste! Use the code below to verify your email address.</p>
-          <div style="background: white; border: 2px solid #667eea; color: #667eea; font-size: 40px; font-weight: bold; letter-spacing: 12px; padding: 15px; border-radius: 10px; display: inline-block;">
+        
+        <div style="background: #f7fafc; border-radius: 20px; padding: 32px; text-align: center; border: 1px solid #edf2f7;">
+          <p style="color: #4a5568; margin-bottom: 24px; font-size: 16px; font-weight: 500;">Your verification code is here:</p>
+          <div style="background: white; border: 2px solid #667eea; color: #667eea; font-size: 42px; font-weight: 900; letter-spacing: 8px; padding: 16px 24px; border-radius: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);">
             ${otp}
           </div>
-          <p style="color: #dc3545; font-size: 13px; margin-top: 25px;">This code will expire in 10 minutes.</p>
+          <p style="color: #e53e3e; font-size: 13px; margin-top: 24px; font-weight: 600;">Valid for 10 mins only. No cap. ⏱️</p>
         </div>
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #f1f1f1; text-align: center;">
-          <p style="color: #6c757d; font-size: 12px;">If you didn't request this code, please ignore this email.</p>
+        
+        <div style="margin-top: 32px; text-align: center; border-top: 1px solid #edf2f7; padding-top: 24px;">
+          <p style="color: #a0aec0; font-size: 12px; margin-bottom: 8px;">If you didn't request this, you can just ignore it.</p>
+          <p style="color: #718096; font-size: 13px; font-weight: 600;">Team Twikit</p>
         </div>
       </div>
     `;
@@ -96,12 +100,30 @@ class OTPEmailService {
 
   // Send welcome email after successful registration
   async sendWelcomeEmail(email, name, username) {
-    const subject = "Welcome to Twikit! 🎉";
+    const subject = "Welcome to the Twikit Fam! 🎉";
     const html = `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2>Hi ${name}! 👋</h2>
-        <p>Welcome to Twikit! Your account has been created with username <strong>@${username}</strong>.</p>
-        <p>Start sharing and connecting with others!</p>
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 500px; margin: auto; padding: 0; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f0f0f0;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center; color: white;">
+          <h1 style="margin: 0; font-size: 32px; font-weight: 900; letter-spacing: -1px;">LFG! 🎉</h1>
+          <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">Welcome to the fam, ${name}!</p>
+        </div>
+        
+        <div style="padding: 40px 30px; text-align: center;">
+          <div style="background: #f7fafc; border-radius: 20px; padding: 24px; margin-bottom: 30px; border: 1px solid #edf2f7;">
+            <p style="color: #4a5568; margin: 0; font-size: 16px;">Your account is officially live as</p>
+            <h2 style="color: #667eea; margin: 10px 0; font-size: 24px; font-weight: 800;">@${username}</h2>
+          </div>
+          
+          <p style="color: #1a202c; font-size: 17px; line-height: 1.6; font-weight: 500;">
+            We're hyped to have you here! Twikit is all about sharing your vibe and connecting with your tribe. <br><br>
+            Go ahead, post something fire and let the world know you're here. 🚀
+          </p>
+          
+          <div style="margin-top: 40px;">
+            <p style="color: #718096; font-size: 14px; font-style: italic;">Stay vibrant, stay you.</p>
+            <p style="color: #1a202c; font-size: 15px; font-weight: 800; margin-top: 5px;">Team Twikit ✌️</p>
+          </div>
+        </div>
       </div>
     `;
     return this.sendEmail({ to: email, subject, html });
