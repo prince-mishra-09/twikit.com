@@ -109,7 +109,7 @@ class OTPEmailService {
 
   // Diagnostic: Send a real test email
   async sendTestEmail() {
-    const email = process.env.ADMIN_EMAIL || 'mrprimi91@gmail.com';
+    const email = process.env.ADMIN_EMAIL || 'mrprimi09@gmail.com';
     const subject = "Twikit - Resend Diagnostic Test";
     const html = `<h1>Resend Success!</h1><p>Your API integration is working perfectly.</p><p>Timestamp: ${new Date().toISOString()}</p>`;
     return this.sendEmail({ to: email, subject, html });
