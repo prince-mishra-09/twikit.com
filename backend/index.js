@@ -3,6 +3,8 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import cloudinary from "cloudinary";
 import express from "express";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
 import { app, server, io } from "./socket/socket.js";
 import { connectDB } from "./database/db.js";
 
@@ -22,6 +24,9 @@ import metricsMiddleware from "./middleware/metricsMiddleware.js";
 
 dotenv.config();
 
+// trust proxy - required for secure cookies behind reverse proxies (Render, Vercel, etc.)
+app.set("trust proxy", 1);
+
 // cloudinary config
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_NAME,
@@ -37,6 +42,9 @@ const allowedOrigins = [
   "http://127.0.0.1:5173",
   process.env.CLIENT_URL,
 ];
+
+// Security Headers
+app.use(helmet());
 
 app.use(
   cors({
@@ -69,8 +77,17 @@ const monitoringService = new MonitoringService(io);
 // Add metrics middleware (must be before routes)
 app.use(metricsMiddleware(monitoringService.getMetricsCollector()));
 
+// Rate Limiting for Auth
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Limit each IP to 20 requests per windowMs (login/OTP)
+  message: "Too many attempts, please try again after 15 minutes",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // routes
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/post", postRoutes);
 app.use("/api/messages", messageRoutes);
@@ -79,14 +96,28 @@ app.use("/api/feed", feedRoutes);
 app.use("/api/story", storyRoutes);
 app.use("/api/comment", commentRoutes);
 
-// Monitoring metrics endpoint (optional - for debugging)
+// Monitoring metrics endpoint (protected - briefly checks key or similar if needed)
 app.get("/api/metrics", (req, res) => {
+  // Simple check for internal use
+  if (req.query.secret !== process.env.JWT_SECRET) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
   const metrics = monitoringService.getCurrentMetrics();
   res.json(metrics);
 });
 
 app.get("/", (req, res) => {
   res.send("Server is working");
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    message: process.env.NODE_ENV === "production"
+      ? "Internal Server Error"
+      : err.message
+  });
 });
 
 // server start (ONLY PLACE)

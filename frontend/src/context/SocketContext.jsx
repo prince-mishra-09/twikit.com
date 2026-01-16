@@ -4,7 +4,7 @@ import { UserData } from "./UserContext";
 
 const EndPoint = import.meta.env.MODE === "development"
   ? `http://${window.location.hostname}:5000`
-  : "https://twikit-backend.onrender.com";
+  : import.meta.env.VITE_API_URL;
 
 const SocketContext = createContext();
 

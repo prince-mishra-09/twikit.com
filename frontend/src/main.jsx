@@ -8,7 +8,7 @@ import { ChatContextProvider } from './context/ChatContext.jsx'
 import { SocketContextProvider } from './context/SocketContext.jsx'
 import axios from "axios";
 // Automatically toggle between local proxy (dev) and live backend (prod)
-axios.defaults.baseURL = import.meta.env.MODE === "development" ? "" : "https://twikit-backend.onrender.com";
+axios.defaults.baseURL = import.meta.env.MODE === "development" ? "" : import.meta.env.VITE_API_URL;
 axios.defaults.withCredentials = true;
 
 
