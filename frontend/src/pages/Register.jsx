@@ -41,10 +41,10 @@ const Register = () => {
     e.preventDefault();
     setError("");
 
-    console.log("=== SEND OTP DEBUG ===");
-    console.log("Email state value:", email);
-    console.log("Email type:", typeof email);
-    console.log("Email length:", email?.length);
+    // console.log("=== SEND OTP DEBUG ===");
+    // console.log("Email state value:", email);
+    // console.log("Email type:", typeof email);
+    // console.log("Email length:", email?.length);
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -52,11 +52,11 @@ const Register = () => {
     }
 
     setLoading(true);
-    console.log("Sending OTP to:", email);
+    // console.log("Sending OTP to:", email);
 
     try {
-      console.log("Making API call to /api/auth/send-otp");
-      console.log("Request body:", { email });
+      // console.log("Making API call to /api/auth/send-otp");
+      // console.log("Request body:", { email });
       const { data } = await axios.post("/api/auth/send-otp", { email }, {
         timeout: 30000 // 30 second timeout
       });
@@ -351,7 +351,6 @@ const Register = () => {
                 ref={fileInputRef}
                 onChange={changeFileHandler}
                 className="hidden"
-                required
               />
             </div>
 
