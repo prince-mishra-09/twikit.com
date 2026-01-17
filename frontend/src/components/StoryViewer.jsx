@@ -252,7 +252,7 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
                             />
                         )
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center px-8 text-center bg-gradient-to-br from-indigo-900 to-purple-900">
+                        <div className="w-full h-full flex items-center justify-center px-8 text-center bg-gradient-to-br from-[var(--accent)] to-[#1F2937] opacity-90">
                             <p className="text-white text-2xl font-serif leading-relaxed">
                                 {currentStory.text}
                             </p>

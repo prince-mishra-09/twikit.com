@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { BsCheckAll } from "react-icons/bs";
 import { Link } from "react-router-dom";
 
@@ -25,7 +26,10 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
     <div
       className={`flex mb-2 ${ownMessage ? "justify-end" : "justify-start"} relative select-none`}
     >
-      <div
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", damping: 15, stiffness: 300 }}
         onMouseDown={handleTouchStart} // For Desktop testing
         onMouseUp={handleTouchEnd}
         onMouseLeave={handleTouchEnd}
@@ -33,7 +37,7 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
         onTouchEnd={handleTouchEnd}
         className={`max-w-[75%] px-4 py-2 text-sm rounded-2xl break-words relative cursor-pointer flex flex-wrap items-end gap-2 shadow-sm transition-opacity duration-200 ${message.status === "sending" ? "opacity-70 pointer-events-none" : "opacity-100"
           } ${ownMessage
-            ? "bg-gradient-to-r from-indigo-500 to-blue-500 text-white rounded-br-sm"
+            ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white rounded-br-sm"
             : "bg-[#1F2937] text-gray-100 rounded-bl-sm border border-white/10"
           }`}
       >
@@ -107,7 +111,7 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
             <BsCheckAll className={`text-sm ${isRead ? "text-cyan-200" : "text-gray-200"}`} />
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Long Press Menu - Top Left */}
       {activeMessageId === message._id && ownMessage && (

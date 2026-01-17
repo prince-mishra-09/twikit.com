@@ -22,7 +22,7 @@ import { BsShare } from "react-icons/bs";
 
 const Account = ({ user }) => {
   const navigate = useNavigate();
-  const { logoutUser, updateProfilePic, updateProfileName, unmuteUser, togglePrivacy, removeFollower, unblockUser, user: loggedInUser } = UserData();
+  const { logoutUser, updateProfilePic, updateProfileName, unmuteUser, togglePrivacy, removeFollower, unblockUser, user: loggedInUser, themeColor, setThemeColor } = UserData();
   const { posts, reels, loading } = PostData();
   const { stories } = StoriesData();
 
@@ -180,7 +180,7 @@ const Account = ({ user }) => {
                 <div className="flex items-center gap-2">
                   <span>Private Account</span>
                 </div>
-                <div className={`w-8 h-4 rounded-full relative transition-colors ${user.isPrivate ? "bg-indigo-500" : "bg-gray-600"}`}>
+                <div className={`w-8 h-4 rounded-full relative transition-colors ${user.isPrivate ? "bg-[var(--accent)]" : "bg-gray-600"}`}>
                   <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-transform ${user.isPrivate ? "left-4.5" : "left-0.5"}`} style={{ left: user.isPrivate ? '18px' : '2px' }} />
                 </div>
               </button>
@@ -241,6 +241,29 @@ const Account = ({ user }) => {
               >
                 Saved Posts
               </button>
+              <div className="px-4 py-3 border-t border-white/5">
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-3">App Theme</p>
+                <div className="flex items-center justify-between gap-2">
+                  {[
+                    { id: 'indigo', color: '#6366f1' },
+                    { id: 'rose', color: '#f43f5e' },
+                    { id: 'emerald', color: '#10b981' },
+                    { id: 'amber', color: '#f59e0b' },
+                    { id: 'sky', color: '#0ea5e9' },
+                    { id: 'violet', color: '#8b5cf6' },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setThemeColor(t.id)}
+                      className={`w-6 h-6 rounded-full border-2 transition-all ${themeColor === t.id ? "border-white scale-110 shadow-lg" : "border-transparent opacity-60 hover:opacity-100"
+                        }`}
+                      style={{ backgroundColor: t.color }}
+                      title={t.id.charAt(0).toUpperCase() + t.id.slice(1)}
+                    />
+                  ))}
+                </div>
+              </div>
+
               <button
                 onClick={() => logoutUser(navigate)}
                 className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-500/10 flex items-center gap-2 border-t border-white/5"
@@ -262,7 +285,7 @@ const Account = ({ user }) => {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-2xl font-bold text-white tracking-wide">{user.name}</h2>
-            <p className="text-gray-400 text-sm">@{user.username || user.name?.toLowerCase().replace(/\s+/g, '_')}</p>
+            <p className="text-gray-400 text-sm">@{user.username}</p>
           </div>
 
           <button
@@ -326,7 +349,7 @@ const Account = ({ user }) => {
               href={user.link.startsWith("http") ? user.link : `https://${user.link}`}
               target="_blank"
               rel="noreferrer"
-              className="text-indigo-400 text-sm mt-2 hover:underline truncate max-w-xs block flex items-center gap-1"
+              className="text-[var(--accent)] text-sm mt-2 hover:underline truncate max-w-xs block flex items-center gap-1"
             >
               🔗 {user.link.replace(/^https?:\/\//, "")}
             </a>
@@ -357,7 +380,7 @@ const Account = ({ user }) => {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
             />
-            <button className="w-full bg-indigo-500 text-white py-2 rounded-lg">
+            <button className="w-full bg-[var(--accent)] text-white py-2 rounded-lg hover:opacity-90 transition-opacity">
               Update
             </button>
           </form>
@@ -368,13 +391,13 @@ const Account = ({ user }) => {
       <div className="flex gap-6 bg-[#111827]/90 border border-white/10 rounded-xl px-6 py-2 max-w-xs w-full justify-center">
         <button
           onClick={() => setType("post")}
-          className={type === "post" ? "text-indigo-400" : "text-gray-400"}
+          className={type === "post" ? "text-[var(--accent)]" : "text-gray-400"}
         >
           Posts
         </button>
         <button
           onClick={() => setType("reel")}
-          className={type === "reel" ? "text-indigo-400" : "text-gray-400"}
+          className={type === "reel" ? "text-[var(--accent)]" : "text-gray-400"}
         >
           Reels
         </button>
@@ -520,7 +543,7 @@ const EditProfile = ({ user, onBack }) => {
         <button
           onClick={saveHandler}
           disabled={loading || name.trim().length > 20 || name.trim().length === 0 || bio.length > 120}
-          className="text-indigo-400 font-semibold text-lg hover:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+          className="text-[var(--accent)] font-semibold text-lg hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
         >
           {loading ? "Saving..." : "Save"}
         </button>

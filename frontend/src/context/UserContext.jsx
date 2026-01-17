@@ -9,6 +9,13 @@ export const UserContextProvider = ({ children }) => {
   const [user, setUser] = useState([]);
   const [isAuth, setIsAuth] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [themeColor, setThemeColor] = useState(localStorage.getItem("twikit-theme") || "indigo");
+
+  // Apply theme to document
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", themeColor);
+    localStorage.setItem("twikit-theme", themeColor);
+  }, [themeColor]);
 
   const getErrorMessage = (error) =>
     error.response?.data?.message || error.message || "Something went wrong";
@@ -253,6 +260,8 @@ export const UserContextProvider = ({ children }) => {
         blockUser,
         unblockUser,
         registerPush,
+        themeColor,
+        setThemeColor,
       }}
     >
       {children}

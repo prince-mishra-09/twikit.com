@@ -79,7 +79,7 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
                         <div className="flex items-baseline gap-2">
                             <Link to={`/user/${comment.user?._id}`}>
                                 <span className="text-sm font-semibold text-white hover:underline">
-                                    @{comment.user?.username || comment.user?.name?.toLowerCase().replace(/\s+/g, '_')}
+                                    @{comment.user?.username}
                                 </span>
                             </Link>
                             <span className="text-xs text-gray-400">{formatCommentDate(comment.createdAt)}</span>

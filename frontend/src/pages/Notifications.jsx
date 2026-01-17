@@ -137,7 +137,7 @@ const Notifications = () => {
                                 <div className="flex-1">
                                     <p className="text-sm">
                                         <Link to={`/user/${n.sender._id}`} className="font-semibold text-gray-200 hover:underline" onClick={(e) => e.stopPropagation()}>
-                                            @{n.sender.username || n.sender.name?.toLowerCase().replace(/\s+/g, '_')}
+                                            @{n.sender.username}
                                         </Link>{" "}
                                         <Link to={getPostLink(n)} className="text-gray-400 hover:text-gray-300" onClick={(e) => e.stopPropagation()}>
                                             {getNotificationMessage(n.type)}

@@ -238,7 +238,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
             {otherUser?.isPrivate && !user?.followings?.includes(otherUser._id) ? (
               <div className="flex justify-center items-center py-4 bg-gray-800/30 rounded-lg mx-2 my-1 border border-white/5">
                 <p className="text-gray-400 text-sm">
-                  Follow <span className="font-bold text-white">@{otherUser.username || otherUser.name.toLowerCase().replace(/\s+/g, '_')}</span> to message them
+                  Follow <span className="font-bold text-white">@{otherUser.username}</span> to message them
                 </p>
               </div>
             ) : (

@@ -1,9 +1,47 @@
 @import "tailwindcss";
+
+:root {
+  --accent: #6366f1; /* Default Indigo */
+  --accent-soft: rgba(99, 102, 241, 0.1);
+  --accent-hover: #4f46e5;
+}
+
+[data-theme='rose'] {
+  --accent: #f43f5e;
+  --accent-soft: rgba(244, 63, 94, 0.1);
+  --accent-hover: #e11d48;
+}
+
+[data-theme='emerald'] {
+  --accent: #10b981;
+  --accent-soft: rgba(16, 185, 129, 0.1);
+  --accent-hover: #059669;
+}
+
+[data-theme='amber'] {
+  --accent: #f59e0b;
+  --accent-soft: rgba(245, 158, 11, 0.1);
+  --accent-hover: #d97706;
+}
+
+[data-theme='sky'] {
+  --accent: #0ea5e9;
+  --accent-soft: rgba(14, 165, 233, 0.1);
+  --accent-hover: #0284c7;
+}
+
+[data-theme='violet'] {
+  --accent: #8b5cf6;
+  --accent-soft: rgba(139, 92, 246, 0.1);
+  --accent-hover: #7c3aed;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background-color: #0B0F14;
   color: white;
 }
+/* ... rest of the file ... */
 h1, h2, h3 {
   font-family: 'Montserrat', sans-serif;
 }

@@ -86,7 +86,7 @@ const Search = () => {
                   />
                   <div className="flex flex-col flex-1 min-w-0">
                     <p className="text-white font-bold text-base truncate">{u.name}</p>
-                    <p className="text-gray-500 text-sm truncate">@{u.username || u.name.toLowerCase().replace(/\s+/g, '_')}</p>
+                    <p className="text-gray-500 text-sm truncate">@{u.username}</p>
                     {u.bio && (
                       <p className="text-gray-400 text-xs mt-1.5 line-clamp-2 break-words leading-relaxed">
                         {u.bio}
@@ -125,7 +125,7 @@ const Search = () => {
                       />
                       <div className="flex flex-col flex-1 min-w-0">
                         <p className="text-white font-bold text-base truncate">{u.name}</p>
-                        <p className="text-gray-500 text-sm truncate">@{u.username || u.name.toLowerCase().replace(/\s+/g, '_')}</p>
+                        <p className="text-gray-500 text-sm truncate">@{u.username}</p>
                         {u.bio && (
                           <p className="text-gray-400 text-xs mt-1.5 line-clamp-2 break-words leading-relaxed">
                             {u.bio}

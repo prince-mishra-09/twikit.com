@@ -176,7 +176,6 @@ export const StoriesProvider = ({ children }) => {
                 loading,
                 fetchStories,
                 addStory,
-                addStory,
                 viewStory,
                 deleteStory,
                 fetchUserStories,

@@ -129,7 +129,7 @@ const ChatPage = ({ user }) => {
                       alt=""
                     />
                     <div className="flex flex-col">
-                      <p className="text-white text-sm font-semibold">@{u.username || u.name.toLowerCase().replace(/\s+/g, '_')}</p>
+                      <p className="text-white text-sm font-semibold">@{u.username}</p>
                       <p className="text-gray-500 text-xs">{u.name}</p>
                     </div>
                   </div>

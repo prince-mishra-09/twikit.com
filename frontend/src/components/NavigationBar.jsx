@@ -18,8 +18,8 @@ const NavigationBar = () => {
     setTab(location.pathname);
   }, [location.pathname]);
 
-  const activeStyle = "text-indigo-400 scale-110";
-  const inactiveStyle = "text-gray-400 hover:text-white transition";
+  const activeStyle = "text-[var(--accent)] scale-110";
+  const inactiveStyle = "text-gray-400 hover:text-[var(--accent)] transition";
 
   // Hide Navbar on Reels and Chat pages
   if (location.pathname === "/reels" || location.pathname === "/chat") {
@@ -54,7 +54,7 @@ const NavigationBar = () => {
           {/* ADD POST BUTTON (CENTER) */}
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-indigo-600 text-white p-3 rounded-xl shadow-lg shadow-indigo-500/30 hover:bg-indigo-500 hover:scale-105 transition-all -mt-8 border-4 border-[#0B0F14]"
+            className="bg-[var(--accent)] text-white p-3 rounded-xl shadow-lg shadow-[var(--accent)]/30 hover:opacity-90 hover:scale-105 transition-all -mt-8 border-4 border-[#0B0F14]"
           >
             <AiOutlinePlus className="text-2xl font-bold" />
           </button>

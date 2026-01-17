@@ -24,7 +24,7 @@ const StoryAvatar = ({ user: targetUser, size = "w-10 h-10", border = true, onCl
     const ringClass = hasStory
         ? allSeen
             ? "bg-gray-700" // Seen
-            : "bg-gradient-to-tr from-indigo-500 via-purple-500 to-orange-500" // Unseen
+            : "bg-gradient-to-tr from-[var(--accent)] via-purple-500 to-orange-500" // Unseen
         : border ? "border border-white/10" : ""; // No story
 
     return (

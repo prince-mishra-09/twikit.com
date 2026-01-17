@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { createPortal } from "react-dom";
 import { BsChatFill, BsThreeDotsVertical, BsBookmark, BsBookmarkFill } from "react-icons/bs";
@@ -22,8 +23,8 @@ const RealIcon = ({ active }) => (
     width="18"
     height="18"
     viewBox="0 0 24 24"
-    fill={active ? "#818CF8" : "none"}
-    stroke={active ? "#818CF8" : "#9CA3AF"}
+    fill={active ? "var(--accent)" : "none"}
+    stroke={active ? "var(--accent)" : "#9CA3AF"}
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -458,7 +459,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
         {/* BOTTOM PROGRESS BAR */}
         <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gray-800/40 z-30">
           <div
-            className="h-full bg-indigo-500 transition-all duration-100 ease-linear"
+            className="h-full bg-[var(--accent)] transition-all duration-100 ease-linear"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -481,10 +482,10 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
               onClick={() => feedbackHandler("real")}
               className="group flex flex-col items-center gap-1.5 transition-transform active:scale-90"
             >
-              <div className={`p-2 rounded-full transition-colors ${isReal ? "bg-indigo-500/10" : "bg-white/5"}`}>
+              <div className={`p-2 rounded-full transition-colors ${isReal ? "bg-[var(--accent)]/10" : "bg-white/5"}`}>
                 <RealIcon active={isReal} />
               </div>
-              <span className={`text-[11px] font-bold tracking-tight ${isReal ? "text-indigo-400" : "text-gray-400"}`}>
+              <span className={`text-[11px] font-bold tracking-tight ${isReal ? "text-[var(--accent)]" : "text-gray-400"}`}>
                 Real
               </span>
             </button>
@@ -702,7 +703,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
                 {/* Replying Banner */}
                 {replyingTo && (
                   <div className="flex justify-between items-center bg-gray-800 px-4 py-2 rounded-t-lg mb-2 mx-1">
-                    <span className="text-xs text-gray-300">Replying to <span className="text-indigo-400 font-bold">@{replyingTo.user.username || replyingTo.user.name?.toLowerCase().replace(/\s+/g, '_')}</span></span>
+                    <span className="text-xs text-gray-300">Replying to <span className="text-[var(--accent)] font-bold">@{replyingTo.user.username}</span></span>
                     <button onClick={() => setReplyingTo(null)} className="text-gray-400 hover:text-white">✕</button>
                   </div>
                 )}
@@ -733,8 +734,8 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
                   <div className="flex-1 relative">
                     <input
                       type="text"
-                      className="w-full bg-gray-800 text-white text-sm rounded-full px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 border border-transparent placeholder:text-gray-500"
-                      placeholder={replyingTo ? "Write a reply..." : `Comment as @${user?.username || user?.name?.toLowerCase().replace(/\s+/g, '_')}...`}
+                      className="w-full bg-gray-800 text-white text-sm rounded-full px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] border border-transparent placeholder:text-gray-500"
+                      placeholder={replyingTo ? "Write a reply..." : `Comment as @${user?.username}...`}
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
                       autoFocus={!!replyingTo}
@@ -742,7 +743,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
                     <button
                       type="submit"
                       disabled={!comment.trim()}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-indigo-400 font-semibold text-sm hover:text-indigo-300 disabled:opacity-50 px-2"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--accent)] font-semibold text-sm hover:opacity-80 disabled:opacity-50 px-2"
                     >
                       Post
                     </button>
@@ -1009,17 +1010,26 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
       </div>
 
       {/* ===== COMMENTS DRAWER VIA PORTAL ===== */}
-      {
-        show && createPortal(
+      <AnimatePresence>
+        {show && createPortal(
           <div className="fixed inset-0 z-[9999] flex justify-center items-end" role="dialog">
             {/* Backdrop */}
-            <div
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => setShow(false)}
             />
 
             {/* Drawer */}
-            <div className="relative w-full max-w-md bg-[#1F2937] rounded-t-3xl h-[60vh] md:h-[75vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="relative w-full max-w-md bg-[#1F2937] rounded-t-3xl h-[60vh] md:h-[75vh] flex flex-col shadow-2xl"
+            >
               {/* Drawer Handle */}
               <div className="w-full flex justify-center pt-3 pb-1" onClick={() => setShow(false)}>
                 <div className="w-12 h-1.5 bg-gray-600 rounded-full" />
@@ -1037,7 +1047,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
               <div ref={commentsRef} className="flex-1 overflow-y-auto px-4 py-2 space-y-4 custom-scrollbar relative">
                 {loadingComments ? (
                   <div className="flex justify-center items-center h-40">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
                   </div>
                 ) : comments && comments.length > 0 ? (
                   comments.map((c) => (
@@ -1126,8 +1136,8 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
                   <div className="flex-1 relative">
                     <input
                       type="text"
-                      className="w-full bg-gray-800 text-white text-sm rounded-full px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 border border-transparent placeholder:text-gray-500"
-                      placeholder={replyingTo ? "Write a reply..." : `Comment as @${user?.username || user?.name?.toLowerCase().replace(/\s+/g, '_')}...`}
+                      className="w-full bg-gray-800 text-white text-sm rounded-full px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] border border-transparent placeholder:text-gray-500"
+                      placeholder={replyingTo ? "Write a reply..." : `Comment as @${user?.username}...`}
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
                       autoFocus={!!replyingTo}
@@ -1135,18 +1145,18 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
                     <button
                       type="submit"
                       disabled={!comment.trim()}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-indigo-400 font-semibold text-sm hover:text-indigo-300 disabled:opacity-50 px-2"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--accent)] font-semibold text-sm hover:opacity-80 disabled:opacity-50 px-2"
                     >
                       Post
                     </button>
                   </div>
                 </form>
               </div>
-            </div>
+            </motion.div>
           </div>,
           document.body
-        )
-      }
+        )}
+      </AnimatePresence>
       <ShareModal
         isOpen={shareModal}
         onClose={() => setShareModal(false)}
