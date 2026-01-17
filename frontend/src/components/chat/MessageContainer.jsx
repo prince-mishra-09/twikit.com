@@ -58,20 +58,6 @@ const MessageContainer = ({ selectedChat, setChats }) => {
       if (selectedChat._id === message.chatId) {
         setMessages((prev) => [...prev, message]);
       }
-
-      setChats((prev) =>
-        prev.map((chat) =>
-          chat._id === message.chatId
-            ? {
-              ...chat,
-              latestMessage: {
-                text: message.text,
-                sender: message.sender,
-              },
-            }
-            : chat
-        )
-      );
     });
 
     socket.on("messagesRead", ({ chatId }) => {

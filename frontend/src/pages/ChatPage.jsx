@@ -59,11 +59,15 @@ const ChatPage = ({ user }) => {
   }
 
   useEffect(() => {
-    if (query.trim()) {
-      fetchAllUsers();
-    } else {
-      setUsers([]);
-    }
+    const handler = setTimeout(() => {
+      if (query.trim()) {
+        fetchAllUsers();
+      } else {
+        setUsers([]);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(handler);
   }, [query]);
 
   async function createNewChat(id) {

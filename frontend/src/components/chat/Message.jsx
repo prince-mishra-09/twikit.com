@@ -134,4 +134,4 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
   );
 };
 
-export default Message;
+export default React.memo(Message);

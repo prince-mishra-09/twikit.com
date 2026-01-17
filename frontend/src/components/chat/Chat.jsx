@@ -60,4 +60,4 @@ const Chat = ({ chat, setSelectedChat, isOnline, unreadCount }) => {
   );
 };
 
-export default Chat;
+export default React.memo(Chat);
