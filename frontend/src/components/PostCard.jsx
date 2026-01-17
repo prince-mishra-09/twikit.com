@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { createPortal } from "react-dom";
 import { BsChatFill, BsThreeDotsVertical, BsBookmark, BsBookmarkFill } from "react-icons/bs";
-import { IoPaperPlaneOutline, IoEyeOutline } from "react-icons/io5";
+import { IoPaperPlaneOutline, IoEyeOutline, IoClose } from "react-icons/io5";
+
 import { UserData } from "../context/UserContext";
 import { PostData } from "../context/PostContext";
 import { format } from "date-fns";
@@ -1178,6 +1179,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
       />
     </div>
   );
+
 };
 
 // Memoize PostCard to prevent unnecessary re-renders
