@@ -625,56 +625,89 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
           )}
         </div>
 
-        {/* COMMENTS DRAWER VIA PORTAL (Unified) */}
+        {renderCommonUI()}
+      </div >
+    );
+  }
+
+  // Common UI Elements (Drawer, Share, Real)
+  const renderCommonUI = () => (
+    <>
+      {/* ===== COMMENTS DRAWER VIA PORTAL ===== */}
+      <AnimatePresence>
         {show && createPortal(
           <div className="fixed inset-0 z-[9999] flex justify-center items-end" role="dialog">
             {/* Backdrop */}
-            <div
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => setShow(false)}
             />
 
             {/* Drawer */}
-            <div className="relative w-full max-w-md bg-[#1F2937] rounded-t-3xl h-[60vh] md:h-[75vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="relative w-full max-w-md bg-[#1F2937] rounded-t-3xl h-[60vh] md:h-[75vh] flex flex-col shadow-2xl"
+            >
               {/* Drawer Handle */}
-              <div className="flex justify-center pt-3 pb-1">
+              <div
+                className="w-full flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing"
+                onClick={() => setShow(false)}
+              >
                 <div className="w-12 h-1.5 bg-gray-600 rounded-full" />
               </div>
-              {/* CONTENT */}
-              <div className="flex-1 overflow-y-auto px-4 custom-scrollbar">
-                {loadingComments ? (
-                  <div className="flex justify-center p-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-                  </div>
-                ) : (
-                  <>
-                    {/* Header */}
-                    <h3 className="text-center font-bold text-white mb-4 border-b border-gray-700 pb-2">Comments</h3>
 
-                    {comments.length === 0 ? (
-                      <div className="text-center text-gray-400 py-10">No comments yet</div>
-                    ) : (
-                      <div className="space-y-4 pb-4">
-                        {comments.map((comment) => (
-                          <CommentItem
-                            key={comment._id}
-                            comment={comment}
-                            deleteComment={deleteComment}
-                            userId={user?._id}
-                            postId={value._id}
-                            addComment={addComment}
-                            activeCommentMenuId={activeCommentMenuId}
-                            setActiveCommentMenuId={setActiveCommentMenuId}
-                            setReplyingTo={setReplyingTo}
-                            setDeleteModal={setDeleteModal}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </>
+              {/* Header */}
+              <div className="flex justify-between items-center px-4 py-2 border-b border-gray-700">
+                <h3 className="text-white font-bold text-lg">Comments</h3>
+                <button
+                  onClick={() => setShow(false)}
+                  className="p-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Comments List */}
+              <div
+                ref={commentsRef}
+                className="flex-1 overflow-y-auto px-4 py-2 space-y-4 custom-scrollbar relative"
+              >
+                {loadingComments ? (
+                  <div className="flex justify-center items-center h-40">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
+                  </div>
+                ) : comments && comments.length > 0 ? (
+                  comments.map((c) => (
+                    <CommentItem
+                      key={c._id}
+                      comment={c}
+                      postId={value._id}
+                      addComment={addComment}
+                      deleteComment={deleteComment}
+                      postOwnerId={value.owner._id}
+                      activeCommentMenuId={activeCommentMenuId}
+                      activeCommentId={commentId}
+                      toggleCommentMenu={toggleCommentMenu}
+                      onReplyAdded={handleNewReply}
+                      onDelete={handleDeleteLocal}
+                      setReplyingTo={setReplyingTo}
+                    />
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
+                    <BsChatFill className="text-4xl opacity-20" />
+                    <p>No comments yet.</p>
+                    <p className="text-xs">Start the conversation.</p>
+                  </div>
                 )}
 
-                {/* DELETE CONFIRMATION MODAL (Nested inside Comment Drawer) */}
+                {/* DELETE CONFIRMATION MODAL (Small overlay in Drawer) */}
                 {deleteModal.show && (
                   <div className="absolute inset-x-0 bottom-0 bg-[#2D3748] p-4 rounded-t-2xl shadow-xl z-50 animate-in slide-in-from-bottom border-t border-white/10">
                     <p className="text-white text-center mb-4 font-semibold">Delete this comment?</p>
@@ -700,12 +733,21 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
               </div>
 
               {/* Input Area - Fixed at bottom of drawer */}
-              <div className="p-4 border-t border-gray-700 bg-[#1F2937] rounded-b-none lg:rounded-b-3xl pb-6 md:pb-4">
+              <div className="p-4 border-t border-gray-700 bg-[#1F2937] pb-6 md:pb-4">
                 {/* Replying Banner */}
                 {replyingTo && (
                   <div className="flex justify-between items-center bg-gray-800 px-4 py-2 rounded-t-lg mb-2 mx-1">
-                    <span className="text-xs text-gray-300">Replying to <span className="text-[var(--accent)] font-bold">@{replyingTo.user.username}</span></span>
-                    <button onClick={() => setReplyingTo(null)} className="text-gray-400 hover:text-white">✕</button>
+                    <span className="text-xs text-gray-300">
+                      Replying to{" "}
+                      <span className="text-indigo-400 font-bold">
+                        @
+                        {replyingTo.user.username ||
+                          replyingTo.user.name?.toLowerCase().replace(/\s+/g, "_")}
+                      </span>
+                    </span>
+                    <button onClick={() => setReplyingTo(null)} className="text-gray-400 hover:text-white">
+                      ✕
+                    </button>
                   </div>
                 )}
 
@@ -723,20 +765,21 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
                   ))}
                 </div>
 
-                <form
-                  onSubmit={addCommentHandler}
-                  className="flex gap-3 items-center"
-                >
+                <form onSubmit={addCommentHandler} className="flex gap-3 items-center">
                   <img
                     src={user.profilePic?.url}
-                    className="w-8 h-8 rounded-full border border-gray-600"
+                    className="w-10 h-10 rounded-full border border-gray-600 object-cover"
                     alt=""
                   />
                   <div className="flex-1 relative">
                     <input
                       type="text"
-                      className="w-full bg-gray-800 text-white text-sm rounded-full px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] border border-transparent placeholder:text-gray-500"
-                      placeholder={replyingTo ? "Write a reply..." : `Comment as @${user?.username}...`}
+                      className="w-full bg-gray-800 text-white text-sm rounded-full px-4 py-3 focus:outline-none focus:ring-1 focus:ring-indigo-500 border border-transparent placeholder:text-gray-500"
+                      placeholder={
+                        replyingTo
+                          ? "Write a reply..."
+                          : `Comment as @${user?.username || user?.name?.split(" ")[0]}...`
+                      }
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
                       autoFocus={!!replyingTo}
@@ -744,44 +787,44 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
                     <button
                       type="submit"
                       disabled={!comment.trim()}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--accent)] font-semibold text-sm hover:opacity-80 disabled:opacity-50 px-2"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-indigo-400 font-bold text-sm hover:opacity-80 disabled:opacity-50 px-3"
                     >
                       Post
                     </button>
                   </div>
                 </form>
               </div>
-            </div>
+            </motion.div>
           </div>,
           document.body
         )}
+      </AnimatePresence>
 
-        <ShareModal
-          isOpen={shareModal}
-          onClose={() => setShareModal(false)}
-          content={{
-            type: "reel",
-            contentId: value._id,
-            owner: value.owner,
-            preview: {
-              title: value.caption,
-              image: value.post.url,
-              username: value.owner.username || value.owner.name
-            }
-          }}
-        />
+      <ShareModal
+        isOpen={shareModal}
+        onClose={() => setShareModal(false)}
+        content={{
+          type: type === "reel" ? "reel" : "post",
+          contentId: value._id,
+          owner: value.owner,
+          preview: {
+            title: value.caption,
+            image: value.post.url,
+            username: value.owner.username || value.owner.name
+          }
+        }}
+      />
 
-        <RealModal
-          isOpen={realModal}
-          onClose={() => setRealModal(false)}
-          id={value._id}
-        />
-
-      </div >
-    );
-  }
+      <RealModal
+        isOpen={realModal}
+        onClose={() => setRealModal(false)}
+        id={value._id}
+      />
+    </>
+  );
 
   const formatCommentDate = (dateString) => {
+
     if (!dateString) return "just now";
     const date = new Date(dateString);
     const now = new Date();
@@ -1010,176 +1053,9 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
         )}
       </div>
 
-      {/* ===== COMMENTS DRAWER VIA PORTAL ===== */}
-      <AnimatePresence>
-        {show && createPortal(
-          <div className="fixed inset-0 z-[9999] flex justify-center items-end" role="dialog">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setShow(false)}
-            />
-
-            {/* Drawer */}
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="relative w-full max-w-md bg-[#1F2937] rounded-t-3xl h-[60vh] md:h-[75vh] flex flex-col shadow-2xl"
-            >
-              {/* Drawer Handle */}
-              <div className="w-full flex justify-center pt-3 pb-1" onClick={() => setShow(false)}>
-                <div className="w-12 h-1.5 bg-gray-600 rounded-full" />
-              </div>
-
-              {/* Header */}
-              <div className="flex justify-between items-center px-4 py-2 border-b border-gray-700">
-                <h3 className="text-white font-bold text-lg">Comments</h3>
-                <button onClick={() => setShow(false)} className="p-2 text-gray-400 hover:text-white">
-                  ✕
-                </button>
-              </div>
-
-              {/* Comments List */}
-              <div ref={commentsRef} className="flex-1 overflow-y-auto px-4 py-2 space-y-4 custom-scrollbar relative">
-                {loadingComments ? (
-                  <div className="flex justify-center items-center h-40">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
-                  </div>
-                ) : comments && comments.length > 0 ? (
-                  comments.map((c) => (
-                    <CommentItem
-                      key={c._id}
-                      comment={c}
-                      postId={value._id}
-                      addComment={addComment}
-                      deleteComment={deleteComment}
-                      postOwnerId={value.owner._id}
-                      refreshComments={fetchComments}
-                      activeCommentMenuId={activeCommentMenuId}
-                      activeCommentId={commentId}
-                      toggleCommentMenu={toggleCommentMenu}
-                      onReplyAdded={handleNewReply}
-                      onDelete={handleDeleteLocal}
-                      setReplyingTo={setReplyingTo}
-                    />
-                  ))
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
-                    <BsChatFill className="text-4xl opacity-20" />
-                    <p>No comments yet.</p>
-                    <p className="text-xs">Start the conversation.</p>
-                  </div>
-                )}
-
-                {/* DELETE CONFIRMATION MODAL (Nested inside Comment Drawer) */}
-                {deleteModal.show && (
-                  <div className="absolute inset-x-0 bottom-0 bg-[#2D3748] p-4 rounded-t-2xl shadow-xl z-50 animate-in slide-in-from-bottom border-t border-white/10">
-                    <p className="text-white text-center mb-4 font-semibold">Delete this comment?</p>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => setDeleteModal({ show: false, commentId: null })}
-                        className="flex-1 py-2 rounded-lg bg-gray-600 text-white font-medium hover:bg-gray-500"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={() => {
-                          deleteComment(value._id, deleteModal.commentId);
-                          setDeleteModal({ show: false, commentId: null });
-                        }}
-                        className="flex-1 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-500"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Input Area - Fixed at bottom of drawer */}
-              <div className="p-4 border-t border-gray-700 bg-[#1F2937] rounded-b-none lg:rounded-b-3xl pb-6 md:pb-4">
-                {/* Replying Banner */}
-                {replyingTo && (
-                  <div className="flex justify-between items-center bg-gray-800 px-4 py-2 rounded-t-lg mb-2 mx-1">
-                    <span className="text-xs text-gray-300">Replying to <span className="text-indigo-400 font-bold">@{replyingTo.user.username || replyingTo.user.name?.toLowerCase().replace(/\s+/g, '_')}</span></span>
-                    <button onClick={() => setReplyingTo(null)} className="text-gray-400 hover:text-white">✕</button>
-                  </div>
-                )}
-
-                {/* Emoji Bar */}
-                <div className="flex justify-between mb-3 px-2">
-                  {["❤️", "🙌", "🔥", "👏", "😢", "😍", "😂"].map((emoji) => (
-                    <button
-                      key={emoji}
-                      type="button"
-                      onClick={() => setComment((prev) => prev + emoji)}
-                      className="text-2xl hover:scale-125 transition-transform"
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-
-                <form
-                  onSubmit={addCommentHandler}
-                  className="flex gap-3 items-center"
-                >
-                  <img
-                    src={user.profilePic?.url}
-                    className="w-8 h-8 rounded-full border border-gray-600"
-                    alt=""
-                  />
-                  <div className="flex-1 relative">
-                    <input
-                      type="text"
-                      className="w-full bg-gray-800 text-white text-sm rounded-full px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] border border-transparent placeholder:text-gray-500"
-                      placeholder={replyingTo ? "Write a reply..." : `Comment as @${user?.username}...`}
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      autoFocus={!!replyingTo}
-                    />
-                    <button
-                      type="submit"
-                      disabled={!comment.trim()}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--accent)] font-semibold text-sm hover:opacity-80 disabled:opacity-50 px-2"
-                    >
-                      Post
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </motion.div>
-          </div>,
-          document.body
-        )}
-      </AnimatePresence>
-      <ShareModal
-        isOpen={shareModal}
-        onClose={() => setShareModal(false)}
-        content={{
-          type: type === "reel" ? "reel" : "post",
-          contentId: value._id,
-          owner: value.owner, // Include owner for private restriction
-          preview: {
-            title: value.caption,
-            image: value.post.url,
-            username: value.owner.username || value.owner.name
-          }
-        }}
-      />
-      <RealModal
-        isOpen={realModal}
-        onClose={() => setRealModal(false)}
-        id={value._id}
-      />
+      {renderCommonUI()}
     </div>
   );
-
 };
 
 // Memoize PostCard to prevent unnecessary re-renders
@@ -1190,6 +1066,7 @@ export default React.memo(PostCard, (prevProps, nextProps) => {
     prevProps.value.reals?.length === nextProps.value.reals?.length &&
     prevProps.value.reflections?.length === nextProps.value.reflections?.length &&
     prevProps.isActive === nextProps.isActive &&
-    prevProps.commentId === nextProps.commentId
+    prevProps.commentId === nextProps.commentId &&
+    prevProps.openComments === nextProps.openComments
   );
 });
