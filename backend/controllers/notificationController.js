@@ -3,7 +3,7 @@ import TryCatch from "../utils/tryCatch.js";
 
 export const getNotifications = TryCatch(async (req, res) => {
     const notifications = await Notification.find({ receiver: req.user._id })
-        .populate("sender", "name profilePic")
+        .populate("sender", "name profilePic username")
         .populate("postId", "post type")
         .sort({ createdAt: -1 });
 

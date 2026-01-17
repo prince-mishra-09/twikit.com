@@ -11,8 +11,8 @@ import { io } from "../socket/socket.js";
 export const myProfile = tryCatch(async (req, res) => {
   const user = await User.findById(req.user._id)
     .select("-password")
-    .populate("mutedUsers", "name profilePic")
-    .populate("blockedUsers", "name profilePic");
+    .populate("mutedUsers", "name profilePic username")
+    .populate("blockedUsers", "name profilePic username");
 
   res.json(user);
 });
@@ -107,7 +107,7 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
         actionRequired: true,
       });
 
-      await notification.populate("sender", "name profilePic");
+      await notification.populate("sender", "name profilePic username");
 
       io.to(user._id.toString()).emit("notification:new", notification);
 
@@ -397,7 +397,7 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
     { sender: sender._id, receiver: loggedInUser._id, type: "follow_request" },
     { type: "follow", actionRequired: false, isRead: true },
     { new: true }
-  ).populate("sender", "name profilePic");
+  ).populate("sender", "name profilePic username");
 
   if (requestNotification) {
     io.to(loggedInUser._id.toString()).emit("notification:update", requestNotification);
@@ -411,7 +411,7 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
     isRead: false
   });
 
-  await notification.populate("sender", "name profilePic");
+  await notification.populate("sender", "name profilePic username");
 
   io.to(sender._id.toString()).emit("notification:new", notification);
 

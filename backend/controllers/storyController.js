@@ -35,7 +35,7 @@ export const createStory = async (req, res) => {
             expiresAt,
         });
 
-        const fullStory = await Story.findById(story._id).populate("user", "name profilePic");
+        const fullStory = await Story.findById(story._id).populate("user", "name profilePic username");
 
         // Notify followers
         // Notify followers
@@ -77,8 +77,8 @@ export const getStoryFeed = async (req, res) => {
             user: { $in: targetIds },
             expiresAt: { $gt: new Date() }, // Only active stories
         })
-            .populate("user", "name profilePic")
-            .populate("viewers", "name profilePic") // Populate viewers
+            .populate("user", "name profilePic username")
+            .populate("viewers", "name profilePic username") // Populate viewers
             .sort({ createdAt: 1 }); // Oldest first usually for stories
 
         // Group stories by user for UI
@@ -143,8 +143,8 @@ export const getStoriesByUser = async (req, res) => {
             user: userId,
             expiresAt: { $gt: new Date() },
         })
-            .populate("user", "name profilePic")
-            .populate("viewers", "name profilePic")
+            .populate("user", "name profilePic username")
+            .populate("viewers", "name profilePic username")
             .sort({ createdAt: 1 });
 
         if (stories.length === 0) return res.json(null);

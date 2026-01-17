@@ -262,7 +262,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
                   <form onSubmit={addCommentHandler} className="flex gap-3 items-center">
                     <img src={user.profilePic?.url} className="w-10 h-10 rounded-full border border-gray-600 object-cover" alt="" />
                     <div className="flex-1 relative">
-                      <input type="text" className="w-full bg-gray-800 text-white text-sm rounded-full px-4 py-3 focus:outline-none focus:ring-1 focus:ring-indigo-500 border border-transparent placeholder:text-gray-500" placeholder={replyingTo ? "Write a reply..." : `Comment as @${user?.username}...`} value={comment} onChange={(e) => setComment(e.target.value)} autoFocus={!!replyingTo} />
+                      <input type="text" className="w-full bg-gray-800 text-white text-sm rounded-full px-4 py-3 focus:outline-none focus:ring-1 focus:ring-indigo-500 border border-transparent placeholder:text-gray-500" placeholder={replyingTo ? "Write a reply..." : `Comment as @${user?.username || user?.name?.toLowerCase().replace(/\s+/g, '_')}...`} value={comment} onChange={(e) => setComment(e.target.value)} autoFocus={!!replyingTo} />
                       <button type="submit" disabled={!comment.trim()} className="absolute right-2 top-1/2 -translate-y-1/2 text-indigo-400 font-bold text-sm hover:opacity-80 disabled:opacity-50 px-3">Post</button>
                     </div>
                   </form>

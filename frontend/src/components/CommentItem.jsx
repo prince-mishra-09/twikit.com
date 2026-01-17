@@ -42,6 +42,12 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
 
     const isOwner = user?._id === comment.user?._id || user?._id === postOwnerId;
 
+    const getFormattedUsername = (u) => {
+        if (!u) return "former_user";
+        if (u.username) return u.username;
+        return u.name ? u.name.toLowerCase().replace(/\s+/g, '_') : "user";
+    };
+
     const handleReplyClick = () => {
         setReplyingTo({ id: comment._id, user: comment.user });
     };
@@ -79,7 +85,7 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
                         <div className="flex items-baseline gap-2">
                             <Link to={`/user/${comment.user?._id}`}>
                                 <span className="text-sm font-semibold text-white hover:underline">
-                                    @{comment.user?.username}
+                                    @{getFormattedUsername(comment.user)}
                                 </span>
                             </Link>
                             <span className="text-xs text-gray-400">{formatCommentDate(comment.createdAt)}</span>
@@ -136,7 +142,7 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
                                     </Link>
                                     <div className="flex flex-col flex-1">
                                         <div className="flex items-baseline gap-2">
-                                            <span className="text-xs font-bold text-white">{reply.user?.name}</span>
+                                            <span className="text-xs font-bold text-white">@{getFormattedUsername(reply.user)}</span>
                                             <span className="text-[10px] text-gray-400">{formatCommentDate(reply.createdAt)}</span>
                                             {/* Simple delete for reply */}
                                             {(user?._id === reply.user?._id || user?._id === postOwnerId) && (

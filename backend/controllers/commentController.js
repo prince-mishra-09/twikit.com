@@ -32,7 +32,7 @@ export const createComment = TryCatch(async (req, res) => {
     post.commentsCount += 1;
     await post.save();
 
-    await newComment.populate("user", "name profilePic");
+    await newComment.populate("user", "name profilePic username");
 
     // Real-time Emit (Optional: You might want to emit to specific post room)
     // For now we can stick to simple update or let frontend fetch. 
@@ -91,7 +91,7 @@ export const getPostComments = TryCatch(async (req, res) => {
     const { postId } = req.params;
 
     const comments = await Comment.find({ post: postId })
-        .populate("user", "name profilePic")
+        .populate("user", "name profilePic username")
         .sort({ createdAt: -1 }); // Newest first
 
     // Grouping
