@@ -152,16 +152,18 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
 
     const confirmDelete = async () => {
         setIsDeleting(true);
-        const success = await deleteStory(currentStory._id);
+        const storyIdToDelete = currentStory._id;
+
+        // Optimistic UI: Close viewer immediately
+        onClose();
+        toast.success("Deleting story...");
+
+        const success = await deleteStory(storyIdToDelete);
         setIsDeleting(false);
         if (success) {
             toast.success("Story deleted");
-            setShowDeleteModal(false);
-            onClose();
         } else {
-            toast.success("Story deleted (Refreshed)"); // Fallback if API returns void but success
-            setShowDeleteModal(false);
-            onClose();
+            // Context will handle revert or we just hope for the best if API is void
         }
     };
 

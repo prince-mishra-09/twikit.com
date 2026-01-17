@@ -3,44 +3,67 @@ import { ChatData } from "../../context/ChatContext";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { BsSendFill } from "react-icons/bs";
+import { UserData } from "../../context/UserContext";
 
 const MessageInput = ({ setMessages, selectedChat }) => {
   const [textMsg, setTextMsg] = useState("");
   const { setChats } = ChatData();
+  const { user } = UserData();
 
   const handleMessage = async (e) => {
     e.preventDefault();
     if (!textMsg.trim()) return;
 
+    const messageText = textMsg;
+    setTextMsg(""); // Clear input immediately
+
+    // 1. CREATE OPTIMISTIC MESSAGE
+    const optimisticMessage = {
+      _id: "temp_" + Date.now(),
+      text: messageText,
+      sender: user._id, // We need 'user' from UserData()
+      createdAt: new Date().toISOString(),
+      status: "sending"
+    };
+
+    // 2. UPDATE MESSAGES LIST INSTANTLY
+    setMessages((prev) => [...prev, optimisticMessage]);
+
+    // 3. UPDATE CHAT SIDEBAR INSTANTLY
+    setChats((prev) => {
+      const otherChats = prev.filter(chat => chat._id !== selectedChat._id);
+      const currentChat = prev.find(chat => chat._id === selectedChat._id);
+
+      if (currentChat) {
+        const updatedChat = {
+          ...currentChat,
+          latestMessage: {
+            text: messageText,
+            sender: user._id,
+          },
+          updatedAt: new Date().toISOString(),
+        };
+        return [updatedChat, ...otherChats];
+      }
+      return prev;
+    });
+
     try {
       const { data } = await axios.post("/api/messages", {
-        message: textMsg,
+        message: messageText,
         recieverId: selectedChat.users[0]._id,
       });
 
-      setMessages((message) => [...message, data]);
-      setTextMsg("");
-
-      setChats((prev) => {
-        const otherChats = prev.filter(chat => chat._id !== selectedChat._id);
-        const currentChat = prev.find(chat => chat._id === selectedChat._id);
-
-        if (currentChat) {
-          const updatedChat = {
-            ...currentChat,
-            latestMessage: {
-              text: textMsg,
-              sender: data.sender,
-            },
-            updatedAt: new Date().toISOString(),
-          };
-          return [updatedChat, ...otherChats];
-        }
-        return prev;
-      });
+      // 4. REPLACE OPTIMISTIC MESSAGE WITH REAL ONE
+      setMessages((prev) =>
+        prev.map((msg) => (msg._id === optimisticMessage._id ? data : msg))
+      );
     } catch (error) {
       console.log(error);
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to send message");
+
+      // 5. REMOVE OPTIMISTIC MESSAGE ON FAILURE (or show retry)
+      setMessages((prev) => prev.filter((msg) => msg._id !== optimisticMessage._id));
     }
   };
 

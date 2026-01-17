@@ -156,22 +156,59 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
     e.preventDefault();
     if (!comment.trim()) return;
 
-    // Optimistic Update can be tricky if we don't have the real ID yet.
-    // But addComment returns the real comment. So we wait for it.
-    // The delay should be minimal.
-
+    const commentText = comment;
     const parentId = replyingTo ? replyingTo.id : null;
+    setComment(""); // Clear input immediately
 
-    const newComment = await addComment(value._id, comment, setComment, () => { }, parentId);
-    if (newComment) {
-      if (parentId) {
-        handleNewReply(parentId, newComment);
-      } else {
-        handleNewComment({ ...newComment, replies: [] });
-      }
+    // 1. CREATE OPTIMISTIC COMMENT
+    const tempId = "temp_" + Date.now();
+    const optimisticComment = {
+      _id: tempId,
+      comment: commentText,
+      user: {
+        _id: user._id,
+        name: user.name,
+        profilePic: user.profilePic,
+        username: user.username
+      },
+      createdAt: new Date().toISOString(),
+      replies: [],
+      status: "sending"
+    };
+
+    // 2. UPDATE UI INSTANTLY
+    if (parentId) {
+      handleNewReply(parentId, optimisticComment);
+    } else {
+      handleNewComment(optimisticComment);
     }
-    setReplyingTo(null); // Clear reply state
-    // No need to fetchComments()
+
+    setReplyingTo(null);
+
+    // 3. API CALL
+    try {
+      const newComment = await addComment(value._id, commentText, () => { }, () => { }, parentId);
+      if (newComment) {
+        // 4. REPLACE OPTIMISTIC COMMENT WITH REAL ONE
+        setComments((prev) =>
+          prev.map((c) => {
+            if (c._id === tempId) return { ...newComment, replies: [] };
+            if (c.replies) {
+              return {
+                ...c,
+                replies: c.replies.map((r) => (r._id === tempId ? newComment : r))
+              };
+            }
+            return c;
+          })
+        );
+      }
+    } catch (error) {
+      console.error("Failed to add comment:", error);
+      toast.error("Failed to add comment");
+      // 5. REMOVE OPTIMISTIC COMMENT ON FAILURE
+      handleDeleteLocal(tempId, parentId);
+    }
   };
 
 
@@ -342,8 +379,20 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
   const deleteHandler = () => deletePost(value._id);
 
   const followHandler = async () => {
+    const previousState = isFollowed;
     setIsFollowed(!isFollowed);
-    await followUser(value.owner._id);
+
+    try {
+      const message = await followUser(value.owner._id);
+      if (!message) {
+        // If API returns null or undefined, something went wrong
+        setIsFollowed(previousState);
+      }
+    } catch (error) {
+      console.error("Follow error:", error);
+      setIsFollowed(previousState);
+      toast.error("Failed to update follow status");
+    }
   };
 
   const saveHandler = async () => {

@@ -69,7 +69,7 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
     return (
         <div id={`comment-${comment._id}`} className="flex flex-col gap-2 transition-colors duration-500 rounded-lg">
             {/* Main Comment */}
-            <div className="flex gap-3 items-start p-2 rounded-lg hover:bg-white/5 transition-colors group">
+            <div className={`flex gap-3 items-start p-2 rounded-lg hover:bg-white/5 transition-all duration-200 group ${comment.status === "sending" ? "opacity-60 pointer-events-none" : "opacity-100"}`}>
                 <Link to={`/user/${comment.user?._id}`} className="shrink-0">
                     <StoryAvatar user={comment.user} size="w-8 h-8" />
                 </Link>
@@ -130,7 +130,7 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
                         <div className="flex flex-col gap-3 mt-2 border-l-2 border-gray-700 pl-4">
                             <div onClick={() => setShowReplies(false)} className="cursor-pointer text-xs text-gray-500 mb-1 hover:text-white">Hide replies</div>
                             {comment.replies.map((reply) => (
-                                <div id={`comment-${reply._id}`} key={reply._id} className="flex gap-2 items-start opacity-90 transition-colors duration-500 rounded-lg p-1">
+                                <div id={`comment-${reply._id}`} key={reply._id} className={`flex gap-2 items-start transition-all duration-200 rounded-lg p-1 ${reply.status === "sending" ? "opacity-50 pointer-events-none" : "opacity-90 hover:bg-white/5"}`}>
                                     <Link to={`/user/${reply.user?._id}`} className="shrink-0">
                                         <StoryAvatar user={reply.user} size="w-6 h-6" />
                                     </Link>

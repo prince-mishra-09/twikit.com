@@ -31,9 +31,10 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
         onMouseLeave={handleTouchEnd}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className={`max-w-[75%] px-4 py-2 text-sm rounded-2xl break-words relative cursor-pointer flex flex-wrap items-end gap-2 shadow-sm ${ownMessage
-          ? "bg-gradient-to-r from-indigo-500 to-blue-500 text-white rounded-br-sm"
-          : "bg-[#1F2937] text-gray-100 rounded-bl-sm border border-white/10"
+        className={`max-w-[75%] px-4 py-2 text-sm rounded-2xl break-words relative cursor-pointer flex flex-wrap items-end gap-2 shadow-sm transition-opacity duration-200 ${message.status === "sending" ? "opacity-70 pointer-events-none" : "opacity-100"
+          } ${ownMessage
+            ? "bg-gradient-to-r from-indigo-500 to-blue-500 text-white rounded-br-sm"
+            : "bg-[#1F2937] text-gray-100 rounded-bl-sm border border-white/10"
           }`}
       >
         {/* SHARED CONTENT CARD */}

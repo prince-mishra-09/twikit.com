@@ -107,7 +107,6 @@ export const ChatContextProvider = ({ children }) => {
     try {
       const { data } = await axios.post("/api/messages", {
         recieverId: id,
-        message: "Hi", // Send initial message to create chat? Or empty string works? User code had "".
       });
 
       // Update local chats state if new

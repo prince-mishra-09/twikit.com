@@ -140,19 +140,25 @@ export const StoriesProvider = ({ children }) => {
     }
 
     async function deleteStory(storyId) {
+        const previousStories = stories;
+
+        // Optimistic Update
+        setStories(prev => prev.map(userStore => ({
+            ...userStore,
+            stories: userStore.stories.filter(s => s._id !== storyId)
+        })).filter(userStore => userStore.stories.length > 0));
+
         try {
             const { data } = await axios.delete(`/api/story/${storyId}`);
             if (data.message === "Story deleted successfully") {
-                // Remove from state
-                setStories(prev => prev.map(userStore => ({
-                    ...userStore,
-                    stories: userStore.stories.filter(s => s._id !== storyId)
-                })).filter(userStore => userStore.stories.length > 0)); // Remove user if no stories left
                 return true;
             }
+            // If message is different, maybe it failed silently? Revert.
+            setStories(previousStories);
             return false;
         } catch (error) {
             console.error("Error deleting story:", error);
+            setStories(previousStories); // Revert on actual error
             return false;
         }
     }

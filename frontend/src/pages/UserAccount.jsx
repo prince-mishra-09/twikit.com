@@ -102,7 +102,11 @@ const UserAccount = ({ user: loggedInUser }) => {
   }, [socket, user?._id]);
 
   const followHandler = async () => {
-    // Optimistic Logic
+    // 1. STORE PREVIOUS STATE
+    const prevFollowed = followed;
+    const prevRequested = requested;
+
+    // 2. OPTIMISTIC UPDATE
     if (followed) {
       setFollowed(false);
       setRequested(false);
@@ -117,22 +121,31 @@ const UserAccount = ({ user: loggedInUser }) => {
       }
     }
 
-    const message = await followUser(user._id);
+    try {
+      const message = await followUser(user._id);
 
-    // Status Logic based on backend message
-    if (message === "Follow Request Sent") {
-      setRequested(true);
-      setFollowed(false);
-    } else if (message === "User Followed") {
-      setFollowed(true);
-      setRequested(false);
-      // Feature 3: Refresh Main Feed Stories immediately
-      fetchStories();
-      // Also refresh local story for this user
-      loadSpecificStory();
-    } else if (message === "User Unfollowed") {
-      setFollowed(false);
-      setRequested(false);
+      // 3. FINAL SYNC FROM BACKEND MESSAGE
+      if (message === "Follow Request Sent") {
+        setRequested(true);
+        setFollowed(false);
+      } else if (message === "User Followed") {
+        setFollowed(true);
+        setRequested(false);
+        fetchStories();
+        loadSpecificStory();
+      } else if (message === "User Unfollowed") {
+        setFollowed(false);
+        setRequested(false);
+      } else if (!message) {
+        // Revert on failure
+        setFollowed(prevFollowed);
+        setRequested(prevRequested);
+      }
+    } catch (error) {
+      console.error("Follow error:", error);
+      setFollowed(prevFollowed);
+      setRequested(prevRequested);
+      toast.error("An error occurred. Please try again.");
     }
   };
 
