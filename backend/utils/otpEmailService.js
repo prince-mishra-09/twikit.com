@@ -100,33 +100,181 @@ class OTPEmailService {
     }
   }
 
-  // Send welcome email after successful registration
   async sendWelcomeEmail(email, name, username) {
-    const subject = "Welcome to Twikit";
+    const subject = "Welcome to Twikit — A quiet place to be real";
     const html = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 480px; margin: 40px auto; padding: 20px; color: #4b5563; line-height: 1.6;">
-        <div style="margin-bottom: 40px;">
-          <h1 style="font-size: 16px; font-weight: 500; color: #9ca3af; margin: 0;">Twikit</h1>
-        </div>
-        
-        <p style="font-size: 18px; font-weight: 400; color: #1f2937; margin-bottom: 24px;">Welcome to Twikit.</p>
-        
-        <p style="margin-bottom: 24px;">
-          Twikit is a calm place to share and connect. Everything here is simple: a chronological feed, privacy-first by default, and no addictive algorithms to manage your attention.
-        </p>
-        
-        <p style="margin-bottom: 24px;">
-          You’re in control of what you see and who sees you. 
-        </p>
-        
-        <p style="font-style: italic; color: #6b7280; margin-bottom: 48px;">
-          Take your time. Twikit works best when used intentionally.
-        </p>
-        
-        <div style="border-top: 1px solid #f3f4f6; padding-top: 24px; font-size: 12px; color: #9ca3af;">
-          This is a system welcome email for your account @${username}.
-        </div>
-      </div>
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+              body {
+                  background-color: #0B0F14;
+                  color: #E2E8F0;
+                  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                  margin: 0;
+                  padding: 0;
+                  -webkit-font-smoothing: antialiased;
+              }
+              .container {
+                  max-width: 600px;
+                  margin: 0 auto;
+                  padding: 48px 24px;
+              }
+              .logo {
+                  font-size: 20px;
+                  font-weight: 800;
+                  letter-spacing: -0.04em;
+                  color: #FFFFFF;
+                  margin-bottom: 48px;
+                  display: block;
+                  text-decoration: none;
+              }
+              .logo-gradient {
+                  background: linear-gradient(135deg, #6366F1 0%, #A855F7 100%);
+                  -webkit-background-clip: text;
+                  -webkit-text-fill-color: transparent;
+              }
+              .greeting {
+                  font-size: 32px;
+                  font-weight: 700;
+                  color: #FFFFFF;
+                  margin-bottom: 24px;
+                  letter-spacing: -0.03em;
+                  line-height: 1.1;
+              }
+              .hero-text {
+                  font-size: 17px;
+                  line-height: 1.7;
+                  color: #94A3B8;
+                  margin-bottom: 40px;
+              }
+              .card {
+                  background: rgba(255, 255, 255, 0.03);
+                  border: 1px solid rgba(255, 255, 255, 0.08);
+                  border-radius: 24px;
+                  padding: 32px;
+                  margin-bottom: 40px;
+              }
+              .feature-label {
+                  display: inline-block;
+                  padding: 6px 14px;
+                  border-radius: 100px;
+                  font-size: 11px;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  letter-spacing: 0.05em;
+                  margin-bottom: 12px;
+              }
+              .label-real { background: rgba(99, 102, 241, 0.15); color: #818CF8; }
+              .label-reflect { background: rgba(168, 85, 247, 0.15); color: #C084FC; }
+              
+              .feature-text {
+                  font-size: 14px;
+                  color: #64748B;
+                  margin: 0 0 24px 0;
+                  line-height: 1.6;
+              }
+              .manifesto {
+                  border-left: 3px solid #6366F1;
+                  padding: 4px 0 4px 24px;
+                  margin: 48px 0;
+                  font-size: 18px;
+                  font-weight: 500;
+                  color: #F1F5F9;
+                  line-height: 1.5;
+              }
+              .footer {
+                  margin-top: 80px;
+                  padding-top: 40px;
+                  border-top: 1px solid rgba(255, 255, 255, 0.05);
+                  color: #475569;
+                  font-size: 12px;
+                  line-height: 1.8;
+              }
+              .footer a {
+                  color: #94A3B8;
+                  text-decoration: none;
+                  font-weight: 500;
+              }
+              .footer-links {
+                  margin-bottom: 16px;
+              }
+              .footer-links span { margin: 0 8px; color: #334155; }
+              
+              .signature {
+                  margin-top: 48px;
+              }
+              .signature-name {
+                  font-weight: 700;
+                  color: #FFFFFF;
+                  font-size: 18px;
+                  margin: 0;
+              }
+              .signature-sub {
+                  color: #64748B;
+                  font-size: 14px;
+                  margin: 4px 0 0 0;
+              }
+          </style>
+      </head>
+      <body>
+          <div class="container">
+              <div class="logo">
+                  <span class="logo-gradient">TWIKIT</span>
+              </div>
+              
+              <h1 class="greeting">Hi ${name},</h1>
+              
+              <p class="hero-text">
+                  Welcome to <strong>Twikit</strong>. <br><br>
+                  You didn’t just sign up for another social app. You stepped into a quieter place on the internet.
+              </p>
+              
+              <div class="card">
+                  <p style="margin-top: 0; color: #CBD5E1; font-size: 15px; margin-bottom: 24px;">Twikit was built for people who are tired of performing. Tired of pretending. Tired of measuring themselves with likes.</p>
+                  
+                  <div class="feature-label label-real">Real</div>
+                  <p class="feature-text">When someone genuinely connects with what you shared. Public appreciation without the performance.</p>
+                  
+                  <div class="feature-label label-reflect" style="margin-top: 8px;">Less real</div>
+                  <p class="feature-text" style="margin-bottom: 0;">A private signal, visible only to you, meant for reflection — never public judgment.</p>
+              </div>
+              
+              <p class="hero-text">
+                  Here, your posts aren’t pushed by loud algorithms. There’s no “For You” page trying to keep you scrolling. What you see is chronological, intentional, and in your control.
+              </p>
+              
+              <div class="manifesto">
+                  “You don’t need to post perfectly here. You don’t need to post often. Twikit works best when you use it slowly and honestly.”
+              </div>
+              
+              <p class="hero-text" style="margin-bottom: 0;">
+                  Take your time. Explore gently. Share when it feels right. <br><br>
+                  Welcome to a calmer kind of social media.
+              </p>
+              
+              <div class="signature">
+                  <p class="signature-name">— Twikit</p>
+                  <p class="signature-sub">A quiet place to be real</p>
+              </div>
+              
+              <div class="footer">
+                  <div class="footer-links">
+                      <a href="https://twikit.online/privacy">Privacy</a>
+                      <span>&bull;</span>
+                      <a href="https://twikit.online/terms">Terms</a>
+                      <span>&bull;</span>
+                      <a href="https://twikit.online/help">Help</a>
+                  </div>
+                  <p>&copy; 2026 Twikit. All rights reserved. <br>
+                  This is a transactional email for your account @${username}. <br>
+                  Twikit HQ — A calmer corner of the web.</p>
+              </div>
+          </div>
+      </body>
+      </html>
     `;
     return this.sendEmail({ to: email, subject, html });
   }
