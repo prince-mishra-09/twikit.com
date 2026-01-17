@@ -20,7 +20,7 @@ const ChatPage = ({ user }) => {
   const { onlineUsers } = SocketData();
 
   useEffect(() => {
-    if (selectedChat) {
+    if (selectedChat && selectedChat._id) {
       const markRead = async () => {
         try {
           await axios.put(`/api/messages/read/${selectedChat._id}`);
@@ -149,7 +149,7 @@ const ChatPage = ({ user }) => {
                   key={c._id}
                   chat={c}
                   setSelectedChat={setSelectedChat}
-                  isOnline={onlineUsers.includes(c.users[0]._id)}
+                  isOnline={c.users && c.users[0] ? onlineUsers.includes(c.users[0]._id) : false}
                   unreadCount={c.unreadCount}
                 />
               ))

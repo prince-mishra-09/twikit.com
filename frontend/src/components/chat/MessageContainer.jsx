@@ -16,8 +16,8 @@ const MessageContainer = ({ selectedChat, setChats }) => {
   const { socket, onlineUsers } = SocketData();
   const { setSelectedChat } = ChatData();
 
-  const otherUser = selectedChat.users[0];
-  const isOnline = onlineUsers.includes(otherUser._id);
+  const otherUser = selectedChat?.users?.[0];
+  const isOnline = otherUser ? onlineUsers.includes(otherUser._id) : false;
   const prevIsOnline = useRef(isOnline);
 
   const formatLastSeen = (dateString) => {
@@ -34,24 +34,24 @@ const MessageContainer = ({ selectedChat, setChats }) => {
   };
 
   useEffect(() => {
-    if (prevIsOnline.current && !isOnline) {
+    if (otherUser && prevIsOnline.current && !isOnline) {
       const now = new Date().toISOString();
       setSelectedChat(prev => ({
         ...prev,
-        users: prev.users.map(u => u._id === otherUser._id ? { ...u, lastSeen: now } : u)
+        users: prev.users?.map(u => u._id === otherUser._id ? { ...u, lastSeen: now } : u)
       }));
       setChats(prev => prev.map(chat => {
-        if (chat._id === selectedChat._id) {
+        if (chat._id === selectedChat?._id) {
           return {
             ...chat,
-            users: chat.users.map(u => u._id === otherUser._id ? { ...u, lastSeen: now } : u)
+            users: chat.users?.map(u => u._id === otherUser._id ? { ...u, lastSeen: now } : u)
           };
         }
         return chat;
       }));
     }
     prevIsOnline.current = isOnline;
-  }, [isOnline, otherUser._id, selectedChat._id, setChats, setSelectedChat]);
+  }, [isOnline, otherUser?._id, selectedChat?._id, setChats, setSelectedChat]);
 
   useEffect(() => {
     socket.on("newMessage", (message) => {
@@ -89,6 +89,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
   async function fetchMessages() {
     setLoading(true);
     try {
+      if (!selectedChat?.users?.[0]?._id) return;
       const { data } = await axios.get(
         "/api/messages/" + selectedChat.users[0]._id
       );
@@ -160,23 +161,27 @@ const MessageContainer = ({ selectedChat, setChats }) => {
         >
           <FaArrowLeft />
         </button>
-        <img
-          src={otherUser.profilePic.url}
-          className="w-9 h-9 rounded-full object-cover"
-          alt=""
-        />
-        <div>
-          <p className="text-white font-medium">
-            {otherUser.name}
-          </p>
-          <p className="text-xs text-gray-400">
-            {isOnline ? (
-              <span className="text-green-400 font-medium">Active now</span>
-            ) : (
-              formatLastSeen(otherUser.lastSeen)
-            )}
-          </p>
-        </div>
+        {otherUser && (
+          <>
+            <img
+              src={otherUser.profilePic?.url}
+              className="w-9 h-9 rounded-full object-cover"
+              alt=""
+            />
+            <div>
+              <p className="text-white font-medium">
+                {otherUser.name}
+              </p>
+              <p className="text-xs text-gray-400">
+                {isOnline ? (
+                  <span className="text-green-400 font-medium">Active now</span>
+                ) : (
+                  formatLastSeen(otherUser.lastSeen)
+                )}
+              </p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* MESSAGES */}

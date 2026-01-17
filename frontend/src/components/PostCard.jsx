@@ -624,392 +624,13 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
           )}
         </div>
 
-        {/* COMMENTS DRAWER VIA PORTAL (Unified) */}
-        {show && createPortal(
-          <div className="fixed inset-0 z-[9999] flex justify-center items-end" role="dialog">
-            {/* Backdrop */}
-            <div
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-              onClick={() => setShow(false)}
-            />
-
-            {/* Drawer */}
-            <div className="relative w-full max-w-md bg-[#1F2937] rounded-t-3xl h-[60vh] md:h-[75vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
-              {/* Drawer Handle */}
-              <div className="flex justify-center pt-3 pb-1">
-                <div className="w-12 h-1.5 bg-gray-600 rounded-full" />
-              </div>
-              {/* CONTENT */}
-              <div className="flex-1 overflow-y-auto px-4 custom-scrollbar">
-                {loadingComments ? (
-                  <div className="flex justify-center p-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-                  </div>
-                ) : (
-                  <>
-                    {/* Header */}
-                    <h3 className="text-center font-bold text-white mb-4 border-b border-gray-700 pb-2">Comments</h3>
-
-                    {comments.length === 0 ? (
-                      <div className="text-center text-gray-400 py-10">No comments yet</div>
-                    ) : (
-                      <div className="space-y-4 pb-4">
-                        {comments.map((comment) => (
-                          <CommentItem
-                            key={comment._id}
-                            comment={comment}
-                            deleteComment={deleteComment}
-                            userId={user?._id}
-                            postId={value._id}
-                            addComment={addComment}
-                            activeCommentMenuId={activeCommentMenuId}
-                            setActiveCommentMenuId={setActiveCommentMenuId}
-                            setReplyingTo={setReplyingTo}
-                            setDeleteModal={setDeleteModal}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {/* DELETE CONFIRMATION MODAL (Nested inside Comment Drawer) */}
-                {deleteModal.show && (
-                  <div className="absolute inset-x-0 bottom-0 bg-[#2D3748] p-4 rounded-t-2xl shadow-xl z-50 animate-in slide-in-from-bottom border-t border-white/10">
-                    <p className="text-white text-center mb-4 font-semibold">Delete this comment?</p>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => setDeleteModal({ show: false, commentId: null })}
-                        className="flex-1 py-2 rounded-lg bg-gray-600 text-white font-medium hover:bg-gray-500"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={() => {
-                          deleteComment(value._id, deleteModal.commentId);
-                          setDeleteModal({ show: false, commentId: null });
-                        }}
-                        className="flex-1 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-500"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Input Area - Fixed at bottom of drawer */}
-              <div className="p-4 border-t border-gray-700 bg-[#1F2937] rounded-b-none lg:rounded-b-3xl pb-6 md:pb-4">
-                {/* Replying Banner */}
-                {replyingTo && (
-                  <div className="flex justify-between items-center bg-gray-800 px-4 py-2 rounded-t-lg mb-2 mx-1">
-                    <span className="text-xs text-gray-300">Replying to <span className="text-[var(--accent)] font-bold">@{replyingTo.user.username}</span></span>
-                    <button onClick={() => setReplyingTo(null)} className="text-gray-400 hover:text-white">✕</button>
-                  </div>
-                )}
-
-                {/* Emoji Bar */}
-                <div className="flex justify-between mb-3 px-2">
-                  {["❤️", "🙌", "🔥", "👏", "😢", "😍", "😂"].map((emoji) => (
-                    <button
-                      key={emoji}
-                      type="button"
-                      onClick={() => setComment((prev) => prev + emoji)}
-                      className="text-2xl hover:scale-125 transition-transform"
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-
-                <form
-                  onSubmit={addCommentHandler}
-                  className="flex gap-3 items-center"
-                >
-                  <img
-                    src={user.profilePic?.url}
-                    className="w-8 h-8 rounded-full border border-gray-600"
-                    alt=""
-                  />
-                  <div className="flex-1 relative">
-                    <input
-                      type="text"
-                      className="w-full bg-gray-800 text-white text-sm rounded-full px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] border border-transparent placeholder:text-gray-500"
-                      placeholder={replyingTo ? "Write a reply..." : `Comment as @${user?.username}...`}
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      autoFocus={!!replyingTo}
-                    />
-                    <button
-                      type="submit"
-                      disabled={!comment.trim()}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--accent)] font-semibold text-sm hover:opacity-80 disabled:opacity-50 px-2"
-                    >
-                      Post
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
-
-        <ShareModal
-          isOpen={shareModal}
-          onClose={() => setShareModal(false)}
-          content={{
-            type: "reel",
-            contentId: value._id,
-            owner: value.owner,
-            preview: {
-              title: value.caption,
-              image: value.post.url,
-              username: value.owner.username || value.owner.name
-            }
-          }}
-        />
-
-        <RealModal
-          isOpen={realModal}
-          onClose={() => setRealModal(false)}
-          id={value._id}
-        />
-
       </div >
     );
   }
 
-  const formatCommentDate = (dateString) => {
-    if (!dateString) return "just now";
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now - date) / 1000);
-
-    if (diffInSeconds < 60) return "just now";
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d`;
-    return `${Math.floor(diffInSeconds / 604800)}w`;
-  };
-
-  // ===================== POST RENDER =====================
-  return (
-    <div className="bg-[#0B0F14] w-full border-b border-white/10 pb-4">
-      {/* ===== POST IMAGE & OVERLAY HEADER ===== */}
-      <div className="relative w-full group">
-        {/* Header Overlay */}
-        <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-10 bg-gradient-to-b from-black/60 to-transparent pointer-events-none">
-          <Link
-            to={`/user/${value.owner._id}`}
-            className="flex items-center gap-3 pointer-events-auto"
-          >
-            <div className="relative">
-              <StoryAvatar user={value.owner} />
-              {onlineUsers?.includes(value.owner._id) && (
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-black z-10" />
-              )}
-            </div>
-            <div className="flex flex-col">
-              <p className="text-white font-bold text-sm shadow-black drop-shadow-md">
-                {value.owner.name}
-              </p>
-              <p className="text-gray-200 text-[10px] drop-shadow-md">{formatDate}</p>
-            </div>
-          </Link>
-
-          {/* Delete / Follow / Menu Button Overlay */}
-          <div className="pointer-events-auto flex items-center gap-2">
-            {user && value.owner._id === user._id ? (
-              <button
-                onClick={deleteHandler}
-                className="bg-black/40 backdrop-blur-md p-2 rounded-full text-white/80 hover:text-red-500 hover:bg-black/60 transition-all"
-              >
-                <MdDelete className="text-lg" />
-              </button>
-            ) : (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={followHandler}
-                  className={`text-xs font-bold px-4 py-1.5 rounded-full backdrop-blur-md transition-all shadow-lg ${isFollowed
-                    ? "bg-white/20 text-white border border-white/20"
-                    : "bg-indigo-600/90 text-white hover:bg-indigo-500"
-                    }`}
-                >
-                  {isFollowed ? "Following" : "Follow"}
-                </button>
-
-                <div className="relative">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
-                    className="bg-black/40 backdrop-blur-md p-2 rounded-full text-white/80 hover:text-white hover:bg-black/60 transition-all"
-                  >
-                    <BsThreeDotsVertical className="text-sm" />
-                  </button>
-                  {showMenu && (
-                    <div className="absolute right-0 top-full mt-2 w-40 bg-[#1F2937]/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[100] animate-in slide-in-from-top-2 fade-in duration-200">
-
-                      <button
-                        onClick={notInterestedHandler}
-                        className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
-                      >
-                        ❌ Not Interested
-                      </button>
-                      <button
-                        onClick={muteHandler}
-                        className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
-                      >
-                        🔇 Mute @{value.owner.username || value.owner.name?.toLowerCase().replace(/\s+/g, '_')}
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (confirm("Block this user? They will disappear from your feed.")) {
-                            blockUser(value.owner._id, null);
-                            setIsHidden(true);
-                          }
-                          setShowMenu(false);
-                        }}
-                        className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
-                      >
-                        🚫 Block User
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* The Image */}
-        <img
-          src={value.post.url}
-          alt=""
-          onClick={() => setShowImage(true)}
-          className="w-full h-auto object-cover cursor-pointer active:opacity-95 transition-opacity min-h-[300px]"
-        />
-      </div>
-
-      {/* FULL SCREEN IMAGE VIEWER VIA PORTAL */}
-      {
-        showImage && createPortal(
-          <div
-            className="fixed inset-0 z-[9999] bg-black flex items-center justify-center p-0 animate-in fade-in duration-200"
-            onClick={() => setShowImage(false)}
-          >
-            <button
-              onClick={() => setShowImage(false)}
-              className="absolute top-4 right-4 text-white/80 hover:text-white text-4xl z-[10000] p-2"
-            >
-              &times;
-            </button>
-            <img
-              src={value.post.url}
-              alt=""
-              className="max-w-screen max-h-screen object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
-          </div>,
-          document.body
-        )
-      }
-
-      {/* ===== ACTIONS & CAPTION ===== */}
-      <div className="px-3 pt-3">
-        {/* Action Row: Reals &#x26; Comments inline */}
-        <div className="flex items-center gap-6 mb-3">
-          <button
-            onClick={() => feedbackHandler("real")}
-            className="flex items-center gap-2 group transition-transform active:scale-95 translate-y-[-1px]"
-          >
-            <RealIcon active={isReal} />
-            <span className={`text-sm font-bold tracking-tight ${isReal ? "text-indigo-400" : "text-gray-400"}`}>
-              Real
-            </span>
-            <span
-              onClick={(e) => { e.stopPropagation(); setRealModal(true); }}
-              className={`text-sm font-medium ml-0.5 ${isReal ? "text-indigo-400/80" : "text-gray-500"} hover:underline`}
-            >
-              {realCount}
-            </span>
-          </button>
-
-          <button
-            onClick={() => feedbackHandler("reflect")}
-            className="flex items-center gap-2 group transition-transform active:scale-95 translate-y-[-1px]"
-          >
-            <ReflectIcon active={isReflect} />
-            <span className={`text-sm font-bold tracking-tight ${isReflect ? "text-gray-200" : "text-gray-400"}`}>
-              Less real
-            </span>
-            {isOwner && (
-              <span className="text-[10px] text-gray-500 font-medium italic translate-y-[1px]">
-                {reflectCount}p
-              </span>
-            )}
-          </button>
-
-          {/* Comment Group */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShow(!show)}
-              className="text-2xl transition-transform active:scale-75"
-            >
-              <BsChatFill className="text-white" />
-            </button>
-            <span className="text-white font-semibold text-sm">{value.commentsCount || 0}</span>
-          </div>
-
-          {/* Share Group */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShareModal(true)}
-              className="text-2xl transition-transform active:scale-75"
-            >
-              <IoPaperPlaneOutline className="text-white" />
-            </button>
-          </div>
-
-          {/* Bookmark Group */}
-          <div className="flex items-center gap-2 ml-auto">
-            <button
-              onClick={saveHandler}
-              className="text-2xl transition-transform active:scale-75"
-            >
-              {isSaved ? <BsBookmarkFill className="text-white" /> : <BsBookmark className="text-white" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Caption */}
-        {value.caption && (
-          <div className="text-white text-sm mb-2">
-            <Link to={`/user/${value.owner._id}`} className="font-bold mr-2">
-              @{value.owner.username || value.owner.name.toLowerCase().replace(/\s+/g, '_')}
-            </Link>
-            <span className="text-gray-200">
-              {expanded ? value.caption : (value.caption.slice(0, captionLimit) + (value.caption.length > captionLimit ? "..." : ""))}
-            </span>
-            {value.caption.length > captionLimit && (
-              <button onClick={() => setExpanded(!expanded)} className="text-gray-400 text-xs ml-1 hover:text-white">
-                {expanded ? "less" : "more"}
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* View Comments Link */}
-        {value.commentsCount > 0 && (
-          <button
-            onClick={() => setShow(!show)}
-            className="text-gray-500 text-xs font-medium"
-          >
-            View all {value.commentsCount} comments
-          </button>
-        )}
-      </div>
-
-      {/* ===== COMMENTS DRAWER VIA PORTAL ===== */}
+  // Common UI Elements (Drawer, Share, Real)
+  const renderCommonUI = () => (
+    <>
       <AnimatePresence>
         {show && createPortal(
           <div className="fixed inset-0 z-[9999] flex justify-center items-end" role="dialog">
@@ -1031,7 +652,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
               className="relative w-full max-w-md bg-[#1F2937] rounded-t-3xl h-[60vh] md:h-[75vh] flex flex-col shadow-2xl"
             >
               {/* Drawer Handle */}
-              <div className="w-full flex justify-center pt-3 pb-1" onClick={() => setShow(false)}>
+              <div className="w-full flex justify-center pt-3 pb-1 cursor-pointer" onClick={() => setShow(false)}>
                 <div className="w-12 h-1.5 bg-gray-600 rounded-full" />
               </div>
 
@@ -1065,6 +686,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
                       onReplyAdded={handleNewReply}
                       onDelete={handleDeleteLocal}
                       setReplyingTo={setReplyingTo}
+                      setDeleteModal={setDeleteModal}
                     />
                   ))
                 ) : (
@@ -1129,8 +751,8 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
                   className="flex gap-3 items-center"
                 >
                   <img
-                    src={user.profilePic?.url}
-                    className="w-8 h-8 rounded-full border border-gray-600"
+                    src={user?.profilePic?.url || "https://placehold.co/400"}
+                    className="w-8 h-8 rounded-full border border-gray-600 object-cover"
                     alt=""
                   />
                   <div className="flex-1 relative">
@@ -1157,6 +779,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
           document.body
         )}
       </AnimatePresence>
+
       <ShareModal
         isOpen={shareModal}
         onClose={() => setShareModal(false)}
@@ -1166,8 +789,8 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
           owner: value.owner, // Include owner for private restriction
           preview: {
             title: value.caption,
-            image: value.post.url,
-            username: value.owner.username || value.owner.name
+            image: value.post?.url,
+            username: value.owner?.username || value.owner?.name
           }
         }}
       />
@@ -1176,8 +799,25 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
         onClose={() => setRealModal(false)}
         id={value._id}
       />
-    </div>
+    </>
   );
+
+  { renderCommonUI() }
+    </div >
+  );
+};
+
+const formatCommentDate = (dateString) => {
+  if (!dateString) return "just now";
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - date) / 1000);
+
+  if (diffInSeconds < 60) return "just now";
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h`;
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d`;
+  return `${Math.floor(diffInSeconds / 604800)}w`;
 };
 
 // Memoize PostCard to prevent unnecessary re-renders
@@ -1188,6 +828,7 @@ export default React.memo(PostCard, (prevProps, nextProps) => {
     prevProps.value.reals?.length === nextProps.value.reals?.length &&
     prevProps.value.reflections?.length === nextProps.value.reflections?.length &&
     prevProps.isActive === nextProps.isActive &&
-    prevProps.commentId === nextProps.commentId
+    prevProps.commentId === nextProps.commentId &&
+    prevProps.openComments === nextProps.openComments
   );
 });

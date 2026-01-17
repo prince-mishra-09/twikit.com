@@ -52,17 +52,17 @@ const RealModal = ({ isOpen, onClose, id }) => {
               reals.map((e, i) => (
                 <Link
                   key={i}
-                  to={`/user/${e._id}`}
+                  to={`/user/${e?._id}`}
                   onClick={onClose}
                   className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition"
                 >
                   <img
-                    src={e.profilePic.url}
+                    src={e?.profilePic?.url || "https://placehold.co/400"}
                     alt=""
                     className="w-9 h-9 rounded-full object-cover"
                   />
                   <span className="text-gray-200 text-sm font-medium">
-                    {e.name}
+                    {e?.name || "Unknown User"}
                   </span>
                 </Link>
               ))

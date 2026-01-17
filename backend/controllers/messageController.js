@@ -82,7 +82,17 @@ export const sendMessage = TryCatch(async (req, res) => {
 
   // IF NO MESSAGE AND NO SHARED CONTENT, JUST RETURN CHAT
   if (!message && !sharedContent) {
-    return res.status(200).json({ message: "Chat initiated", chat });
+    // Populate users to avoid frontend crash
+    await chat.populate("users", "name username profilePic lastSeen");
+
+    const otherUser = chat.users.find(
+      (u) => u._id.toString() !== senderId.toString()
+    );
+
+    return res.status(200).json({
+      ...chat.toObject(),
+      users: [otherUser], // Return only the other user for consistency
+    });
   }
 
   const newMessage = new Messages({

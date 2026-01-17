@@ -133,8 +133,8 @@ const Account = ({ user }) => {
                 user.mutedUsers.map((u) => (
                   <div key={u._id} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <img src={u.profilePic.url} alt="" className="w-10 h-10 rounded-full border border-white/10 object-cover" />
-                      <p className="text-white font-medium">{u.name}</p>
+                      <img src={u.profilePic?.url || "https://placehold.co/400"} alt="" className="w-10 h-10 rounded-full border border-white/10 object-cover" />
+                      <p className="text-white font-medium">{u.name || "Unknown"}</p>
                     </div>
                     <button
                       onClick={() => unmuteUser(u._id)}
@@ -471,7 +471,7 @@ const EditProfile = ({ user, onBack }) => {
   const [bio, setBio] = useState(user.bio || "");
   const [link, setLink] = useState(user.link || "");
   const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(user.profilePic.url);
+  const [preview, setPreview] = useState(user.profilePic?.url || "https://placehold.co/400");
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
 

@@ -18,7 +18,7 @@ const Chat = ({ chat, setSelectedChat, isOnline, unreadCount }) => {
           {/* Avatar */}
           <div className="relative">
             <img
-              src={user.profilePic.url}
+              src={user.profilePic?.url}
               alt=""
               className="w-10 h-10 rounded-full object-cover"
             />
@@ -36,13 +36,17 @@ const Chat = ({ chat, setSelectedChat, isOnline, unreadCount }) => {
             </p>
 
             <div className="flex items-center gap-1 text-gray-400 text-xs truncate">
-              {loggedInUser._id === chat.latestMessage.sender && (
+              {loggedInUser && chat?.latestMessage && loggedInUser._id === chat.latestMessage.sender && (
                 <BsSendCheck className="text-indigo-400 text-sm" />
               )}
               <span>
-                {chat.latestMessage.text.length > 22
-                  ? chat.latestMessage.text.slice(0, 22) + "…"
-                  : chat.latestMessage.text}
+                {chat?.latestMessage?.text ? (
+                  chat.latestMessage.text.length > 22
+                    ? chat.latestMessage.text.slice(0, 22) + "…"
+                    : chat.latestMessage.text
+                ) : (
+                  "No messages yet"
+                )}
               </span>
             </div>
           </div>
