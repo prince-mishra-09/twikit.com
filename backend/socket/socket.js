@@ -3,6 +3,8 @@ import http from "http";
 import express from "express";
 import User from "../models/userModel.js";
 
+import jwt from "jsonwebtoken";
+
 const app = express();
 const server = http.createServer(app);
 
@@ -20,18 +22,54 @@ export const getReceiverSocketId = (receiverId) => {
   return userSocketMap[receiverId];
 };
 
+// 🔒 MANDATORY JWT AUTHENTICATION MIDDLEWARE
+io.use(async (socket, next) => {
+  try {
+    const cookieString = socket.request.headers.cookie;
+    if (!cookieString) return next(new Error("Authentication error: No cookies"));
+
+    // Extract token from cookie (handle multiple cookies)
+    const cookies = Object.fromEntries(
+      cookieString.split(';').map(c => {
+        const [key, ...v] = c.split('=');
+        return [key.trim(), v.join('=')];
+      })
+    );
+
+    const token = cookies.token;
+    if (!token) return next(new Error("Authentication error: Token missing"));
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Dynamic import to avoid circular dependency
+    const module = await import("../models/userModel.js");
+    const User = module.default;
+
+    const user = await User.findById(decoded._id).select("-password");
+
+    if (!user) return next(new Error("Authentication error: User not found"));
+
+    socket.user = user; // Attach verified user to socket
+    next();
+  } catch (err) {
+    console.error("Socket Auth Error:", err.message);
+    next(new Error("Authentication error: Invalid Token"));
+  }
+});
+
 io.on("connection", (socket) => {
-  const userId = socket.handshake.query.userId;
+  // ✅ Identity is now verified via JWT
+  const userId = socket.user._id.toString();
 
   if (userId) {
     userSocketMap[userId] = socket.id;
-    socket.join(userId);
+    socket.join(userId); // Join private room based on verified ID
 
-    // Broadcast to others (not self) that user is online
+    // Broadcast to others that user is online
     socket.broadcast.emit("userOnline", userId);
   }
 
-  // Send current online users only to the newly connected user
+  // Send current online users to this user
   socket.emit("getOnlineUser", Object.keys(userSocketMap));
 
   socket.on("disconnect", async () => {
@@ -42,11 +80,8 @@ io.on("connection", (socket) => {
 
     // Update lastSeen
     try {
-      // Dynamic import to avoid circular dependency
-      // Ensure we get the default export
       const module = await import("../models/userModel.js");
       const User = module.default;
-
       await User.findByIdAndUpdate(userId, { lastSeen: Date.now() });
     } catch (err) {
       console.log("Error updating lastSeen:", err);

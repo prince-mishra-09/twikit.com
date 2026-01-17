@@ -5,6 +5,7 @@ import generateToken from "../utils/generateToken.js";
 import User from '../models/userModel.js'
 import tryCatch from "../utils/tryCatch.js";
 import OTP from '../models/otpModel.js';
+import VerifiedEmail from '../models/VerifiedEmail.js';
 import otpEmailService from '../utils/otpEmailService.js';
 
 const registerUser = tryCatch(async (req, res) => {
@@ -38,7 +39,15 @@ const registerUser = tryCatch(async (req, res) => {
 
     if (user) {
         return res.status(400).json({
-            message: "User already hai",
+            message: "User already exists",
+        });
+    }
+
+    // MANDATORY OTP CHECK: Verify email has been validated via OTP recently
+    const isVerified = await VerifiedEmail.findOne({ email });
+    if (!isVerified) {
+        return res.status(401).json({
+            message: "Email not verified. Please complete OTP verification first."
         });
     }
 
@@ -77,6 +86,9 @@ const registerUser = tryCatch(async (req, res) => {
     }
 
     generateToken(user._id, res)
+
+    // Revoke temporary verification record (single-use)
+    await VerifiedEmail.deleteOne({ email });
 
     res.status(201).json({
         message: "user registered",
@@ -211,6 +223,10 @@ export const verifyOTP = tryCatch(async (req, res) => {
 
     // OTP is correct - delete it
     await OTP.deleteOne({ email });
+
+    // Grant temporary verification status for registration (expires in 10 mins)
+    await VerifiedEmail.deleteMany({ email }); // Clear any stale ones
+    await VerifiedEmail.create({ email });
 
     res.json({
         message: "Email verified successfully",
