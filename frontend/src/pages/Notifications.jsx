@@ -76,8 +76,10 @@ const Notifications = () => {
 
     const getNotificationMessage = (type) => {
         switch (type) {
-            case "like":
-                return "liked your post";
+            case "real":
+                return "thinks your post is Real";
+            case "reflect":
+                return "sent a reflection on your post";
             case "comment":
                 return "commented on your post";
             case "follow":

@@ -73,11 +73,9 @@ export const PostContextProvider = ({ children }) => {
     }
   }
 
-  async function likePost(id) {
+  async function sendFeedback(id, feedbackType) {
     try {
-      const { data } = await axios.post("/api/post/like/" + id);
-
-
+      const { data } = await axios.post("/api/post/feedback/" + id, { feedbackType });
     } catch (error) {
       toast.error(error.response.data.message);
     }
@@ -131,22 +129,38 @@ export const PostContextProvider = ({ children }) => {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("postLikeUpdated", (data) => {
-      setPosts((prev) =>
+    socket.on("postRealUpdated", (data) => {
+      const updateFn = (prev) =>
         prev.map((p) =>
           p._id === data.postId
-            ? { ...p, likes: data.likes }
+            ? {
+              ...p,
+              reals: data.reals,
+              // If real was added, and it's mutually exclusive, we should ideally 
+              // remove user from reflections too if we have that data. 
+              // But the backend only emits reals here. 
+              // For perfection, we'd need to emit both if both changed.
+              // However, the backend logic handles this on the Next turn or within the same turn.
+              // If the user is the owner, they get a separate reflection update.
+            }
             : p
-        )
-      );
+        );
 
-      setReels((prev) =>
-        prev.map((r) =>
-          r._id === data.postId
-            ? { ...r, likes: data.likes }
-            : r
-        )
-      );
+      setPosts(updateFn);
+      setReels(updateFn);
+    });
+
+    socket.on("postReflectionUpdated", (data) => {
+      // This is ONLY received by the owner
+      const updateFn = (prev) =>
+        prev.map((p) =>
+          p._id === data.postId
+            ? { ...p, reflections: data.reflections }
+            : p
+        );
+
+      setPosts(updateFn);
+      setReels(updateFn);
     });
 
     socket.on("postCommentUpdated", (data) => {
@@ -167,7 +181,11 @@ export const PostContextProvider = ({ children }) => {
       );
     });
 
-    return () => socket.off("postLikeUpdated");
+    return () => {
+      socket.off("postRealUpdated");
+      socket.off("postReflectionUpdated");
+      socket.off("postCommentUpdated");
+    };
   }, [socket]);
 
 
@@ -180,7 +198,7 @@ export const PostContextProvider = ({ children }) => {
         reels,
         posts,
         addPost,
-        likePost,
+        sendFeedback,
         addComment,
         loading,
         addLoading,

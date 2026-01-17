@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { createPortal } from "react-dom";
 import { BsChatFill, BsThreeDotsVertical, BsBookmark, BsBookmarkFill } from "react-icons/bs";
-import { IoHeartOutline, IoHeartSharp, IoPaperPlaneOutline, IoEyeOutline } from "react-icons/io5";
+import { IoPaperPlaneOutline, IoEyeOutline } from "react-icons/io5";
 import { UserData } from "../context/UserContext";
 import { PostData } from "../context/PostContext";
 import { format } from "date-fns";
@@ -12,15 +12,19 @@ import { SocketData } from "../context/SocketContext";
 import StoryAvatar from "./StoryAvatar";
 import CommentItem from "./CommentItem";
 import ShareModal from "./ShareModal";
+import RealModal from "./RealModal";
 
 
 
 const PostCard = ({ value, type, isActive, commentId, openComments }) => {
   const { user, followUser, savePost, hidePost, muteUser, blockUser } = UserData();
-  const { likePost, addComment, deletePost, deleteComment } = PostData();
+  const { sendFeedback, addComment, deletePost, deleteComment } = PostData();
 
-  const [isLike, setIsLike] = useState(false);
-  const [likeCount, setLikeCount] = useState(value.likes?.length || 0); // Optimistic like count
+  const [isReal, setIsReal] = useState(false);
+  const [realCount, setRealCount] = useState(value.reals?.length || 0);
+  const [isReflect, setIsReflect] = useState(false);
+  const [reflectCount, setReflectCount] = useState(value.reflections?.length || 0);
+  const isOwner = user && value.owner._id === user._id;
   const [show, setShow] = useState(false);
   const [showImage, setShowImage] = useState(false);
   const [comment, setComment] = useState("");
@@ -46,6 +50,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
   const captionLimit = 40; // Characters to show before truncating
   const [isFollowed, setIsFollowed] = useState(false);
   const [shareModal, setShareModal] = useState(false);
+  const [realModal, setRealModal] = useState(false);
 
   // New Comment State
   const [comments, setComments] = useState([]);
@@ -207,17 +212,18 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [showHeart, setShowHeart] = useState(false);
 
 
 
   const formatDate = value.createdAt ? format(new Date(value.createdAt), "MMMM do") : "Unknown Date";
 
   useEffect(() => {
-    // Check if post is like
-    if (value.likes && user && value.likes?.includes(user._id)) setIsLike(true);
-    else setIsLike(false);
-  }, [value, user._id]);
+    // Check feedback status
+    if (user) {
+      setIsReal(value.reals?.includes(user._id));
+      setIsReflect(value.reflections?.includes(user._id));
+    }
+  }, [value, user?._id]);
 
   useEffect(() => {
     if (user && value.owner) {
@@ -265,25 +271,34 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
 
 
 
-  const likeHandler = async () => {
+  const feedbackHandler = async (feedbackType) => {
     // Optimistic UI update
-    const newLikeState = !isLike;
-    setIsLike(newLikeState);
-    setLikeCount(newLikeState ? likeCount + 1 : likeCount - 1);
+    if (feedbackType === "real") {
+      const newState = !isReal;
+      setIsReal(newState);
+      setRealCount(newState ? realCount + 1 : realCount - 1);
+    } else {
+      const newState = !isReflect;
+      setIsReflect(newState);
+      setReflectCount(newState ? reflectCount + 1 : reflectCount - 1);
+    }
 
     try {
-      await likePost(value._id);
+      await sendFeedback(value._id, feedbackType);
     } catch (error) {
       // Revert on error
-      setIsLike(!newLikeState);
-      setLikeCount(newLikeState ? likeCount - 1 : likeCount + 1);
+      if (feedbackType === "real") {
+        setIsReal(!isReal);
+        setRealCount(isReal ? realCount + 1 : realCount - 1);
+      } else {
+        setIsReflect(!isReflect);
+        setReflectCount(isReflect ? reflectCount + 1 : reflectCount - 1);
+      }
     }
   };
 
   const handleDoubleClick = () => {
-    if (!isLike) likeHandler();
-    setShowHeart(true);
-    setTimeout(() => setShowHeart(false), 700);
+    if (!isReal) feedbackHandler("real");
   };
 
 
@@ -365,22 +380,36 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
 
         {/* RIGHT SIDE ACTIONS */}
         <div className="absolute bottom-16 right-4 flex flex-col gap-6 items-center z-30">
-          {/* LIKE */}
+          {/* REAL */}
           <div className="flex flex-col items-center gap-1">
             {/* View Count (Reels Only) */}
-            {type === 'reel' && (
-              <div className="flex flex-col items-center animate-fade-in mb-2">
-                <IoEyeOutline size={24} className="text-white" />
-                <span className="text-white text-xs font-medium mt-1">
-                  {(value.views || 0) + (viewTracked ? 1 : 0)}
-                </span>
-                <span className="text-[10px] text-gray-400">Views</span>
-              </div>
-            )}
-            <button onClick={likeHandler} className="text-3xl drop-shadow-lg transition-transform active:scale-95">
-              {isLike ? <IoHeartSharp className="text-red-500" /> : <IoHeartOutline className="text-white" />}
+            <div className="flex flex-col items-center animate-fade-in mb-2">
+              <IoEyeOutline size={24} className="text-white" />
+              <span className="text-white text-xs font-medium mt-1">
+                {(value.views || 0) + (viewTracked ? 1 : 0)}
+              </span>
+              <span className="text-[10px] text-gray-400">Views</span>
+            </div>
+
+            <button onClick={() => feedbackHandler("real")} className="text-sm font-medium px-3 py-2 rounded-full backdrop-blur-md transition-all active:scale-90 flex flex-col items-center bg-white/10 text-white">
+              <span className={isReal ? "text-indigo-400" : "text-white"}>Real</span>
             </button>
-            <span className="text-white text-xs font-medium drop-shadow-md">{value.likes.length}</span>
+            <span
+              onClick={() => setRealModal(true)}
+              className="text-white text-xs font-medium drop-shadow-md cursor-pointer hover:underline"
+            >
+              {realCount}
+            </span>
+          </div>
+
+          {/* LESS REAL */}
+          <div className="flex flex-col items-center gap-1">
+            <button onClick={() => feedbackHandler("reflect")} className="text-sm font-medium px-3 py-2 rounded-full backdrop-blur-md transition-all active:scale-90 flex flex-col items-center bg-white/10 text-white">
+              <span className={isReflect ? "text-gray-400" : "text-white"}>Less real</span>
+            </button>
+            {isOwner && (
+              <span className="text-gray-400 text-[10px] font-medium drop-shadow-md">{reflectCount} (private)</span>
+            )}
           </div>
 
           {/* COMMENT */}
@@ -637,6 +666,12 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
           }}
         />
 
+        <RealModal
+          isOpen={realModal}
+          onClose={() => setRealModal(false)}
+          id={value._id}
+        />
+
       </div >
     );
   }
@@ -777,17 +812,34 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
 
       {/* ===== ACTIONS & CAPTION ===== */}
       <div className="px-3 pt-3">
-        {/* Action Row: Likes & Comments inline */}
+        {/* Action Row: Reals &#x26; Comments inline */}
         <div className="flex items-center gap-6 mb-3">
-          {/* Like Group */}
+          {/* Real Group */}
           <div className="flex items-center gap-2">
             <button
-              onClick={likeHandler}
-              className="text-2xl transition-transform active:scale-75"
+              className={`text-sm font-bold px-4 py-1.5 rounded-full transition-all active:scale-95 ${isReal ? "bg-indigo-600/20 text-indigo-400" : "bg-white/5 text-gray-300"}`}
             >
-              {isLike ? <IoHeartSharp className="text-red-500" /> : <IoHeartOutline className="text-white" />}
+              Real
             </button>
-            <span className="text-white font-semibold text-sm">{value.likes.length}</span>
+            <span
+              onClick={() => setRealModal(true)}
+              className="text-white font-semibold text-sm cursor-pointer hover:underline"
+            >
+              {realCount}
+            </span>
+          </div>
+
+          {/* Less Real Group */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => feedbackHandler("reflect")}
+              className={`text-sm font-bold px-4 py-1.5 rounded-full transition-all active:scale-95 ${isReflect ? "bg-white/10 text-gray-400" : "bg-white/5 text-gray-300"}`}
+            >
+              Less real
+            </button>
+            {isOwner && (
+              <span className="text-gray-400 text-xs font-medium italic">{reflectCount} private</span>
+            )}
           </div>
 
           {/* Comment Group */}
@@ -1003,16 +1055,22 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
           }
         }}
       />
+      <RealModal
+        isOpen={realModal}
+        onClose={() => setRealModal(false)}
+        id={value._id}
+      />
     </div>
   );
 };
 
 // Memoize PostCard to prevent unnecessary re-renders
 export default React.memo(PostCard, (prevProps, nextProps) => {
-  // Only re-render if post ID or likes changed
+  // Only re-render if post ID or feedback changed
   return (
     prevProps.value._id === nextProps.value._id &&
-    prevProps.value.likes?.length === nextProps.value.likes?.length &&
+    prevProps.value.reals?.length === nextProps.value.reals?.length &&
+    prevProps.value.reflections?.length === nextProps.value.reflections?.length &&
     prevProps.isActive === nextProps.isActive &&
     prevProps.commentId === nextProps.commentId
   );

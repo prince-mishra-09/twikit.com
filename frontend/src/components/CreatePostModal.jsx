@@ -16,9 +16,27 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
     const fileInputRef = useRef(null);
     const [showStoryEditor, setShowStoryEditor] = useState(initialTab === "story"); // Start true if initial is story
 
+    const [showConfirmDiscard, setShowConfirmDiscard] = useState(false);
+    const [error, setError] = useState("");
+
     const changeFileHandler = (e) => {
         const file = e.target.files[0];
         if (!file) return;
+
+        // Validation
+        setError("");
+        const isImage = file.type.startsWith("image/");
+        const isVideo = file.type.startsWith("video/");
+
+        if (type === "post" && !isImage) {
+            return setError("Please select an image for your post");
+        }
+        if (type === "reel" && !isVideo) {
+            return setError("Please select a video for your reel");
+        }
+        if (file.size > 50 * 1024 * 1024) {
+            return setError("File size too large (max 50MB)");
+        }
 
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -26,11 +44,18 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
         reader.onloadend = () => {
             setFilePrev(reader.result);
             setFile(file);
-            // If Story, open Editor immediately
             if (type === "story") {
                 setShowStoryEditor(true);
             }
         };
+    };
+
+    const handleClose = () => {
+        if (file || caption.trim() !== "") {
+            setShowConfirmDiscard(true);
+        } else {
+            setShow(false);
+        }
     };
 
     const submitHandler = async (e) => {
@@ -87,8 +112,8 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                         <div className="flex items-center justify-between p-4 border-b border-white/10">
                             <h2 className="text-white font-semibold text-lg">Create New</h2>
                             <button
-                                onClick={() => setShow(false)}
-                                className="text-gray-400 hover:text-white transition"
+                                onClick={handleClose}
+                                className="text-gray-400 hover:text-white transition p-1"
                             >
                                 <AiOutlineClose size={24} />
                             </button>
@@ -170,10 +195,25 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                     className="w-full px-4 py-3 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 transition"
                                 />
 
+                                {/* Error Message */}
+                                {error && (
+                                    <p className="text-xs text-red-500/90 text-center font-medium bg-red-500/10 py-2 rounded-lg border border-red-500/20">
+                                        {error}
+                                    </p>
+                                )}
+
+                                {/* Privacy Indicator */}
+                                <div className="flex items-center gap-1.5 px-1">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/80"></div>
+                                    <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider">
+                                        Shared with: Public
+                                    </p>
+                                </div>
+
                                 {/* Submit */}
                                 <button
-                                    disabled={addLoading}
-                                    className="w-full py-3 rounded-xl text-white font-medium bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20"
+                                    disabled={addLoading || error}
+                                    className="w-full py-3 rounded-xl text-white font-medium bg-indigo-600/90 hover:bg-indigo-600 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-indigo-600/10"
                                 >
                                     {addLoading || storyLoading ? <LoadingAnimation /> : "Share"}
                                 </button>
@@ -181,6 +221,31 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                             </form>
                         </div>
                     </div>
+                    {/* Discard Confirmation Modal */}
+                    {showConfirmDiscard && (
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+                            <div className="w-full max-w-[280px] bg-[#1F2937] rounded-3xl p-6 shadow-2xl border border-white/10 text-center animate-in zoom-in-95 duration-200">
+                                <h3 className="text-white font-bold text-lg mb-2">Discard draft?</h3>
+                                <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+                                    Your reflection will be lost.
+                                </p>
+                                <div className="flex flex-col gap-2">
+                                    <button
+                                        onClick={() => setShow(false)}
+                                        className="w-full py-3 rounded-xl bg-red-500/10 text-red-500 font-semibold hover:bg-red-500/20 transition active:scale-95"
+                                    >
+                                        Discard
+                                    </button>
+                                    <button
+                                        onClick={() => setShowConfirmDiscard(false)}
+                                        className="w-full py-3 rounded-xl text-white font-medium hover:bg-white/5 transition"
+                                    >
+                                        Keep writing
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </>

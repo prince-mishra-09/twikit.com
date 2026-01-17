@@ -23,10 +23,19 @@ const postSchema = new mongoose.Schema({
     default: Date.now,
   },
 
-  likes: [
+  reals: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      index: true,
+    },
+  ],
+
+  reflections: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      index: true,
     },
   ],
 

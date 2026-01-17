@@ -269,12 +269,20 @@ export const searchUsers = tryCatch(async (req, res) => {
   // Fetch posts from top results
   const topUserIds = users.slice(0, 10).map(u => u._id);
 
-  const posts = await Post.find({
+  let posts = await Post.find({
     owner: { $in: topUserIds }
   })
     .sort({ createdAt: -1 })
     .limit(10)
     .populate("owner", "name username profilePic");
+
+  // Sanitize reflections for privacy
+  posts = posts.map(post => {
+    if (post.owner._id.toString() !== req.user._id.toString()) {
+      post.reflections = [];
+    }
+    return post;
+  });
 
   res.json({ users, posts });
 });
@@ -313,10 +321,22 @@ export const getSavedPosts = tryCatch(async (req, res) => {
 
   // Sanitize engagement within saved posts
   savedPosts = savedPosts.map(post => {
-    // Filter Likes
-    if (post.likes && post.likes.length > 0) {
-      post.likes = post.likes.filter(id => id && !hiddenUserIds.includes(id.toString()));
+    const isOwner = post.owner._id.toString() === req.user._id.toString();
+
+    // Filter Reals
+    if (post.reals && post.reals.length > 0) {
+      post.reals = post.reals.filter(id => id && !hiddenUserIds.includes(id.toString()));
     }
+
+    // Filter Reflections
+    if (isOwner) {
+      if (post.reflections && post.reflections.length > 0) {
+        post.reflections = post.reflections.filter(id => id && !hiddenUserIds.includes(id.toString()));
+      }
+    } else {
+      post.reflections = [];
+    }
+
     // Filter Comments
     if (post.comments && post.comments.length > 0) {
       post.comments = post.comments.filter(comment => {
@@ -495,6 +515,18 @@ export const blockUser = tryCatch(async (req, res) => {
       { sender: userToBlock._id, receiver: loggedInUser._id }
     ]
   });
+
+  // 5. Cleanup Feedback (Remove blocked user's feedback from my posts)
+  await Post.updateMany(
+    { owner: loggedInUser._id },
+    { $pull: { reals: userToBlock._id, reflections: userToBlock._id } }
+  );
+
+  // 6. Cleanup Feedback (Remove my feedback from blocked user's posts)
+  await Post.updateMany(
+    { owner: userToBlock._id },
+    { $pull: { reals: loggedInUser._id, reflections: loggedInUser._id } }
+  );
 
   res.json({ message: "User blocked successfully" });
 });

@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, ShieldCheck, MessageSquare, Zap, Stars, Users, Heart } from "lucide-react";
+import { CheckCircle2, ShieldCheck, MessageSquare, Zap, Stars, Users } from "lucide-react";
 
 // Brand palette (for quick tweaks)
 const colors = {
@@ -105,7 +105,9 @@ const Hero = () => (
             </div>
 
             <div className="mt-4 flex items-center gap-6 text-sm">
-              <div className="flex items-center gap-1 text-neutral-700"><Heart className="h-4 w-4" /> 1.8k</div>
+              <div className="flex items-center gap-1 text-neutral-700">
+                <span className="font-bold text-indigo-600">Real</span> 1.8k
+              </div>
               <div className="flex items-center gap-1 text-neutral-700"><MessageSquare className="h-4 w-4" /> 240</div>
               <div className="flex items-center gap-1 text-neutral-700"><Users className="h-4 w-4" /> Follow</div>
             </div>

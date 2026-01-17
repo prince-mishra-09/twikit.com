@@ -63,6 +63,11 @@ export const deletePost = TryCatch(async (req, res) => {
 
     await cloudinary.v2.uploader.destroy(post.post.id);
 
+    // CLEANUP RELATED DATA
+    await Notification.deleteMany({ postId: post._id });
+    const { Comment } = await import("../models/Comment.js"); // Dynamic import to avoid cycles
+    await Comment.deleteMany({ post: post._id });
+
     await post.deleteOne();
 
     res.json({
@@ -120,13 +125,26 @@ export const getAllPosts = TryCatch(async (req, res) => {
         });
     };
 
-    // Sanitize engagement (remove likes/comments from blocked users AND blockedBy users)
+    // Sanitize engagement (remove reals/reflections from blocked users AND blockedBy users)
     const sanitizeEngagement = (items) => {
         return items.map(item => {
-            // Filter Likes
-            if (item.likes && item.likes.length > 0) {
-                item.likes = item.likes.filter(id => id && !hiddenUserIds.includes(id.toString()));
+            const isOwner = item.owner._id.toString() === req.user._id.toString();
+
+            // Filter Reals
+            if (item.reals && item.reals.length > 0) {
+                item.reals = item.reals.filter(id => id && !hiddenUserIds.includes(id.toString()));
             }
+
+            // Filter Reflections (Only owner sees these)
+            if (isOwner) {
+                if (item.reflections && item.reflections.length > 0) {
+                    item.reflections = item.reflections.filter(id => id && !hiddenUserIds.includes(id.toString()));
+                }
+            } else {
+                // If not owner, hide reflections
+                item.reflections = [];
+            }
+
             return item;
         });
     };
@@ -161,65 +179,103 @@ export const getAllPosts = TryCatch(async (req, res) => {
     });
 });
 
-export const likeUnlikePost = TryCatch(async (req, res) => {
-    const post = await Post.findById(req.params.id);
+export const handleFeedback = TryCatch(async (req, res) => {
+    const { feedbackType } = req.body; // "real" or "reflect"
 
-    if (!post) {
-        return res.status(404).json({
-            message: "No Post with this id",
+    if (!["real", "reflect"].includes(feedbackType)) {
+        return res.status(400).json({ message: "Invalid feedback type" });
+    }
+
+    const userId = req.user._id;
+    const postId = req.params.id;
+
+    // Mutually exclusive fields
+    const currentField = feedbackType === "real" ? "reals" : "reflections";
+    const otherField = feedbackType === "real" ? "reflections" : "reals";
+
+    // 1. Check if feedback already exists in CURRENT field
+    const existingPost = await Post.findById(postId);
+    if (!existingPost) return res.status(404).json({ message: "No Post with this id" });
+
+    const isRemoving = existingPost[currentField].includes(userId);
+
+    let updatedPost;
+
+    if (isRemoving) {
+        // REMOVE
+        updatedPost = await Post.findByIdAndUpdate(
+            postId,
+            { $pull: { [currentField]: userId } },
+            { new: true }
+        );
+    } else {
+        // ADD (And ensure removed from the other field)
+        updatedPost = await Post.findByIdAndUpdate(
+            postId,
+            {
+                $addToSet: { [currentField]: userId },
+                $pull: { [otherField]: userId }
+            },
+            { new: true }
+        );
+    }
+
+    const action = isRemoving ? "removed" : "added";
+
+    // 🔥 REAL-TIME EMIT (PRIVACY SAFE)
+    // Only emit PUBLIC REAL update if it actually changed
+    if (feedbackType === "real" || (feedbackType === "reflect" && action === "added" && existingPost.reals.includes(userId))) {
+        io.emit("postRealUpdated", {
+            postId: updatedPost._id,
+            reals: updatedPost.reals,
+            realsCount: updatedPost.reals.length,
+            action: feedbackType === "real" ? action : "removed",
+            userId: userId,
         });
     }
 
-    let action = "";
-
-    if (post.likes.includes(req.user._id)) {
-        // UNLIKE
-        post.likes = post.likes.filter(
-            (id) => id.toString() !== req.user._id.toString()
-        );
-        action = "unlike";
-    } else {
-        // LIKE
-        post.likes.push(req.user._id);
-        action = "like";
-    }
-
-    await post.save();
-
-    // 🔥 REAL-TIME EMIT
-    io.emit("postLikeUpdated", {
-        postId: post._id,
-        likes: post.likes,
-        likesCount: post.likes.length,
-        action,
-        userId: req.user._id,
+    // Emit REFLECTION update ONLY to owner's private room
+    io.to(updatedPost.owner.toString()).emit("postReflectionUpdated", {
+        postId: updatedPost._id,
+        reflections: updatedPost.reflections,
+        reflectionsCount: updatedPost.reflections.length,
+        action: feedbackType === "reflect" ? action : (action === "added" ? "removed" : "none"),
+        userId: userId,
     });
 
     // NOTIFICATION LOGIC
-    if (action === "like" && post.owner.toString() !== req.user._id.toString()) {
+    if (isRemoving) {
+        // Remove existing notification
+        await Notification.deleteMany({
+            sender: userId,
+            receiver: updatedPost.owner,
+            postId: updatedPost._id,
+            type: feedbackType
+        });
+        // Real-time notification removal could be emitted here if UI supports it
+    } else if (updatedPost.owner.toString() !== userId.toString()) {
         const notification = await Notification.create({
-            receiver: post.owner,
-            sender: req.user._id,
-            type: "like",
-            postId: post._id,
+            receiver: updatedPost.owner,
+            sender: userId,
+            type: feedbackType,
+            postId: updatedPost._id,
         });
 
-        // Real-time Emit
         await notification.populate("sender", "name profilePic");
         await notification.populate("postId", "post");
-        io.to(post.owner.toString()).emit("notification:new", notification);
+        io.to(updatedPost.owner.toString()).emit("notification:new", notification);
 
-        // SEND PUSH NOTIFICATION
-        console.log("Sending Push Notification for Like...");
-        await sendPushNotification(post.owner, {
-            title: "New Like",
-            body: `${req.user.name} liked your post`,
-            url: `/post/${post._id.toString()}`,
-        });
+        if (feedbackType === "real") {
+            await sendPushNotification(updatedPost.owner, {
+                title: "New Real Feedback",
+                body: `${req.user.name} thinks your post is Real`,
+                url: `/post/${updatedPost._id.toString()}`,
+            });
+        }
     }
 
     res.json({
-        message: action === "like" ? "Post liked" : "Post unliked",
+        message: isRemoving ? `${feedbackType} feedback removed` : `${feedbackType} feedback added`,
     });
 });
 
@@ -270,6 +326,12 @@ export const getRandomPosts = async (req, res) => {
             },
         },
         { $unwind: "$owner" },
+        {
+            $project: {
+                reflections: 0,
+                "owner.password": 0,
+            }
+        }
     ]);
 
     res.json(posts);
@@ -318,6 +380,10 @@ export const getPost = TryCatch(async (req, res) => {
             return res.status(404).json({
                 message: "No Post with this id",
             });
+        }
+
+        if (post.owner._id.toString() !== req.user._id.toString()) {
+            post.reflections = [];
         }
 
         res.json(post);

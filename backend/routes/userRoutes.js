@@ -33,7 +33,6 @@ router.post("/reject-request/:id", isAuth, rejectFollowRequest);
 router.post("/block/:id", isAuth, blockUser);
 router.delete("/unblock/:id", isAuth, unblockUser);
 router.put("/privacy", isAuth, togglePrivacy);
-router.put("/privacy", isAuth, togglePrivacy);
 router.delete("/follower/:id", isAuth, removeFollower);
 
 /* ================= ID BASED (ALWAYS LAST) ================= */

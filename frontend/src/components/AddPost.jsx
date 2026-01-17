@@ -25,11 +25,18 @@ const AddPost = ({ type }) => {
 
   const submitHandler = (e) => {
     e.preventDefault();
-    const formdata = new FormData();
 
+    // Basic Validation
+    if (file && file.size > 50 * 1024 * 1024) { // 50MB limit
+      return toast.error("File is too large (max 50MB)");
+    }
+
+    const formdata = new FormData();
     formdata.append("caption", caption);
     formdata.append("file", file);
-    addPost(formdata, setFile, setCaption, setFilePrev, type);
+
+    // Fixed argument order: (formdata, setFile, setFilePrev, setCaption, type)
+    addPost(formdata, setFile, setFilePrev, setCaption, type);
   };
 
   return (
@@ -49,9 +56,9 @@ const AddPost = ({ type }) => {
 
         {/* Media Upload */}
         <div
-  onClick={() => fileInputRef.current.click()}
-  className="cursor-pointer rounded-xl border border-dashed border-white/20 bg-[#0B0F14] text-gray-400 flex items-center justify-center min-h-[90px] hover:border-indigo-400 transition"
->
+          onClick={() => fileInputRef.current.click()}
+          className="cursor-pointer rounded-xl border border-dashed border-white/20 bg-[#0B0F14] text-gray-400 flex items-center justify-center min-h-[90px] hover:border-indigo-400/50 transition"
+        >
 
           {filePrev ? (
             <>
@@ -72,8 +79,8 @@ const AddPost = ({ type }) => {
             </>
           ) : (
             <span className="text-xs text-gray-500">
-  Add photo
-</span>
+              Add photo
+            </span>
 
           )}
         </div>
@@ -87,12 +94,20 @@ const AddPost = ({ type }) => {
           required
         />
 
+        {/* Privacy Indicator */}
+        <div className="flex items-center gap-1.5 px-1">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/80"></div>
+          <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider">
+            Shared with: Public
+          </p>
+        </div>
+
         {/* Submit Button */}
         <button
           disabled={addLoading}
-          className="w-full py-3 rounded-xl text-white font-medium bg-gradient-to-r from-indigo-500 to-cyan-500 hover:opacity-90 active:scale-[0.98] transition disabled:opacity-60"
+          className="w-full py-3 rounded-xl text-white font-medium bg-indigo-600/90 hover:bg-indigo-600 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {addLoading ? <LoadingAnimation /> : "Post"}
+          {addLoading ? <LoadingAnimation /> : "Share"}
         </button>
       </form>
     </div>

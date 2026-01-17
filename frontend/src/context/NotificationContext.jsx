@@ -49,7 +49,8 @@ export const NotificationProvider = ({ children }) => {
                 setNotifications((prev) => [newNotification, ...prev]);
                 setUnreadCount((prev) => prev + 1);
                 let toastMessage = "New Notification";
-                if (newNotification.type === "like") toastMessage = "liked your post";
+                if (newNotification.type === "real") toastMessage = "thinks your post is Real";
+                else if (newNotification.type === "reflect") return; // Silence reflections
                 else if (newNotification.type === "comment") toastMessage = "commented on your post";
                 else if (newNotification.type === "follow") toastMessage = "started following you";
                 else if (newNotification.type === "follow_request") toastMessage = "sent you a follow request";
