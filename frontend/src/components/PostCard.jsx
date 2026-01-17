@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { createPortal } from "react-dom";
 import { BsChatFill, BsThreeDotsVertical, BsBookmark, BsBookmarkFill } from "react-icons/bs";
-import { IoPaperPlaneOutline, IoEyeOutline } from "react-icons/io5";
+import { IoPaperPlaneOutline, IoEyeOutline, IoClose } from "react-icons/io5";
+
 import { UserData } from "../context/UserContext";
 import { PostData } from "../context/PostContext";
 import { format } from "date-fns";
@@ -628,182 +629,192 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
     );
   }
 
-  // Common UI Elements (Drawer, Share, Real)
-  const renderCommonUI = () => (
-    <>
-      <AnimatePresence>
-        {show && createPortal(
-          <div className="fixed inset-0 z-[9999] flex justify-center items-end" role="dialog">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setShow(false)}
+  // ===================== REGULAR POST RENDER =====================
+  return (
+    <div className="bg-[#0D0F14] w-full border-b border-white/10 pb-4">
+      <div className="relative w-full group">
+        {/* TOP OVERLAY HEADER */}
+        <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-10 bg-gradient-to-b from-black/60 to-transparent pointer-events-none">
+          <Link to={`/user/${value.owner._id}`} className="flex items-center gap-2 pointer-events-auto">
+            <img
+              src={value.owner?.profilePic?.url || "https://placehold.co/400"}
+              className="w-10 h-10 rounded-full border border-white/20 object-cover"
+              alt=""
             />
+            <div className="flex flex-col">
+              <span className="text-white font-bold text-sm drop-shadow-md">{value.owner.name}</span>
+              <span className="text-gray-300 text-[10px] drop-shadow-md">{formatDate}</span>
+            </div>
+          </Link>
 
-            {/* Drawer */}
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="relative w-full max-w-md bg-[#1F2937] rounded-t-3xl h-[60vh] md:h-[75vh] flex flex-col shadow-2xl"
-            >
-              {/* Drawer Handle */}
-              <div className="w-full flex justify-center pt-3 pb-1 cursor-pointer" onClick={() => setShow(false)}>
-                <div className="w-12 h-1.5 bg-gray-600 rounded-full" />
-              </div>
-
-              {/* Header */}
-              <div className="flex justify-between items-center px-4 py-2 border-b border-gray-700">
-                <h3 className="text-white font-bold text-lg">Comments</h3>
-                <button onClick={() => setShow(false)} className="p-2 text-gray-400 hover:text-white">
-                  ✕
-                </button>
-              </div>
-
-              {/* Comments List */}
-              <div ref={commentsRef} className="flex-1 overflow-y-auto px-4 py-2 space-y-4 custom-scrollbar relative">
-                {loadingComments ? (
-                  <div className="flex justify-center items-center h-40">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
-                  </div>
-                ) : comments && comments.length > 0 ? (
-                  comments.map((c) => (
-                    <CommentItem
-                      key={c._id}
-                      comment={c}
-                      postId={value._id}
-                      addComment={addComment}
-                      deleteComment={deleteComment}
-                      postOwnerId={value.owner._id}
-                      refreshComments={fetchComments}
-                      activeCommentMenuId={activeCommentMenuId}
-                      activeCommentId={commentId}
-                      toggleCommentMenu={toggleCommentMenu}
-                      onReplyAdded={handleNewReply}
-                      onDelete={handleDeleteLocal}
-                      setReplyingTo={setReplyingTo}
-                      setDeleteModal={setDeleteModal}
-                    />
-                  ))
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
-                    <BsChatFill className="text-4xl opacity-20" />
-                    <p>No comments yet.</p>
-                    <p className="text-xs">Start the conversation.</p>
-                  </div>
-                )}
-
-                {/* DELETE CONFIRMATION MODAL (Nested inside Comment Drawer) */}
-                {deleteModal.show && (
-                  <div className="absolute inset-x-0 bottom-0 bg-[#2D3748] p-4 rounded-t-2xl shadow-xl z-50 animate-in slide-in-from-bottom border-t border-white/10">
-                    <p className="text-white text-center mb-4 font-semibold">Delete this comment?</p>
-                    <div className="flex gap-3">
+          <div className="flex items-center gap-2 pointer-events-auto">
+            {user && user._id !== value.owner._id && (
+              <button
+                onClick={followHandler}
+                className={`text-[11px] font-bold px-4 py-1.5 rounded-full transition-all border ${isFollowed
+                  ? "bg-white/10 border-white/30 text-white"
+                  : "bg-white text-black border-transparent hover:bg-gray-200"
+                  }`}
+              >
+                {isFollowed ? "Following" : "Follow"}
+              </button>
+            )}
+            <div className="relative">
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
+                className="text-white text-xl drop-shadow-lg p-1 hover:bg-white/10 rounded-full transition-colors"
+              >
+                <BsThreeDotsVertical />
+              </button>
+              {showMenu && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-[#1F2937] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[100] animate-in slide-in-from-top-2 fade-in duration-200">
+                  {isOwner ? (
+                    <button
+                      onClick={deleteHandler}
+                      className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-white/10 flex items-center gap-2"
+                    >
+                      <MdDelete size={18} /> Delete Post
+                    </button>
+                  ) : (
+                    <>
                       <button
-                        onClick={() => setDeleteModal({ show: false, commentId: null })}
-                        className="flex-1 py-2 rounded-lg bg-gray-600 text-white font-medium hover:bg-gray-500"
+                        onClick={notInterestedHandler}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
                       >
-                        Cancel
+                        ❌ Not Interested
+                      </button>
+                      <button
+                        onClick={muteHandler}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
+                      >
+                        🔇 Mute @{value.owner.name}
                       </button>
                       <button
                         onClick={() => {
-                          deleteComment(value._id, deleteModal.commentId);
-                          setDeleteModal({ show: false, commentId: null });
+                          if (confirm("Block this user? They will disappear from your feed.")) {
+                            blockUser(value.owner._id, null);
+                            setIsHidden(true);
+                          }
+                          setShowMenu(false);
                         }}
-                        className="flex-1 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-500"
+                        className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
                       >
-                        Delete
+                        🚫 Block User
                       </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Input Area - Fixed at bottom of drawer */}
-              <div className="p-4 border-t border-gray-700 bg-[#1F2937] rounded-b-none lg:rounded-b-3xl pb-6 md:pb-4">
-                {/* Replying Banner */}
-                {replyingTo && (
-                  <div className="flex justify-between items-center bg-gray-800 px-4 py-2 rounded-t-lg mb-2 mx-1">
-                    <span className="text-xs text-gray-300">Replying to <span className="text-indigo-400 font-bold">@{replyingTo.user.username || replyingTo.user.name?.toLowerCase().replace(/\s+/g, '_')}</span></span>
-                    <button onClick={() => setReplyingTo(null)} className="text-gray-400 hover:text-white">✕</button>
-                  </div>
-                )}
-
-                {/* Emoji Bar */}
-                <div className="flex justify-between mb-3 px-2">
-                  {["❤️", "🙌", "🔥", "👏", "😢", "😍", "😂"].map((emoji) => (
-                    <button
-                      key={emoji}
-                      type="button"
-                      onClick={() => setComment((prev) => prev + emoji)}
-                      className="text-2xl hover:scale-125 transition-transform"
-                    >
-                      {emoji}
-                    </button>
-                  ))}
+                    </>
+                  )}
                 </div>
+              )}
+            </div>
+          </div>
+        </div>
 
-                <form
-                  onSubmit={addCommentHandler}
-                  className="flex gap-3 items-center"
-                >
-                  <img
-                    src={user?.profilePic?.url || "https://placehold.co/400"}
-                    className="w-8 h-8 rounded-full border border-gray-600 object-cover"
-                    alt=""
-                  />
-                  <div className="flex-1 relative">
-                    <input
-                      type="text"
-                      className="w-full bg-gray-800 text-white text-sm rounded-full px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] border border-transparent placeholder:text-gray-500"
-                      placeholder={replyingTo ? "Write a reply..." : `Comment as @${user?.username}...`}
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      autoFocus={!!replyingTo}
-                    />
-                    <button
-                      type="submit"
-                      disabled={!comment.trim()}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--accent)] font-semibold text-sm hover:opacity-80 disabled:opacity-50 px-2"
-                    >
-                      Post
-                    </button>
-                  </div>
-                </form>
+        {/* POST CONTENT */}
+        <div onDoubleClick={handleDoubleClick} className="w-full aspect-auto bg-black flex items-center justify-center min-h-[300px]">
+          <img
+            src={value.post.url}
+            alt="post"
+            className="w-full h-auto object-cover cursor-pointer active:opacity-95 transition-opacity"
+            onClick={() => setShowImage(true)}
+          />
+        </div>
+
+        {/* BOTTOM ACTIONS OVERLAY */}
+        <div className="absolute bottom-0 left-0 w-full p-4 flex justify-between items-center bg-gradient-to-t from-black/60 to-transparent pointer-events-none">
+          <div className="flex items-center gap-4 pointer-events-auto">
+            <button
+              onClick={() => feedbackHandler("real")}
+              className="flex items-center gap-1.5 transition-transform active:scale-90 group"
+            >
+              <div className={`p-1.5 rounded-full transition-colors ${isReal ? "bg-[var(--accent)]/20" : "bg-transparent hover:bg-white/10"}`}>
+                <RealIcon active={isReal} />
               </div>
-            </motion.div>
-          </div>,
-          document.body
-        )}
-      </AnimatePresence>
+              <span className={`text-xs font-bold drop-shadow-md ${isReal ? "text-[var(--accent)]" : "text-white"}`}>
+                {realCount > 0 ? realCount : ""}
+              </span>
+            </button>
 
-      <ShareModal
-        isOpen={shareModal}
-        onClose={() => setShareModal(false)}
-        content={{
-          type: type === "reel" ? "reel" : "post",
-          contentId: value._id,
-          owner: value.owner, // Include owner for private restriction
-          preview: {
-            title: value.caption,
-            image: value.post?.url,
-            username: value.owner?.username || value.owner?.name
-          }
-        }}
-      />
-      <RealModal
-        isOpen={realModal}
-        onClose={() => setRealModal(false)}
-        id={value._id}
-      />
-    </>
-  );
+            <button
+              onClick={() => feedbackHandler("reflect")}
+              className="flex items-center gap-1.5 transition-transform active:scale-90 group"
+            >
+              <div className={`p-1.5 rounded-full transition-colors ${isReflect ? "bg-white/20" : "bg-transparent hover:bg-white/10"}`}>
+                <ReflectIcon active={isReflect} />
+              </div>
+              {isOwner && reflectCount > 0 && (
+                <span className="text-gray-300 text-[10px] font-medium drop-shadow-md">
+                  {reflectCount}
+                </span>
+              )}
+            </button>
 
-  { renderCommonUI() }
-    </div >
+            <button onClick={() => setShow(true)} className="flex items-center gap-1.5 group transition-transform active:scale-90">
+              <div className="p-1.5 rounded-full transition-colors hover:bg-white/10">
+                <BsChatFill className="text-white text-lg" />
+              </div>
+              <span className="text-white text-xs font-bold drop-shadow-md">
+                {value.commentsCount > 0 ? value.commentsCount : ""}
+              </span>
+            </button>
+
+            <button
+              onClick={(e) => { e.stopPropagation(); setShareModal(true); }}
+              className="p-1.5 rounded-full transition-colors hover:bg-white/10 active:scale-90"
+            >
+              <IoPaperPlaneOutline className="text-white text-xl drop-shadow-md" />
+            </button>
+          </div>
+
+          <button onClick={saveHandler} className="pointer-events-auto p-1.5 rounded-full transition-colors hover:bg-white/10 active:scale-90">
+            {isSaved ? (
+              <BsBookmarkFill className="text-white text-xl drop-shadow-md" />
+            ) : (
+              <BsBookmark className="text-white text-xl drop-shadow-md" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* CAPTION AREA */}
+      {(value.caption || value.owner.name) && (
+        <div className="px-4 py-3">
+          <p className="text-sm text-gray-100 break-words leading-relaxed">
+            <span className="font-bold mr-2 text-indigo-400">
+              @{value.owner.username || value.owner.name?.toLowerCase().replace(/\s+/g, '_')}
+            </span>
+            {expanded ? value.caption : (value.caption?.slice(0, captionLimit) + (value.caption?.length > captionLimit ? "..." : ""))}
+            {value.caption?.length > captionLimit && (
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className="text-gray-400 ml-1 hover:text-white font-medium transition-colors"
+              >
+                {expanded ? "less" : "more"}
+              </button>
+            )}
+          </p>
+        </div>
+      )}
+
+      {/* IMAGE VIEWER PORTAL */}
+      {showImage && createPortal(
+        <div className="fixed inset-0 z-[10000] bg-black/95 flex items-center justify-center animate-in fade-in duration-200">
+          <button
+            onClick={() => setShowImage(false)}
+            className="absolute top-6 right-6 p-2 text-white/70 hover:text-white bg-white/10 rounded-full transition-colors"
+          >
+            <IoClose size={28} />
+          </button>
+          <img
+            src={value.post.url}
+            className="max-w-full max-h-full object-contain shadow-2xl"
+            alt="Full view"
+          />
+        </div>,
+        document.body
+      )}
+
+      {renderCommonUI()}
+    </div>
   );
 };
 
