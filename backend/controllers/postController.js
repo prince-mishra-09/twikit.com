@@ -243,40 +243,46 @@ export const handleFeedback = TryCatch(async (req, res) => {
         userId: userId,
     });
 
-    // NOTIFICATION LOGIC
-    if (isRemoving) {
-        // Remove existing notification
-        await Notification.deleteMany({
-            sender: userId,
-            receiver: updatedPost.owner,
-            postId: updatedPost._id,
-            type: feedbackType
-        });
-        // Real-time notification removal could be emitted here if UI supports it
-    } else if (updatedPost.owner.toString() !== userId.toString()) {
-        const notification = await Notification.create({
-            receiver: updatedPost.owner,
-            sender: userId,
-            type: feedbackType,
-            postId: updatedPost._id,
-        });
-
-        await notification.populate("sender", "name profilePic");
-        await notification.populate("postId", "post");
-        io.to(updatedPost.owner.toString()).emit("notification:new", notification);
-
-        if (feedbackType === "real") {
-            await sendPushNotification(updatedPost.owner, {
-                title: "New Real Feedback",
-                body: `${req.user.name} thinks your post is Real`,
-                url: `/post/${updatedPost._id.toString()}`,
-            });
-        }
-    }
-
+    // Send immediate response
     res.json({
         message: isRemoving ? `${feedbackType} feedback removed` : `${feedbackType} feedback added`,
     });
+
+    // NOTIFICATION LOGIC (Asynchronous / Non-blocking)
+    (async () => {
+        try {
+            if (isRemoving) {
+                // Remove existing notification
+                await Notification.deleteMany({
+                    sender: userId,
+                    receiver: updatedPost.owner,
+                    postId: updatedPost._id,
+                    type: feedbackType
+                });
+            } else if (updatedPost.owner.toString() !== userId.toString()) {
+                const notification = await Notification.create({
+                    receiver: updatedPost.owner,
+                    sender: userId,
+                    type: feedbackType,
+                    postId: updatedPost._id,
+                });
+
+                await notification.populate("sender", "name profilePic");
+                await notification.populate("postId", "post");
+                io.to(updatedPost.owner.toString()).emit("notification:new", notification);
+
+                if (feedbackType === "real") {
+                    await sendPushNotification(updatedPost.owner, {
+                        title: "New Real Feedback",
+                        body: `${req.user.name} thinks your post is Real`,
+                        url: `/post/${updatedPost._id.toString()}`,
+                    });
+                }
+            }
+        } catch (error) {
+            console.error("Async feedback notification error:", error);
+        }
+    })();
 });
 
 export const addPostView = TryCatch(async (req, res) => {

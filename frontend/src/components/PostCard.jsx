@@ -307,7 +307,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
 
 
 
-  const feedbackHandler = async (feedbackType) => {
+  const feedbackHandler = (feedbackType) => {
     // Optimistic UI update
     if (feedbackType === "real") {
       const newState = !isReal;
@@ -319,9 +319,9 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
       setReflectCount(newState ? reflectCount + 1 : reflectCount - 1);
     }
 
-    try {
-      await sendFeedback(value._id, feedbackType);
-    } catch (error) {
+    // Fire and forget (don't await) 
+    sendFeedback(value._id, feedbackType).catch((error) => {
+      console.error("Feedback error, reverting:", error);
       // Revert on error
       if (feedbackType === "real") {
         setIsReal(!isReal);
@@ -330,7 +330,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
         setIsReflect(!isReflect);
         setReflectCount(isReflect ? reflectCount + 1 : reflectCount - 1);
       }
-    }
+    });
   };
 
   const handleDoubleClick = () => {
