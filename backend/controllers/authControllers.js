@@ -25,11 +25,11 @@ const registerUser = tryCatch(async (req, res) => {
         });
     }
 
-    // Validate username format
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    // Validate username format (Allow alphanumeric, underscore, and dot)
+    const usernameRegex = /^[a-zA-Z0-9_\.]{3,20}$/;
     if (!usernameRegex.test(username)) {
         return res.status(400).json({
-            message: "Username must be 3-20 characters (alphanumeric and underscore only)"
+            message: "Username must be 3-20 characters (alphanumeric, underscore, and dot only)"
         });
     }
 
@@ -228,11 +228,11 @@ export const checkUsername = tryCatch(async (req, res) => {
         });
     }
 
-    // Validate username format
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    // Validate username format (Allow alphanumeric, underscore, and dot)
+    const usernameRegex = /^[a-zA-Z0-9_\.]{3,20}$/;
     if (!usernameRegex.test(username)) {
         return res.status(400).json({
-            message: "Username must be 3-20 characters (alphanumeric and underscore only)",
+            message: "Username must be 3-20 characters (alphanumeric, underscore, and dot only)",
             available: false
         });
     }
