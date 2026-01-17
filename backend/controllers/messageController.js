@@ -145,7 +145,60 @@ export const getAllMessages = TryCatch(async (req, res) => {
     deletedBy: { $ne: userId }
   });
 
-  res.json(messages);
+  // Dynamic Accessibility Check for Shared Content
+  const processedMessages = await Promise.all(messages.map(async (msg) => {
+    if (!msg.sharedContent || !msg.sharedContent.contentId) return msg;
+
+    const { type, contentId } = msg.sharedContent;
+    let isAccessible = true;
+
+    try {
+      if (type === "post" || type === "reel") {
+        const post = await Post.findById(contentId).populate("owner");
+        if (!post) isAccessible = false;
+        else {
+          const owner = post.owner;
+          if (owner.isPrivate && owner._id.toString() !== userId.toString()) {
+            const user = await User.findById(userId);
+            if (!user.followings.includes(owner._id.toString())) {
+              isAccessible = false;
+            }
+          }
+          // Block check
+          if (owner.blockedUsers && owner.blockedUsers.includes(userId)) isAccessible = false;
+        }
+      } else if (type === "profile") {
+        const profileUser = await User.findById(contentId);
+        if (!profileUser) isAccessible = false;
+        else {
+          if (profileUser.isPrivate && profileUser._id.toString() !== userId.toString()) {
+            const user = await User.findById(userId);
+            if (!user.followings.includes(profileUser._id.toString())) {
+              isAccessible = false;
+            }
+          }
+          if (profileUser.blockedUsers && profileUser.blockedUsers.includes(userId)) isAccessible = false;
+        }
+      }
+    } catch (error) {
+      isAccessible = false;
+    }
+
+    if (!isAccessible) {
+      // Return a copy with restricted content
+      const obscuredMsg = msg.toObject();
+      obscuredMsg.sharedContent = {
+        ...obscuredMsg.sharedContent,
+        isRestricted: true,
+        contentId: null // Remove ID to prevent frontend fetching
+      };
+      return obscuredMsg;
+    }
+
+    return msg;
+  }));
+
+  res.json(processedMessages);
 });
 
 export const getAllChats = TryCatch(async (req, res) => {

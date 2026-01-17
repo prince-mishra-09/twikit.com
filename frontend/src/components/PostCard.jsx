@@ -16,6 +16,42 @@ import RealModal from "./RealModal";
 
 
 
+// --- Custom Icons ---
+const RealIcon = ({ active }) => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill={active ? "#818CF8" : "none"}
+    stroke={active ? "#818CF8" : "#9CA3AF"}
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="transition-colors duration-200"
+  >
+    <path d="M12 2L14.7 9.3H22L16.1 13.4L18.4 20.7L12 16.6L5.6 20.7L7.9 13.4L2 9.3H9.3L12 2Z" />
+  </svg>
+);
+
+const ReflectIcon = ({ active }) => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="#9CA3AF"
+    strokeWidth={active ? "2.5" : "2"}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={`transition-all duration-200 ${active ? "opacity-100" : "opacity-60"}`}
+  >
+    <circle cx="12" cy="12" r="9" />
+    <path d="M16 8L12 12" />
+    <path d="M11 11L8 14" opacity="0.5" />
+    <path d="M14 7L13 8" opacity="0.3" />
+  </svg>
+);
+
 const PostCard = ({ value, type, isActive, commentId, openComments }) => {
   const { user, followUser, savePost, hidePost, muteUser, blockUser } = UserData();
   const { sendFeedback, addComment, deletePost, deleteComment } = PostData();
@@ -218,11 +254,11 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
   const formatDate = value.createdAt ? format(new Date(value.createdAt), "MMMM do") : "Unknown Date";
 
   useEffect(() => {
-    // Check feedback status
-    if (user) {
-      setIsReal(value.reals?.includes(user._id));
-      setIsReflect(value.reflections?.includes(user._id));
-    }
+    // Check feedback status and counts
+    setIsReal(value.reals?.includes(user?._id));
+    setRealCount(value.reals?.length || 0);
+    setIsReflect(value.reflections?.includes(user?._id));
+    setReflectCount(value.reflections?.length || 0);
   }, [value, user?._id]);
 
   useEffect(() => {
@@ -380,35 +416,53 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
 
         {/* RIGHT SIDE ACTIONS */}
         <div className="absolute bottom-16 right-4 flex flex-col gap-6 items-center z-30">
-          {/* REAL */}
           <div className="flex flex-col items-center gap-1">
-            {/* View Count (Reels Only) */}
-            <div className="flex flex-col items-center animate-fade-in mb-2">
-              <IoEyeOutline size={24} className="text-white" />
-              <span className="text-white text-xs font-medium mt-1">
-                {(value.views || 0) + (viewTracked ? 1 : 0)}
-              </span>
-              <span className="text-[10px] text-gray-400">Views</span>
+            {/* View Count Indicator */}
+            <div className="flex flex-col items-center animate-fade-in mb-3 opacity-90">
+              <IoEyeOutline size={22} className="text-white" />
+              <div className="flex flex-col items-center -mt-1">
+                <span className="text-white text-[11px] font-bold">
+                  {(value.views || 0) + (viewTracked ? 1 : 0)}
+                </span>
+                <span className="text-[9px] text-gray-400 font-medium uppercase tracking-tighter">Views</span>
+              </div>
             </div>
 
-            <button onClick={() => feedbackHandler("real")} className="text-sm font-medium px-3 py-2 rounded-full backdrop-blur-md transition-all active:scale-90 flex flex-col items-center bg-white/10 text-white">
-              <span className={isReal ? "text-indigo-400" : "text-white"}>Real</span>
+            <button
+              onClick={() => feedbackHandler("real")}
+              className="group flex flex-col items-center gap-1.5 transition-transform active:scale-90"
+            >
+              <div className={`p-2 rounded-full transition-colors ${isReal ? "bg-indigo-500/10" : "bg-white/5"}`}>
+                <RealIcon active={isReal} />
+              </div>
+              <span className={`text-[11px] font-bold tracking-tight ${isReal ? "text-indigo-400" : "text-gray-400"}`}>
+                Real
+              </span>
             </button>
             <span
               onClick={() => setRealModal(true)}
-              className="text-white text-xs font-medium drop-shadow-md cursor-pointer hover:underline"
+              className="text-white text-[10px] font-medium drop-shadow-md cursor-pointer hover:underline opacity-80"
             >
               {realCount}
             </span>
           </div>
 
-          {/* LESS REAL */}
           <div className="flex flex-col items-center gap-1">
-            <button onClick={() => feedbackHandler("reflect")} className="text-sm font-medium px-3 py-2 rounded-full backdrop-blur-md transition-all active:scale-90 flex flex-col items-center bg-white/10 text-white">
-              <span className={isReflect ? "text-gray-400" : "text-white"}>Less real</span>
+            <button
+              onClick={() => feedbackHandler("reflect")}
+              className="group flex flex-col items-center gap-1.5 transition-transform active:scale-90"
+            >
+              <div className={`p-2 rounded-full transition-colors ${isReflect ? "bg-white/10" : "bg-white/5"}`}>
+                <ReflectIcon active={isReflect} />
+              </div>
+              <span className={`text-[11px] font-bold tracking-tight ${isReflect ? "text-gray-300 opacity-100" : "text-gray-400"}`}>
+                Less real
+              </span>
             </button>
             {isOwner && (
-              <span className="text-gray-400 text-[10px] font-medium drop-shadow-md">{reflectCount} (private)</span>
+              <span className="text-gray-500 text-[9px] font-medium drop-shadow-md uppercase tracking-tighter opacity-70">
+                {reflectCount} private
+              </span>
             )}
           </div>
 
@@ -814,33 +868,36 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
       <div className="px-3 pt-3">
         {/* Action Row: Reals &#x26; Comments inline */}
         <div className="flex items-center gap-6 mb-3">
-          {/* Real Group */}
-          <div className="flex items-center gap-2">
-            <button
-              className={`text-sm font-bold px-4 py-1.5 rounded-full transition-all active:scale-95 ${isReal ? "bg-indigo-600/20 text-indigo-400" : "bg-white/5 text-gray-300"}`}
-            >
+          <button
+            onClick={() => feedbackHandler("real")}
+            className="flex items-center gap-2 group transition-transform active:scale-95 translate-y-[-1px]"
+          >
+            <RealIcon active={isReal} />
+            <span className={`text-sm font-bold tracking-tight ${isReal ? "text-indigo-400" : "text-gray-400"}`}>
               Real
-            </button>
+            </span>
             <span
-              onClick={() => setRealModal(true)}
-              className="text-white font-semibold text-sm cursor-pointer hover:underline"
+              onClick={(e) => { e.stopPropagation(); setRealModal(true); }}
+              className={`text-sm font-medium ml-0.5 ${isReal ? "text-indigo-400/80" : "text-gray-500"} hover:underline`}
             >
               {realCount}
             </span>
-          </div>
+          </button>
 
-          {/* Less Real Group */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => feedbackHandler("reflect")}
-              className={`text-sm font-bold px-4 py-1.5 rounded-full transition-all active:scale-95 ${isReflect ? "bg-white/10 text-gray-400" : "bg-white/5 text-gray-300"}`}
-            >
+          <button
+            onClick={() => feedbackHandler("reflect")}
+            className="flex items-center gap-2 group transition-transform active:scale-95 translate-y-[-1px]"
+          >
+            <ReflectIcon active={isReflect} />
+            <span className={`text-sm font-bold tracking-tight ${isReflect ? "text-gray-200" : "text-gray-400"}`}>
               Less real
-            </button>
+            </span>
             {isOwner && (
-              <span className="text-gray-400 text-xs font-medium italic">{reflectCount} private</span>
+              <span className="text-[10px] text-gray-500 font-medium italic translate-y-[1px]">
+                {reflectCount}p
+              </span>
             )}
-          </div>
+          </button>
 
           {/* Comment Group */}
           <div className="flex items-center gap-2">

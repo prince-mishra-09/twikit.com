@@ -129,17 +129,26 @@ export const deleteComment = TryCatch(async (req, res) => {
         comment.user.toString() === req.user._id.toString() ||
         (post && post.owner.toString() === req.user._id.toString())
     ) {
-        // If it's a parent comment, delete replies too or handle orphaned?
-        // Usually delete replies.
+        // Calculate impact before deletion
+        const repliesCount = await Comment.countDocuments({ parentComment: comment._id });
+        const totalToRemove = 1 + repliesCount;
+
+        // Cleanup replies
         await Comment.deleteMany({ parentComment: comment._id });
 
-        // Decrement count (1 + replies count)
-        const repliesCount = await Comment.countDocuments({ parentComment: comment._id });
+        // Cleanup notifications for this comment and its replies
+        const allCommentIds = [comment._id];
+        const replies = await Comment.find({ parentComment: comment._id }).select("_id");
+        replies.forEach(r => allCommentIds.push(r._id));
+
+        await Notification.deleteMany({
+            relatedComment: { $in: allCommentIds }
+        });
 
         await comment.deleteOne();
 
         if (post) {
-            post.commentsCount = Math.max(0, post.commentsCount - 1 - repliesCount);
+            post.commentsCount = Math.max(0, post.commentsCount - totalToRemove);
             await post.save();
         }
 

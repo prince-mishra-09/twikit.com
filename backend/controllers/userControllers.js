@@ -68,16 +68,33 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
     await loggedInUser.save();
     await user.save();
 
+    // CLEANUP NOTIFICATION
+    await Notification.deleteMany({
+      sender: loggedInUser._id,
+      receiver: user._id,
+      type: "follow"
+    });
+
     res.json({
       message: "User Unfollowed",
     });
+  } else if (user.followRequests.includes(loggedInUser._id)) {
+    // RETRACT REQUEST LOGIC
+    const index = user.followRequests.indexOf(loggedInUser._id);
+    user.followRequests.splice(index, 1);
+    await user.save();
+
+    // CLEANUP NOTIFICATION
+    await Notification.deleteMany({
+      sender: loggedInUser._id,
+      receiver: user._id,
+      type: "follow_request"
+    });
+
+    res.json({ message: "Follow Request Retracted" });
   } else {
     // FOLLOW LOGIC
-    // Check if request already sent
-    if (user.followRequests.includes(loggedInUser._id)) {
-      return res.status(400).json({ message: "Request already sent" });
-    }
-
+    // ... (Existing logic for follow/request)
     if (user.isPrivate) {
       // PRIVATE ACCOUNT: Send Request
       user.followRequests.push(loggedInUser._id);

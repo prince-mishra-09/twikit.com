@@ -32,7 +32,7 @@ const RealModal = ({ isOpen, onClose, id }) => {
 
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-white font-medium">Real feedback by</h2>
+          <h2 className="text-white font-medium">✨ Real feedback by</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white text-xl"
