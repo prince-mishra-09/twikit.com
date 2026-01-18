@@ -356,11 +356,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
 
   // ... useEffects for Follow / Like / Scroll match existing ...
 
-  useEffect(() => {
-    if (user && value.owner) {
-      setIsFollowed(user.followings?.includes(value.owner._id));
-    }
-  }, [user, value.owner]);
+  // Removed redundant effect that caused unsafe access. Logic is consolidated below.
 
 
   // DEEP LINK COMMENT SCROLL
@@ -441,8 +437,11 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
 
   useEffect(() => {
     if (user && value.owner) {
-      setIsFollowed(user.followings?.includes(value.owner._id));
-      setIsSaved(user.savedPosts?.includes(value._id));
+      setIsFollowed(user?.followings?.includes(value.owner._id));
+      setIsSaved(user?.savedPosts?.includes(value._id));
+    } else {
+      setIsFollowed(false);
+      setIsSaved(false);
     }
   }, [user, value.owner, value._id]);
 
