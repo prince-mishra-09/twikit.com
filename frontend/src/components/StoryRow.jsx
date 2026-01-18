@@ -15,9 +15,9 @@ const StoryRow = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
 
     // Check if I have a story
-    const myStoryGroup = stories.find(s => s.user._id === user._id);
+    const myStoryGroup = user ? stories.find(s => s.user._id === user._id) : null;
     // Filter out myself from the main list to avoid duplication if I'm there
-    const otherStories = stories.filter(s => s.user._id !== user._id);
+    const otherStories = user ? stories.filter(s => s.user._id !== user._id) : stories;
 
     const openStory = (index, isMyStory = false) => {
         if (isMyStory) {
@@ -75,6 +75,7 @@ const StoryRow = () => {
                 {/* OTHER USERS STORIES */}
                 {otherStories
                     .sort((a, b) => {
+                        if (!user) return 0;
                         // helper to check if all stories viewed
                         const aSeen = a.stories.every(s => s.viewers.some(v => v._id === user._id || v === user._id));
                         const bSeen = b.stories.every(s => s.viewers.some(v => v._id === user._id || v === user._id));
@@ -84,7 +85,7 @@ const StoryRow = () => {
                         return 0;
                     })
                     .map((group, idx) => {
-                        const isAllSeen = group.stories.every(s => s.viewers.some(v => v._id === user._id || v === user._id));
+                        const isAllSeen = user ? group.stories.every(s => s.viewers.some(v => v._id === user._id || v === user._id)) : false;
                         return (
                             <div
                                 key={group.user._id}
@@ -126,7 +127,7 @@ const StoryRow = () => {
                     initialIndex={selectedStoryIndex}
                     initialStoryIndex={() => {
                         const group = viewerStories[selectedStoryIndex];
-                        if (!group) return 0;
+                        if (!group || !user) return 0;
                         const firstUnseen = group.stories.findIndex(s => !s.viewers.some(v => v._id === user._id));
                         return firstUnseen !== -1 ? firstUnseen : 0;
                     }}

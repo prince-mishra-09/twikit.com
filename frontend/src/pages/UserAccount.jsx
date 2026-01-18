@@ -18,7 +18,7 @@ import { BsShare } from "react-icons/bs";
 const UserAccount = ({ user: loggedInUser }) => {
   const { posts, reels } = PostData();
   const { stories, fetchUserStories, fetchStories } = StoriesData();
-  const { followUser } = UserData();
+  const { followUser, setShowLoginPrompt } = UserData();
   const { onlineUsers } = SocketData();
   const params = useParams();
   const navigate = useNavigate();
@@ -64,6 +64,11 @@ const UserAccount = ({ user: loggedInUser }) => {
   const [requested, setRequested] = useState(false);
 
   useEffect(() => {
+    if (!loggedInUser) {
+      setFollowed(false);
+      setRequested(false);
+      return;
+    }
     if (user?.followers?.includes(loggedInUser._id)) {
       setFollowed(true);
       setRequested(false);
@@ -74,7 +79,7 @@ const UserAccount = ({ user: loggedInUser }) => {
       setFollowed(false);
       setRequested(false);
     }
-  }, [user, loggedInUser._id]);
+  }, [user, loggedInUser?._id]);
 
   // Real-time update for profile stats
   const { socket } = SocketData();
@@ -102,6 +107,10 @@ const UserAccount = ({ user: loggedInUser }) => {
   }, [socket, user?._id]);
 
   const followHandler = async () => {
+    if (!loggedInUser) {
+      setShowLoginPrompt(true);
+      return;
+    }
     // 1. STORE PREVIOUS STATE
     const prevFollowed = followed;
     const prevRequested = requested;
@@ -122,7 +131,7 @@ const UserAccount = ({ user: loggedInUser }) => {
     }
 
     try {
-      const message = await followUser(user._id);
+      const message = await followUser(user?._id);
 
       // 3. FINAL SYNC FROM BACKEND MESSAGE
       if (message === "Follow Request Sent") {
@@ -311,9 +320,17 @@ const UserAccount = ({ user: loggedInUser }) => {
         </div>
 
         {/* FOLLOW BUTTON */}
-        {user._id !== loggedInUser._id && (
+        {(!loggedInUser || user._id !== loggedInUser._id) && (
           <button
-            onClick={followHandler}
+            onClick={() => {
+              if (!loggedInUser) {
+                // We need setShowLoginPrompt from context
+                // But for now, let's just use the prop if we can or get from hook
+                followHandler(); // This will eventually need the guard
+              } else {
+                followHandler();
+              }
+            }}
             className={`mt-4 w-full py-2 rounded-lg text-white ${followed ? "bg-red-500" : requested ? "bg-gray-600" : "bg-indigo-500"
               }`}
           >

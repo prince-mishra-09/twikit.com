@@ -137,7 +137,7 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
         const isMinSwipe = distance > 50;
 
         if (isMinSwipe) {
-            if (currentUserStories.user._id === user._id) {
+            if (user && currentUserStories.user._id === user._id) {
                 setShowInsights(true);
             }
         } else if (distance < -50) {
@@ -275,7 +275,7 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
                 )}
 
                 {/* --- SWIPE UP HINT --- */}
-                {currentUserStories.user._id === user._id && !showInsights && (
+                {user && currentUserStories.user._id === user._id && !showInsights && (
                     <div className="absolute bottom-4 left-0 w-full flex flex-col items-center z-20 animate-bounce pointer-events-none opacity-70">
                         <div className="w-6 h-1 bg-white/50 rounded-full mb-1"></div>
                         <span className="text-[10px] text-white/50 font-medium uppercase tracking-widest">Swipe Up</span>
