@@ -49,7 +49,7 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
 
     // Mark as seen
     useEffect(() => {
-        if (currentStory && !showInsights) {
+        if (currentStory && !showInsights && user) {
             viewStory(currentStory._id);
         }
     }, [currentStory?._id]);

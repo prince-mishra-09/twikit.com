@@ -1,7 +1,7 @@
 import e from "express";
 import { isAuth } from "../middlewares/isAuth.js";
 import { optionalAuth } from "../middlewares/optionalAuth.js";
-import { deletePost, editCaption, getAllPosts, getRandomPosts, handleFeedback, newPost, saveUnsavePost, getPost, addPostView } from "../controllers/postController.js";
+import { deletePost, editCaption, getAllPosts, getRandomPosts, handleFeedback, newPost, saveUnsavePost, getPost, addPostView, getUserPosts } from "../controllers/postController.js";
 import uploadFile from "../middlewares/multer.js";
 
 const router = e.Router();
@@ -17,6 +17,7 @@ router.post("/save/:id", isAuth, saveUnsavePost)
 router.delete("/:id", isAuth, deletePost)
 router.get("/random", optionalAuth, getRandomPosts)
 router.get("/:id", optionalAuth, getPost)
+router.get("/user/:id", optionalAuth, getUserPosts)
 
 
 

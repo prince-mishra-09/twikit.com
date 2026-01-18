@@ -54,7 +54,7 @@ const ReflectIcon = ({ active }) => (
   </svg>
 );
 
-const PostCard = ({ value, type, isActive, commentId, openComments }) => {
+const PostCard = ({ value, type, isActive, commentId, openComments, isGrid }) => {
   const { user, isAuth, setShowLoginPrompt, followUser, savePost, hidePost, muteUser, blockUser } = UserData();
   const { sendFeedback, addComment, deletePost, deleteComment } = PostData();
 
@@ -578,6 +578,24 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
   if (!value || isHidden) return null; // Hide post if isHidden is true
 
   // ===================== REEL RENDER =====================
+  // GRID MODE (For Profile/Search)
+  if (type === "reel" && isGrid) {
+    return (
+      <div className="w-full h-full relative cursor-pointer">
+        <video
+          src={value.post.url}
+          className="w-full h-full object-cover"
+          muted
+        />
+        {/* Simple View Count Overlay */}
+        <div className="absolute bottom-2 left-2 flex items-center gap-1 text-white text-xs drop-shadow-md">
+          <IoEyeOutline /> {value.views || 0}
+        </div>
+      </div>
+    );
+  }
+
+  // FULL MODE (For Feed/Reels Player)
   if (type === "reel") {
     return (
       <div className="w-full h-full relative group">

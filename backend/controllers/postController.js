@@ -433,6 +433,7 @@ export const getPost = TryCatch(async (req, res) => {
             post.reflections = [];
         }
 
+        // ... existing getPost ...
         res.json(post);
     } catch (error) {
         console.error("getPost Error:", error);
@@ -441,4 +442,52 @@ export const getPost = TryCatch(async (req, res) => {
         }
         throw error;
     }
+});
+
+export const getUserPosts = TryCatch(async (req, res) => {
+    const userId = req.params.id;
+    const isGuest = !req.user;
+
+    // 1. Verify target user exists
+    const targetUser = await User.findById(userId);
+    if (!targetUser) return res.status(404).json({ message: "User not found" });
+
+    // 2. PRIVACY CHECK
+    // If own profile -> Allow
+    // If public -> Allow
+    // If private -> Must be follower
+    let isAllowed = false;
+
+    if (!isGuest && req.user._id.toString() === userId.toString()) {
+        isAllowed = true;
+    } else if (!targetUser.isPrivate) {
+        isAllowed = true;
+        // Check if blocked
+        if (!isGuest && (targetUser.blockedUsers.includes(req.user._id) || req.user.blockedUsers.includes(targetUser._id))) {
+            return res.status(403).json({ message: "User is unavailable" });
+        }
+    } else {
+        // Private profile
+        if (isGuest) {
+            return res.status(401).json({ message: "Login required to view private content" });
+        }
+        if (targetUser.followers.includes(req.user._id)) {
+            isAllowed = true;
+        }
+    }
+
+    if (!isAllowed) {
+        return res.status(403).json({ message: "This account is private. Follow to see posts." });
+    }
+
+    // 3. Fetch Posts
+    const posts = await Post.find({ owner: userId, type: "post" })
+        .sort({ createdAt: -1 })
+        .populate("owner", "name username profilePic isPrivate");
+
+    const reels = await Post.find({ owner: userId, type: "reel" })
+        .sort({ createdAt: -1 })
+        .populate("owner", "name username profilePic isPrivate");
+
+    res.json({ posts, reels });
 });

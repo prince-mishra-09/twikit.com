@@ -24,7 +24,11 @@ const NavigationBar = () => {
   const inactiveStyle = "text-gray-400 hover:text-[var(--accent)] transition";
 
   // Hide Navbar on Reels and Chat pages
-  if (location.pathname === "/reels" || location.pathname === "/chat") {
+  // Hide Navbar on Reels, Chat, Landing, and Auth pages
+  const isLandingPage = (location.pathname === "/" && !isAuth) || location.pathname === "/landing";
+  const isAuthPage = location.pathname === "/login" || location.pathname === "/register";
+
+  if (location.pathname === "/reels" || location.pathname === "/chat" || isLandingPage || isAuthPage) {
     return null;
   }
 
@@ -37,11 +41,11 @@ const NavigationBar = () => {
 
           {/* Home */}
           <Link
-            to="/"
-            className={`text-2xl transition-all duration-200 ${tab === "/" ? activeStyle : inactiveStyle
+            to={isAuth ? "/" : "/feed"}
+            className={`text-2xl transition-all duration-200 ${tab === "/" || tab === "/feed" ? activeStyle : inactiveStyle
               }`}
           >
-            {tab === "/" ? <AiFillHome /> : <AiOutlineHome />}
+            {tab === "/" || tab === "/feed" ? <AiFillHome /> : <AiOutlineHome />}
           </Link>
 
           {/* Search */}

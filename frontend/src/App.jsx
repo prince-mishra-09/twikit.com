@@ -54,11 +54,12 @@ function App() {
     <>
       <Toaster position="top-center" />
       <Toaster position="top-center" />
-      <LoginPromptModal />
       {loading ? <Loading /> : <BrowserRouter><NotificationProvider><StoriesProvider>
+        <LoginPromptModal />
         <Routes>
-          <Route path="/landing" element={<TwikitLanding />} />
-          <Route path="/" element={<Home />} />
+          <Route path="/landing" element={isAuth ? <Home /> : <TwikitLanding />} />
+          <Route path="/" element={isAuth ? <Home /> : <TwikitLanding />} />
+          <Route path="/feed" element={<Home />} />
           <Route path="/reels" element={<Reels />} />
           <Route path="/user/:id" element={<UserAccount user={user} />} />
           <Route path="/account" element={isAuth ? <Account user={user} /> : <Login />} />

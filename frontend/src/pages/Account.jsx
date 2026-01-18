@@ -423,7 +423,7 @@ const Account = ({ user }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl mx-auto pb-4">
             {myReels.map((reel) => (
               <div key={reel._id} id={reel._id} className="account-reel flex justify-center w-full aspect-[9/16] bg-gray-900 rounded-lg overflow-hidden relative group">
-                <PostCard type="reel" value={reel} isActive={activeReelId === reel._id} />
+                <PostCard type="reel" value={reel} isActive={activeReelId === reel._id} isGrid={true} />
               </div>
             ))}
           </div>

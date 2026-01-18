@@ -1,4 +1,5 @@
 @import "tailwindcss";
+html { scroll-behavior: smooth; }
 
 :root {
   --accent: #6366f1; /* Default Indigo */

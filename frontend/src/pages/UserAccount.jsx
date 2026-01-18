@@ -16,7 +16,7 @@ import ShareModal from "../components/ShareModal";
 import { BsShare } from "react-icons/bs";
 
 const UserAccount = ({ user: loggedInUser }) => {
-  const { posts, reels } = PostData();
+  const { } = PostData();
   const { stories, fetchUserStories, fetchStories } = StoriesData();
   const { followUser, setShowLoginPrompt } = UserData();
   const { onlineUsers } = SocketData();
@@ -50,8 +50,30 @@ const UserAccount = ({ user: loggedInUser }) => {
     fetchUser();
   }, [params.id]);
 
-  const myPosts = posts?.filter((p) => p.owner._id === user?._id);
-  const myReels = reels?.filter((r) => r.owner._id === user?._id);
+  const [userPosts, setUserPosts] = useState([]);
+  const [userReels, setUserReels] = useState([]);
+
+  // Fetch User's Posts directly (Privacy Aware)
+  async function fetchUserPosts() {
+    if (!user) return;
+    try {
+      const { data } = await axios.get("/api/post/user/" + user._id);
+      setUserPosts(data.posts);
+      setUserReels(data.reels);
+    } catch (error) {
+      // If 403/401 (Private), simply clear the list
+      setUserPosts([]);
+      setUserReels([]);
+    }
+  }
+
+  useEffect(() => {
+    fetchUserPosts();
+  }, [user, followed, requested]); // Refetch if access changes
+
+  // Use local state instead of global context filtering
+  const myPosts = userPosts;
+  const myReels = userReels;
 
   const [type, setType] = useState("post");
   const [index, setIndex] = useState(0);
@@ -382,7 +404,7 @@ const UserAccount = ({ user: loggedInUser }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl mx-auto pb-4">
             {myReels.map((reel, i) => (
               <div key={reel._id} className="relative aspect-[9/16] bg-gray-900 rounded-lg overflow-hidden">
-                <PostCard type="reel" value={reel} />
+                <PostCard type="reel" value={reel} isGrid={true} />
               </div>
             ))}
           </div>
