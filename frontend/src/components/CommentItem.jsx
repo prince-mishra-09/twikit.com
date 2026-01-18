@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { UserData } from "../context/UserContext";
 
 const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, activeCommentMenuId, toggleCommentMenu, onReplyAdded, onDelete, activeCommentId, setReplyingTo }) => {
-    const { user } = UserData();
+    const { user, isAuth, setShowLoginPrompt } = UserData();
     const [showReplies, setShowReplies] = useState(false);
 
     // Auto-expand if activeCommentId is one of the replies
@@ -49,6 +49,10 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
     };
 
     const handleReplyClick = () => {
+        if (!isAuth) {
+            setShowLoginPrompt(true);
+            return;
+        }
         setReplyingTo({ id: comment._id, user: comment.user });
     };
 

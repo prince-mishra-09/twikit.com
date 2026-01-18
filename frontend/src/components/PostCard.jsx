@@ -55,7 +55,7 @@ const ReflectIcon = ({ active }) => (
 );
 
 const PostCard = ({ value, type, isActive, commentId, openComments }) => {
-  const { user, followUser, savePost, hidePost, muteUser, blockUser } = UserData();
+  const { user, isAuth, setShowLoginPrompt, followUser, savePost, hidePost, muteUser, blockUser } = UserData();
   const { sendFeedback, addComment, deletePost, deleteComment } = PostData();
 
   const [isReal, setIsReal] = useState(false);
@@ -291,6 +291,10 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
 
   const addCommentHandler = async (e) => {
     e.preventDefault();
+    if (!isAuth) {
+      setShowLoginPrompt(true);
+      return;
+    }
     if (!comment.trim()) return;
 
     const commentText = comment;
@@ -482,6 +486,10 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
 
 
   const feedbackHandler = (feedbackType) => {
+    if (!isAuth) {
+      setShowLoginPrompt(true);
+      return;
+    }
     // Optimistic UI update
     if (feedbackType === "real") {
       const newState = !isReal;
@@ -516,6 +524,10 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
   const deleteHandler = () => deletePost(value._id);
 
   const followHandler = async () => {
+    if (!isAuth) {
+      setShowLoginPrompt(true);
+      return;
+    }
     const previousState = isFollowed;
     setIsFollowed(!isFollowed);
 
@@ -533,6 +545,10 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
   };
 
   const saveHandler = async () => {
+    if (!isAuth) {
+      setShowLoginPrompt(true);
+      return;
+    }
     setIsSaved(!isSaved);
     await savePost(value._id);
   };
@@ -540,12 +556,20 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
   // --- FEED CONTROLS ---
   const notInterestedHandler = async (e) => {
     e.stopPropagation();
+    if (!isAuth) {
+      setShowLoginPrompt(true);
+      return;
+    }
     setIsHidden(true); // Optimistic UI
     await hidePost(value._id);
   };
 
   const muteHandler = async (e) => {
     e.stopPropagation();
+    if (!isAuth) {
+      setShowLoginPrompt(true);
+      return;
+    }
     setIsHidden(true); // Optimistic UI
     await muteUser(value.owner._id);
   };

@@ -19,6 +19,7 @@ import { NotificationProvider } from "./context/NotificationContext";
 import { StoriesProvider } from "./context/StoriesContext";
 import Notifications from "./pages/Notifications";
 import { useEffect } from "react";
+import LoginPromptModal from "./components/LoginPromptModal";
 
 function App() {
   const { loading, isAuth, user, setUser } = UserData();
@@ -53,23 +54,24 @@ function App() {
     <>
       <Toaster position="top-center" />
       <Toaster position="top-center" />
+      <LoginPromptModal />
       {loading ? <Loading /> : <BrowserRouter><NotificationProvider><StoriesProvider>
         <Routes>
           <Route path="/landing" element={<TwikitLanding />} />
-          <Route path="/" element={isAuth ? <Home /> : <Login />} />
-          <Route path="/reels" element={isAuth ? <Reels /> : <Login />} />
-          <Route path="/user/:id" element={isAuth ? <UserAccount user={user} /> : <Login />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/reels" element={<Reels />} />
+          <Route path="/user/:id" element={<UserAccount user={user} />} />
           <Route path="/account" element={isAuth ? <Account user={user} /> : <Login />} />
           <Route path="/register" element={!isAuth ? <Register /> : <Home />} />
-          <Route path="/search" element={isAuth ? <Search /> : <Login />} />
+          <Route path="/search" element={<Search />} />
           <Route path="/chat" element={isAuth ? <ChatPage user={user} /> : <Login />} />
           <Route path="/notifications" element={isAuth ? <Notifications /> : <Login />} />
           <Route path="/login" element={!isAuth ? <Login /> : <Home />} />
           <Route path="*" element={<NotFound />} />
-          <Route path="/post/:id" element={isAuth ? <PostDetail /> : <Login />} />
+          <Route path="/post/:id" element={<PostDetail />} />
 
         </Routes>
-        {isAuth && <NavigationBar />}
+        <NavigationBar />
       </StoriesProvider></NotificationProvider></BrowserRouter>}
     </>
   );

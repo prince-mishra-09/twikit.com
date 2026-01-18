@@ -1,5 +1,6 @@
 import express from "express";
 import { isAuth } from "../middlewares/isAuth.js";
+import { optionalAuth } from "../middlewares/optionalAuth.js";
 import {
   myProfile,
   userProfile,
@@ -21,7 +22,7 @@ import uploadFile from "../middlewares/multer.js";
 const router = express.Router();
 
 /* ✅ SEARCH / ALL USERS (ALWAYS ON TOP) */
-router.get("/all", isAuth, searchUsers);
+router.get("/all", optionalAuth, searchUsers);
 
 /* ================= PROTECTED ================= */
 router.get("/me", isAuth, myProfile);
@@ -36,7 +37,7 @@ router.put("/privacy", isAuth, togglePrivacy);
 router.delete("/follower/:id", isAuth, removeFollower);
 
 /* ================= ID BASED (ALWAYS LAST) ================= */
-router.get("/:id", isAuth, userProfile);
+router.get("/:id", optionalAuth, userProfile);
 router.post("/:id", isAuth, updatePassword);
 router.put("/:id", isAuth, uploadFile, updateProfile);
 

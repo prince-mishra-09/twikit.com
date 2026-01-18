@@ -26,14 +26,23 @@ export const userProfile = async (req, res) => {
 
   if (!user) return res.status(404).json({ message: "User Not Found" });
 
-  // CHECK BLOCK STATUS
-  // 1. If I blocked them
-  if (req.user.blockedUsers.includes(user._id)) {
-    return res.status(404).json({ message: "User Not Found" });
+  const isGuest = !req.user;
+
+  // CHECK BLOCK STATUS (only for logged in users)
+  if (!isGuest) {
+    // 1. If I blocked them
+    if (req.user.blockedUsers.includes(user._id)) {
+      return res.status(404).json({ message: "User Not Found" });
+    }
+    // 2. If they blocked me
+    if (user.blockedUsers.includes(req.user._id)) {
+      return res.status(404).json({ message: "User Not Found" });
+    }
   }
-  // 2. If they blocked me
-  if (user.blockedUsers.includes(req.user._id)) {
-    return res.status(404).json({ message: "User Not Found" });
+
+  // Privacy Check for guests
+  if (isGuest && user.isPrivate) {
+    return res.status(401).json({ message: "Login required to view private profile" });
   }
 
   res.json(user);
@@ -158,10 +167,23 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
 
 
 export const userFollowerandFollowingData = tryCatch(async (req, res) => {
+  const targetUser = await User.findById(req.params.id);
+
+  if (!targetUser) return res.status(404).json({ message: "User not found" });
+
+  const isGuest = !req.user;
+  const isOwner = !isGuest && req.user._id.toString() === targetUser._id.toString();
+  const isFollower = !isGuest && targetUser.followers.includes(req.user._id);
+
+  // Privacy Check: Only owner or followers can see the list if private
+  if (targetUser.isPrivate && !isOwner && !isFollower) {
+    return res.status(403).json({ message: "This account is private. Follow to see followers." });
+  }
+
   const user = await User.findById(req.params.id)
     .select("-password")
-    .populate("followers", "-password")
-    .populate("followings", "-password");
+    .populate("followers", "name username profilePic bio isPrivate")
+    .populate("followings", "name username profilePic bio isPrivate");
 
   const followers = user.followers;
   const followings = user.followings;
@@ -242,6 +264,8 @@ export const searchUsers = tryCatch(async (req, res) => {
   const searchRaw = req.query.search || "";
   const search = searchRaw.replace(/^@/, "").trim();
 
+  const isGuest = !req.user;
+
   if (!search && !req.query.restrictToFollowersOf) {
     return res.json({ users: [], posts: [] });
   }
@@ -249,9 +273,14 @@ export const searchUsers = tryCatch(async (req, res) => {
   const regex = new RegExp(search, "i");
 
   const query = {
-    _id: { $ne: req.user._id, $nin: req.user.blockedUsers },
-    blockedUsers: { $ne: req.user._id }
+    isPrivate: false // Default to public only for search if guest
   };
+
+  if (!isGuest) {
+    delete query.isPrivate; // Authenticated users can see more (depending on blocking)
+    query._id = { $ne: req.user._id, $nin: req.user.blockedUsers };
+    query.blockedUsers = { $ne: req.user._id };
+  }
 
   if (search) {
     query.$or = [
@@ -260,24 +289,22 @@ export const searchUsers = tryCatch(async (req, res) => {
     ];
   }
 
-  if (req.query.restrictToFollowersOf) {
+  if (req.query.restrictToFollowersOf && !isGuest) {
     const targetUser = await User.findById(req.query.restrictToFollowersOf);
     if (targetUser) {
-      // Must be in targetUser's followers
+      if (!query._id) query._id = {};
       query._id.$in = targetUser.followers;
     }
   }
 
-  const users = await User.find(query).select("name username profilePic bio");
+  const users = await User.find(query).select("name username profilePic bio isPrivate");
 
   // Priority Sort: Exact Username > StartsWith Username > Name
   users.sort((a, b) => {
     const aU = a.username || "";
     const bU = b.username || "";
-    // Exact match top priority
     if (aU === search && bU !== search) return -1;
     if (bU === search && aU !== search) return 1;
-    // Starts with second priority
     if (aU.startsWith(search) && !bU.startsWith(search)) return -1;
     if (bU.startsWith(search) && !aU.startsWith(search)) return 1;
     return 0;
@@ -291,11 +318,12 @@ export const searchUsers = tryCatch(async (req, res) => {
   })
     .sort({ createdAt: -1 })
     .limit(10)
-    .populate("owner", "name username profilePic");
+    .populate("owner", "name username profilePic isPrivate");
 
   // Sanitize reflections for privacy
   posts = posts.map(post => {
-    if (post.owner._id.toString() !== req.user._id.toString()) {
+    const isOwner = !isGuest && post.owner._id.toString() === req.user._id.toString();
+    if (!isOwner) {
       post.reflections = [];
     }
     return post;

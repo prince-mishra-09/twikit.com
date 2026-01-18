@@ -10,6 +10,7 @@ export const UserContextProvider = ({ children }) => {
   const [isAuth, setIsAuth] = useState(false);
   const [loading, setLoading] = useState(true);
   const [themeColor, setThemeColor] = useState(localStorage.getItem("twikit-theme") || "indigo");
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   // Apply theme to document
   useEffect(() => {
@@ -262,6 +263,8 @@ export const UserContextProvider = ({ children }) => {
         registerPush,
         themeColor,
         setThemeColor,
+        showLoginPrompt,
+        setShowLoginPrompt,
       }}
     >
       {children}

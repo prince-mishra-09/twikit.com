@@ -8,8 +8,10 @@ import { PostData } from "../context/PostContext";
 import { NotificationData } from "../context/NotificationContext";
 import { ChatData } from "../context/ChatContext";
 import { SkeletonPost } from "../components/Skeleton";
+import { UserData } from "../context/UserContext";
 
 const Home = () => {
+  const { isAuth } = UserData();
   const { posts, loading, fetchNextPage, loadingMore, pagination } = PostData();
   const { unreadCount } = NotificationData();
   const { totalUnreadMessages } = ChatData();
@@ -59,28 +61,40 @@ const Home = () => {
               Twikit
             </h1>
             <div className="flex items-center gap-3">
-              <Link
-                to="/notifications"
-                className="relative bg-white/10 p-2.5 rounded-full backdrop-blur-md border border-white/5 hover:bg-white/20 transition-all duration-300 text-white shadow-lg shadow-indigo-500/10 group"
-              >
-                <IoNotificationsOutline className="text-xl group-hover:rotate-12 transition-transform" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[#0B0F14]">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                )}
-              </Link>
-              <Link
-                to="/chat"
-                className="relative bg-white/10 p-2.5 rounded-full backdrop-blur-md border border-white/5 hover:bg-white/20 transition-all duration-300 text-white shadow-lg shadow-indigo-500/10 group"
-              >
-                <IoChatbubbleEllipsesOutline className="text-xl group-hover:scale-110 transition-transform" />
-                {totalUnreadMessages > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[#0B0F14]">
-                    {totalUnreadMessages > 9 ? "9+" : totalUnreadMessages}
-                  </span>
-                )}
-              </Link>
+              {isAuth && (
+                <>
+                  <Link
+                    to="/notifications"
+                    className="relative bg-white/10 p-2.5 rounded-full backdrop-blur-md border border-white/5 hover:bg-white/20 transition-all duration-300 text-white shadow-lg shadow-indigo-500/10 group"
+                  >
+                    <IoNotificationsOutline className="text-xl group-hover:rotate-12 transition-transform" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[#0B0F14]">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </Link>
+                  <Link
+                    to="/chat"
+                    className="relative bg-white/10 p-2.5 rounded-full backdrop-blur-md border border-white/5 hover:bg-white/20 transition-all duration-300 text-white shadow-lg shadow-indigo-500/10 group"
+                  >
+                    <IoChatbubbleEllipsesOutline className="text-xl group-hover:scale-110 transition-transform" />
+                    {totalUnreadMessages > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[#0B0F14]">
+                        {totalUnreadMessages > 9 ? "9+" : totalUnreadMessages}
+                      </span>
+                    )}
+                  </Link>
+                </>
+              )}
+              {!isAuth && (
+                <Link
+                  to="/login"
+                  className="bg-indigo-600 text-white px-5 py-2 rounded-full font-bold text-sm hover:bg-indigo-500 transition-all"
+                >
+                  Log In
+                </Link>
+              )}
             </div>
           </div>
         </div>

@@ -17,6 +17,21 @@ export const sendMessage = TryCatch(async (req, res) => {
       message: "Please give reciever id",
     });
 
+  const receiver = await User.findById(recieverId);
+  if (!receiver) return res.status(404).json({ message: "User not found" });
+
+  // 1. BLOCK CHECK
+  if (receiver.blockedUsers.includes(senderId)) {
+    return res.status(403).json({ message: "You cannot message this user" });
+  }
+
+  // 2. PRIVACY CHECK (Recipient must be public OR sender must be a follower)
+  if (receiver.isPrivate && receiver._id.toString() !== senderId.toString()) {
+    if (!receiver.followers.includes(senderId)) {
+      return res.status(403).json({ message: "Follow this user to send messages" });
+    }
+  }
+
   /* PRIVACY CHECK FOR SHARED CONTENT */
   if (sharedContent) {
     const { type, contentId } = sharedContent;
@@ -214,35 +229,71 @@ export const getAllMessages = TryCatch(async (req, res) => {
 export const getAllChats = TryCatch(async (req, res) => {
   const userId = req.user._id;
 
-  /* MODIFIED: Include Unread Counts */
-  const chats = await Chat.find({
-    users: { $in: [userId] },
-  })
-    .populate("users", "name profilePic lastSeen")
-    .sort({ updatedAt: -1 });
+  const chats = await Chat.aggregate([
+    // 1. Find chats where current user is a participant
+    { $match: { users: userId } },
+    // 2. Join with users collection for participant details
+    {
+      $lookup: {
+        from: "users",
+        localField: "users",
+        foreignField: "_id",
+        as: "participantDetails"
+      }
+    },
+    // 3. Count unread messages for each chat from other users
+    {
+      $lookup: {
+        from: "messages",
+        let: { chatId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$chatId", "$$chatId"] },
+                  { $ne: ["$sender", userId] },
+                  { $eq: ["$isRead", false] }
+                ]
+              }
+            }
+          }
+        ],
+        as: "unreadMessages"
+      }
+    },
+    // 4. Project required fields
+    {
+      $project: {
+        _id: 1,
+        latestMessage: 1,
+        updatedAt: 1,
+        unreadCount: { $size: "$unreadMessages" },
+        users: {
+          $filter: {
+            input: "$participantDetails",
+            as: "u",
+            cond: { $ne: ["$$u._id", userId] }
+          }
+        }
+      }
+    },
+    // 5. Clean up user fields (equivalent to select('-password'))
+    {
+      $project: {
+        "users.password": 0,
+        "users.__v": 0,
+        "users.blockedUsers": 0,
+        "users.mutedUsers": 0,
+        "users.savedPosts": 0,
+        "users.email": 0
+      }
+    },
+    // 6. Sort by latest interaction
+    { $sort: { updatedAt: -1 } }
+  ]);
 
-  // Add unread count for each chat
-  const chatsWithCount = await Promise.all(
-    chats.map(async (chat) => {
-      const unreadCount = await Messages.countDocuments({
-        chatId: chat._id,
-        sender: { $ne: userId },
-        isRead: false,
-      });
-
-      const otherUser = chat.users.find(
-        (u) => u._id.toString() !== userId.toString()
-      );
-
-      return {
-        ...chat.toObject(),
-        users: [otherUser], // Return only the other user
-        unreadCount,
-      };
-    })
-  );
-
-  res.json(chatsWithCount);
+  res.json(chats);
 });
 
 

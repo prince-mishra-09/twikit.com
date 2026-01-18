@@ -9,7 +9,15 @@ import VerifiedEmail from '../models/VerifiedEmail.js';
 import otpEmailService from '../utils/otpEmailService.js';
 
 const registerUser = tryCatch(async (req, res) => {
-    const { name, email, password, gender, username } = req.body
+    const { name, gender, username } = req.body
+    const email = req.body.email?.toLowerCase();
+    const password = req.body.password;
+
+    if (password && password.length < 6) {
+        return res.status(400).json({
+            message: "Password must be at least 6 characters long"
+        });
+    }
 
     const file = req.file;
 
@@ -100,7 +108,8 @@ export default registerUser
 
 
 export const loginUser = tryCatch(async (req, res) => {
-    const { email, password } = req.body
+    const { password } = req.body
+    const email = req.body.email?.toLowerCase();
 
     const user = await User.findOne({ email })
 
@@ -138,7 +147,7 @@ export const logoutUser = tryCatch((req, res) => {
 
 // Send OTP to email
 export const sendOTP = tryCatch(async (req, res) => {
-    const { email } = req.body;
+    const email = req.body.email?.toLowerCase();
 
     if (!email) {
         return res.status(400).json({
@@ -271,7 +280,7 @@ export const checkUsername = tryCatch(async (req, res) => {
 
 // Forgot Password - Send OTP
 export const forgotPassword = tryCatch(async (req, res) => {
-    const { email } = req.body;
+    const email = req.body.email?.toLowerCase();
 
     if (!email) {
         return res.status(400).json({

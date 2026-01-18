@@ -5,9 +5,11 @@ import { BsCameraReelsFill, BsCameraReels } from "react-icons/bs";
 import { IoSearchCircleOutline, IoSearchCircle } from "react-icons/io5";
 import { RiAccountCircleFill, RiAccountCircleLine } from "react-icons/ri";
 import CreatePostModal from "./CreatePostModal";
+import { UserData } from "../context/UserContext";
 
 
 const NavigationBar = () => {
+  const { isAuth, setShowLoginPrompt } = UserData();
   const location = useLocation();
   const [tab, setTab] = useState(location.pathname);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -53,7 +55,13 @@ const NavigationBar = () => {
 
           {/* ADD POST BUTTON (CENTER) */}
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => {
+              if (isAuth) {
+                setShowCreateModal(true);
+              } else {
+                setShowLoginPrompt(true);
+              }
+            }}
             className="bg-[var(--accent)] text-white p-3 rounded-xl shadow-lg shadow-[var(--accent)]/30 hover:opacity-90 hover:scale-105 transition-all -mt-8 border-4 border-[#0B0F14]"
           >
             <AiOutlinePlus className="text-2xl font-bold" />

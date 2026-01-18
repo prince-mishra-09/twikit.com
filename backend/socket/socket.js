@@ -65,18 +65,15 @@ io.on("connection", (socket) => {
     userSocketMap[userId] = socket.id;
     socket.join(userId); // Join private room based on verified ID
 
-    // Broadcast to others that user is online
-    socket.broadcast.emit("userOnline", userId);
+    // Presence broadcast removed for privacy, can be implemented per-follower if needed
   }
 
-  // Send current online users to this user
-  socket.emit("getOnlineUser", Object.keys(userSocketMap));
+  // socket.emit("getOnlineUser", Object.keys(userSocketMap)); // Removed global leak
 
   socket.on("disconnect", async () => {
     delete userSocketMap[userId];
 
-    // Broadcast to others that user went offline
-    socket.broadcast.emit("userOffline", userId);
+    // Presence broadcast removed for privacy
 
     // Update lastSeen
     try {
