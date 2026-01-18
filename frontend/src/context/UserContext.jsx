@@ -6,7 +6,7 @@ import toast, { Toaster } from "react-hot-toast";
 const UserContext = createContext();
 
 export const UserContextProvider = ({ children }) => {
-  const [user, setUser] = useState([]);
+  const [user, setUser] = useState(null);
   const [isAuth, setIsAuth] = useState(false);
   const [loading, setLoading] = useState(true);
   const [themeColor, setThemeColor] = useState(localStorage.getItem("twikit-theme") || "indigo");
@@ -77,7 +77,7 @@ export const UserContextProvider = ({ children }) => {
     try {
       const { data } = await axios.get("/api/auth/logout");
       toast.success(data.message);
-      setUser([]);
+      setUser(null);
       setIsAuth(false);
       navigate("/login");
     } catch (error) {
