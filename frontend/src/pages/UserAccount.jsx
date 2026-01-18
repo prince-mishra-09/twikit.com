@@ -220,6 +220,13 @@ const UserAccount = ({ user: loggedInUser }) => {
 
   if (loading) return <Loading />;
 
+  if (!user) return (
+    <div className="min-h-screen bg-[#0B0F14] flex flex-col items-center justify-center p-6 text-center">
+      <p className="text-gray-400 text-lg mb-4">User not found</p>
+      <button onClick={() => navigate(-1)} className="text-indigo-400 font-semibold hover:underline">Go Back</button>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-[#0B0F14] flex flex-col items-center gap-6 pb-24 px-3">
 

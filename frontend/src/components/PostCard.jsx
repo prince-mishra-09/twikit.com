@@ -62,7 +62,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
   const [realCount, setRealCount] = useState(value.reals?.length || 0);
   const [isReflect, setIsReflect] = useState(false);
   const [reflectCount, setReflectCount] = useState(value.reflections?.length || 0);
-  const isOwner = user && value.owner._id === user._id;
+  const isOwner = user && value.owner?._id === user._id;
   const [show, setShow] = useState(false);
   const [showImage, setShowImage] = useState(false);
   const [comment, setComment] = useState("");
@@ -220,7 +220,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
                         postId={value._id}
                         addComment={addComment}
                         deleteComment={deleteComment}
-                        postOwnerId={value.owner._id}
+                        postOwnerId={value.owner?._id}
                         activeCommentMenuId={activeCommentMenuId}
                         activeCommentId={commentId}
                         toggleCommentMenu={toggleCommentMenu}
@@ -260,9 +260,9 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
                     ))}
                   </div>
                   <form onSubmit={addCommentHandler} className="flex gap-3 items-center">
-                    <img src={user.profilePic?.url} className="w-10 h-10 rounded-full border border-gray-600 object-cover" alt="" />
+                    <img src={user?.profilePic?.url || "https://placehold.co/100"} className="w-10 h-10 rounded-full border border-gray-600 object-cover" alt="" />
                     <div className="flex-1 relative">
-                      <input type="text" className="w-full bg-gray-800 text-white text-sm rounded-full px-4 py-3 focus:outline-none focus:ring-1 focus:ring-indigo-500 border border-transparent placeholder:text-gray-500" placeholder={replyingTo ? "Write a reply..." : `Comment as @${user?.username || user?.name?.toLowerCase().replace(/\s+/g, '_')}...`} value={comment} onChange={(e) => setComment(e.target.value)} autoFocus={!!replyingTo} />
+                      <input type="text" className="w-full bg-gray-800 text-white text-sm rounded-full px-4 py-3 focus:outline-none focus:ring-1 focus:ring-indigo-500 border border-transparent placeholder:text-gray-500" placeholder={replyingTo ? "Write a reply..." : `Comment as @${user?.username || user?.name?.toLowerCase().replace(/\s+/g, '_') || "guest"}...`} value={comment} onChange={(e) => setComment(e.target.value)} autoFocus={!!replyingTo} />
                       <button type="submit" disabled={!comment.trim()} className="absolute right-2 top-1/2 -translate-y-1/2 text-indigo-400 font-bold text-sm hover:opacity-80 disabled:opacity-50 px-3">Post</button>
                     </div>
                   </form>
@@ -281,7 +281,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
           type: type === "reel" ? "reel" : "post",
           contentId: value._id,
           owner: value.owner,
-          preview: { title: value.caption, image: value.post.url, username: value.owner.username || value.owner.name }
+          preview: { title: value.caption, image: value.post.url, username: value.owner?.username || value.owner?.name || "unknown" }
         }}
       />
 
@@ -718,7 +718,6 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
               </button>
               {showMenu && (
                 <div className="absolute right-0 bottom-full mb-2 w-40 bg-[#1F2937] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[100] animate-in slide-in-from-bottom-2 fade-in duration-200">
-
                   <button
                     onClick={notInterestedHandler}
                     className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
@@ -729,12 +728,12 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
                     onClick={muteHandler}
                     className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
                   >
-                    🔇 Mute @{value.owner.name}
+                    🔇 Mute @{value.owner?.name || "user"}
                   </button>
                   <button
                     onClick={() => {
                       if (confirm("Block this user? They will disappear from your feed.")) {
-                        blockUser(value.owner._id, null);
+                        blockUser(value.owner?._id, null);
                         setIsHidden(true);
                       }
                       setShowMenu(false);
@@ -752,13 +751,13 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
         {/* BOTTOM LEFT INFO */}
         <div className="absolute bottom-6 left-4 right-16 z-30 text-white pointer-events-none">
           <div className="flex items-center gap-3 mb-3 pointer-events-auto">
-            <Link to={`/user/${value.owner._id}`} className="flex items-center gap-2">
-              <img src={value.owner?.profilePic?.url} className="w-9 h-9 rounded-full border border-white/20" alt="" />
-              <span className="font-semibold text-sm shadow-black drop-shadow-md">{value.owner.name}</span>
+            <Link to={`/user/${value.owner?._id}`} className="flex items-center gap-2">
+              <img src={value.owner?.profilePic?.url || "https://placehold.co/100"} className="w-9 h-9 rounded-full border border-white/20" alt="" />
+              <span className="font-semibold text-sm shadow-black drop-shadow-md">{value.owner?.name || "Deleted User"}</span>
             </Link>
 
             {/* FOLLOW BUTTON */}
-            {user && user._id !== value.owner._id && (
+            {user && user._id !== value.owner?._id && (
               <button
                 onClick={followHandler}
                 className={`text-xs px-3 py-1 rounded-lg backdrop-blur-md transition border ${isFollowed
@@ -797,18 +796,18 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
         {/* Header Overlay */}
         <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-10 bg-gradient-to-b from-black/60 to-transparent pointer-events-none">
           <Link
-            to={`/user/${value.owner._id}`}
+            to={`/user/${value.owner?._id}`}
             className="flex items-center gap-3 pointer-events-auto"
           >
             <div className="relative">
               <StoryAvatar user={value.owner} />
-              {onlineUsers?.includes(value.owner._id) && (
+              {onlineUsers?.includes(value.owner?._id) && (
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-black z-10" />
               )}
             </div>
             <div className="flex flex-col">
               <p className="text-white font-bold text-sm shadow-black drop-shadow-md">
-                {value.owner.name}
+                {value.owner?.name || "Deleted User"}
               </p>
               <p className="text-gray-200 text-[10px] drop-shadow-md">{formatDate}</p>
             </div>
@@ -980,8 +979,8 @@ const PostCard = ({ value, type, isActive, commentId, openComments }) => {
         {/* Caption */}
         {value.caption && (
           <div className="text-white text-sm mb-2">
-            <Link to={`/user/${value.owner._id}`} className="font-bold mr-2">
-              @{value.owner.username || value.owner.name.toLowerCase().replace(/\s+/g, '_')}
+            <Link to={`/user/${value.owner?._id}`} className="font-bold mr-2">
+              @{value.owner?.username || value.owner?.name?.toLowerCase().replace(/\s+/g, '_') || "user"}
             </Link>
             <span className="text-gray-200">
               {expanded ? value.caption : (value.caption.slice(0, captionLimit) + (value.caption.length > captionLimit ? "..." : ""))}
