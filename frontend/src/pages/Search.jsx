@@ -1,24 +1,35 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { LoadingAnimation } from "../components/Loading";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaCompass } from "react-icons/fa";
 import PostCard from "../components/PostCard";
+import { PostData } from "../context/PostContext";
 
 const Search = () => {
   const [users, setUsers] = useState([]);
   const [posts, setPosts] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  // Global content for Explore Feed
+  const { reels: globalReels, posts: globalPosts } = PostData();
+
+  // Derived state to separate Search Results
+  const actualPosts = posts.filter(p => p.type === 'post');
+  const actualReels = posts.filter(p => p.type === 'reel');
 
   async function fetchUsers() {
     if (!search.trim()) {
       setUsers([]);
       setPosts([]);
+      setHasSearched(false);
       return;
     }
 
     setLoading(true);
+    setHasSearched(true);
     try {
       const { data } = await axios.get(
         "/api/user/all?search=" + search.trim()
@@ -39,11 +50,19 @@ const Search = () => {
   const topUsers = users.slice(0, 10);
   const remainingUsers = users.slice(10);
 
+  // Explore Content: Mix global reels and posts
+  const exploreContent = useMemo(() => {
+    if (!globalReels || !globalPosts) return [];
+    const mixed = [...globalReels, ...globalPosts];
+    // Simple shuffle
+    return mixed.sort(() => Math.random() - 0.5).slice(0, 20);
+  }, [globalReels, globalPosts]);
+
   return (
     <div className="min-h-screen bg-[#0B0F14] flex justify-center px-0 pt-2 pb-20">
       <div className="w-full max-w-xl px-4">
 
-        {/* SEARCH BAR (Fixed at top or just normal flow) */}
+        {/* SEARCH BAR */}
         <div className="sticky top-2 z-20 flex items-center gap-3 bg-[#111827]/90 backdrop-blur-md border border-white/10 rounded-xl px-4 py-3 mb-6 shadow-lg shadow-indigo-500/10">
           <FaSearch className="text-gray-400" />
           <input
@@ -63,7 +82,7 @@ const Search = () => {
           </button>
         </div>
 
-        {/* RESULTS */}
+        {/* RESULTS or EXPLORE */}
         <div>
           {loading ? (
             <div className="flex justify-center mt-10">
@@ -71,7 +90,6 @@ const Search = () => {
             </div>
           ) : (users.length > 0 || posts.length > 0) ? (
             <div className="space-y-4">
-
               {/* 1. Top 10 Users */}
               {topUsers.map((u) => (
                 <Link
@@ -96,19 +114,31 @@ const Search = () => {
                 </Link>
               ))}
 
-              {/* 2. Posts from these users */}
-              {posts.length > 0 && (
+              {/* 2. REELS GRID (Search Results) */}
+              {actualReels.length > 0 && (
+                <div className="pt-4 pb-2">
+                  <h3 className="text-indigo-400 font-semibold text-sm mb-3 px-2 uppercase tracking-wider">Reels</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {actualReels.map((reel) => (
+                      <SearchReelItem key={reel._id} reel={reel} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 3. POSTS LIST (Search Results) */}
+              {actualPosts.length > 0 && (
                 <div className="pt-4 pb-2">
                   <h3 className="text-indigo-400 font-semibold text-sm mb-3 px-2 uppercase tracking-wider">Posts from results</h3>
                   <div className="space-y-4">
-                    {posts.map((post) => (
+                    {actualPosts.map((post) => (
                       <PostCard key={post._id} value={post} type="post" />
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* 3. Remaining Users */}
+              {/* 4. Remaining Users */}
               {remainingUsers.length > 0 && (
                 <div className="pt-2">
                   {posts.length > 0 && <h3 className="text-gray-400 font-semibold text-sm mb-3 px-2 uppercase tracking-wider">More Profiles</h3>}
@@ -126,32 +156,127 @@ const Search = () => {
                       <div className="flex flex-col flex-1 min-w-0">
                         <p className="text-white font-bold text-base truncate">{u.name}</p>
                         <p className="text-gray-500 text-sm truncate">@{u.username}</p>
-                        {u.bio && (
-                          <p className="text-gray-400 text-xs mt-1.5 line-clamp-2 break-words leading-relaxed">
-                            {u.bio}
-                          </p>
-                        )}
                       </div>
                     </Link>
                   ))}
                 </div>
               )}
-
             </div>
-          ) : search.trim() ? (
+          ) : hasSearched && search.trim() ? (
             <div className="text-center mt-10">
               <p className="text-gray-400 text-lg font-medium">No results found for "{search}"</p>
               <p className="text-gray-600 text-sm mt-2">Try searching for a specific username or name.</p>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center mt-20 opacity-50">
-              <FaSearch className="text-6xl text-gray-700 mb-4" />
-              <p className="text-gray-500">Search for people, posts, and more</p>
+            // EXPLORE FEED (Empty State)
+            <div className="mt-4 animate-in fade-in duration-500">
+              <div className="flex items-center gap-2 mb-4 px-2">
+                <FaCompass className="text-indigo-500 text-lg" />
+                <h2 className="text-white font-bold text-lg">Explore</h2>
+              </div>
+
+              <div className="columns-2 gap-3 space-y-3 pb-20">
+                {exploreContent.map((item) => {
+                  if (item.type === 'reel') {
+                    return (
+                      <div key={item._id} className="break-inside-avoid mb-3">
+                        <SearchReelItem reel={item} />
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div key={item._id} className="break-inside-avoid mb-3 rounded-xl overflow-hidden border border-white/5 bg-zinc-900">
+                        {item.post?.url && (
+                          <Link to={`/post/${item._id}`}>
+                            <img src={item.post.url} alt="" className="w-full h-auto object-cover" />
+                          </Link>
+                        )}
+                        <div className="p-2">
+                          <div className="flex items-center gap-2 mb-1">
+                            <img src={item.owner?.profilePic?.url} className="w-4 h-4 rounded-full" />
+                            <span className="text-xs text-white font-bold truncate">{item.owner?.name}</span>
+                          </div>
+                          {item.caption && <p className="text-[10px] text-gray-400 line-clamp-2">{item.caption}</p>}
+                        </div>
+                      </div>
+                    )
+                  }
+                })}
+              </div>
+
+              {exploreContent.length === 0 && (
+                <div className="flex flex-col items-center justify-center mt-20 opacity-50">
+                  <FaSearch className="text-6xl text-gray-700 mb-4" />
+                  <p className="text-gray-500">Search for people, posts, and more</p>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
     </div>
+  );
+};
+
+// --- Sub-component for Reel Grid Item with Autoplay ---
+const SearchReelItem = ({ reel }) => {
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const videoRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsPlaying(true);
+            // Optional: try to play if state updates aren't enough (some browsers block auto-play without user interaction initially, but usually mute works)
+            if (videoRef.current) {
+              videoRef.current.play().catch(e => { /* silent fail for autoplay blocks */ });
+            }
+          } else {
+            setIsPlaying(false);
+            if (videoRef.current) {
+              videoRef.current.pause();
+              videoRef.current.currentTime = 0; // Reset preview
+            }
+          }
+        });
+      },
+      { threshold: 0.7 } // 70% visible
+    );
+
+    if (videoRef.current) observer.observe(videoRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <Link to={`/reels?id=${reel._id}`} className="relative block aspect-[9/16] rounded-xl overflow-hidden group border border-white/10">
+      <video
+        ref={videoRef}
+        src={reel.post.url}
+        className="w-full h-full object-cover"
+        muted
+        loop
+        playsInline
+      />
+
+      {/* Overlay info */}
+      {/* Overlay info */}
+      <div className="absolute bottom-0 inset-x-0 p-2 flex flex-col justify-end pointer-events-none">
+        <div className="flex items-center gap-1.5 mb-1">
+          <img src={reel.owner?.profilePic?.url} className="w-5 h-5 rounded-full border border-white/30" alt="" />
+          <span className="text-white text-[10px] font-bold truncate drop-shadow-md">{reel.owner?.name}</span>
+        </div>
+        {reel.caption && <p className="text-white/90 text-[10px] line-clamp-2 leading-tight drop-shadow-md">{reel.caption}</p>}
+      </div>
+
+      {/* Play Icon Hint */}
+      <div className={`absolute top-2 right-2 p-1.5 bg-black/50 rounded-full backdrop-blur transition-opacity ${isPlaying ? 'opacity-0' : 'opacity-100'}`}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
+          <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clipRule="evenodd" />
+        </svg>
+      </div>
+    </Link>
   );
 };
 

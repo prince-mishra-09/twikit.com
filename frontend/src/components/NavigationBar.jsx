@@ -6,10 +6,12 @@ import { IoSearchCircleOutline, IoSearchCircle } from "react-icons/io5";
 import { RiAccountCircleFill, RiAccountCircleLine } from "react-icons/ri";
 import CreatePostModal from "./CreatePostModal";
 import { UserData } from "../context/UserContext";
+import { PostData } from "../context/PostContext";
 
 
 const NavigationBar = () => {
   const { isAuth, setShowLoginPrompt } = UserData();
+  const { fetchPosts } = PostData();
   const location = useLocation();
   const [tab, setTab] = useState(location.pathname);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -42,6 +44,12 @@ const NavigationBar = () => {
           {/* Home */}
           <Link
             to={isAuth ? "/" : "/feed"}
+            onClick={() => {
+              if (tab === "/" || tab === "/feed") {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+                fetchPosts();
+              }
+            }}
             className={`text-2xl transition-all duration-200 ${tab === "/" || tab === "/feed" ? activeStyle : inactiveStyle
               }`}
           >

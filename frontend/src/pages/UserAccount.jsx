@@ -67,6 +67,9 @@ const UserAccount = ({ user: loggedInUser }) => {
     }
   }
 
+  const [followed, setFollowed] = useState(false);
+  const [requested, setRequested] = useState(false);
+
   useEffect(() => {
     fetchUserPosts();
   }, [user, followed, requested]); // Refetch if access changes
@@ -81,9 +84,6 @@ const UserAccount = ({ user: loggedInUser }) => {
   const prevReel = () => index !== 0 && setIndex(index - 1);
   const nextReel = () =>
     index !== myReels.length - 1 && setIndex(index + 1);
-
-  const [followed, setFollowed] = useState(false);
-  const [requested, setRequested] = useState(false);
 
   useEffect(() => {
     if (!loggedInUser) {
@@ -264,15 +264,18 @@ const UserAccount = ({ user: loggedInUser }) => {
 
         {/* NAME + GENDER (TOP LEFT, LIKE INSTAGRAM) */}
         <div className="flex justify-between items-start mb-3">
-          <p className="text-white font-semibold text-lg flex items-center gap-2">
-            {user.name}
-            <span className="text-gray-400 text-sm font-normal">
-              • {user.gender}
-            </span>
-            {onlineUsers.includes(user._id) && (
-              <span className="text-green-400 text-xs">●</span>
-            )}
-          </p>
+          <div className="flex flex-col">
+            <p className="text-white font-semibold text-lg flex items-center gap-2">
+              {user.name}
+              <span className="text-gray-400 text-sm font-normal">
+                • {user.gender}
+              </span>
+              {onlineUsers.includes(user._id) && (
+                <span className="text-green-400 text-xs">●</span>
+              )}
+            </p>
+            <p className="text-gray-500 text-sm">@{user.username}</p>
+          </div>
 
           {/* MENU BUTTON - Hide if own profile */}
           {user._id !== loggedInUser?._id && (

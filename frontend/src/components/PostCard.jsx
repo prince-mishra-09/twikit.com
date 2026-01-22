@@ -8,13 +8,15 @@ import { IoPaperPlaneOutline, IoEyeOutline, IoClose } from "react-icons/io5";
 import { UserData } from "../context/UserContext";
 import { PostData } from "../context/PostContext";
 import { format } from "date-fns";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { MdDelete } from "react-icons/md";
 import { SocketData } from "../context/SocketContext";
 import StoryAvatar from "./StoryAvatar";
-import CommentItem from "./CommentItem";
-import ShareModal from "./ShareModal";
-import RealModal from "./RealModal";
+import { Suspense } from "react";
+
+const CommentItem = React.lazy(() => import("./CommentItem"));
+const ShareModal = React.lazy(() => import("./ShareModal"));
+const RealModal = React.lazy(() => import("./RealModal"));
 
 
 
@@ -54,9 +56,10 @@ const ReflectIcon = ({ active }) => (
   </svg>
 );
 
-const PostCard = ({ value, type, isActive, commentId, openComments, isGrid }) => {
+const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFeed }) => {
   const { user, isAuth, setShowLoginPrompt, followUser, savePost, hidePost, muteUser, blockUser } = UserData();
   const { sendFeedback, addComment, deletePost, deleteComment } = PostData();
+  const navigate = useNavigate();
 
   const [isReal, setIsReal] = useState(false);
   const [realCount, setRealCount] = useState(value.reals?.length || 0);
@@ -208,33 +211,35 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid }) =>
                 </div>
 
                 <div ref={commentsRef} className="flex-1 overflow-y-auto px-4 py-2 space-y-4 custom-scrollbar relative">
-                  {loadingComments ? (
-                    <div className="flex justify-center items-center h-40">
-                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
-                    </div>
-                  ) : comments && comments.length > 0 ? (
-                    comments.map((c) => (
-                      <CommentItem
-                        key={c._id}
-                        comment={c}
-                        postId={value._id}
-                        addComment={addComment}
-                        deleteComment={deleteComment}
-                        postOwnerId={value.owner?._id}
-                        activeCommentMenuId={activeCommentMenuId}
-                        activeCommentId={commentId}
-                        toggleCommentMenu={toggleCommentMenu}
-                        onReplyAdded={handleNewReply}
-                        onDelete={handleDeleteLocal}
-                        setReplyingTo={setReplyingTo}
-                      />
-                    ))
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
-                      <BsChatFill className="text-4xl opacity-20" />
-                      <p>No comments yet.</p>
-                    </div>
-                  )}
+                  <Suspense fallback={<div className="flex justify-center p-4 text-gray-400">Loading comments...</div>}>
+                    {loadingComments ? (
+                      <div className="flex justify-center items-center h-40">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+                      </div>
+                    ) : comments && comments.length > 0 ? (
+                      comments.map((c) => (
+                        <CommentItem
+                          key={c._id}
+                          comment={c}
+                          postId={value._id}
+                          addComment={addComment}
+                          deleteComment={deleteComment}
+                          postOwnerId={value.owner?._id}
+                          activeCommentMenuId={activeCommentMenuId}
+                          activeCommentId={commentId}
+                          toggleCommentMenu={toggleCommentMenu}
+                          onReplyAdded={handleNewReply}
+                          onDelete={handleDeleteLocal}
+                          setReplyingTo={setReplyingTo}
+                        />
+                      ))
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
+                        <BsChatFill className="text-4xl opacity-20" />
+                        <p>No comments yet.</p>
+                      </div>
+                    )}
+                  </Suspense>
 
                   {deleteModal.show && (
                     <div className="absolute inset-x-0 bottom-0 bg-[#2D3748] p-4 rounded-t-2xl shadow-xl z-[60] border-t border-white/10">
@@ -274,18 +279,20 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid }) =>
         document.body
       )}
 
-      <ShareModal
-        isOpen={shareModal}
-        onClose={() => setShareModal(false)}
-        content={{
-          type: type === "reel" ? "reel" : "post",
-          contentId: value._id,
-          owner: value.owner,
-          preview: { title: value.caption, image: value.post.url, username: value.owner?.username || value.owner?.name || "unknown" }
-        }}
-      />
+      <Suspense fallback={null}>
+        <ShareModal
+          isOpen={shareModal}
+          onClose={() => setShareModal(false)}
+          content={{
+            type: type === "reel" ? "reel" : "post",
+            contentId: value._id,
+            owner: value.owner,
+            preview: { title: value.caption, image: value.post.url, username: value.owner?.username || value.owner?.name || "unknown" }
+          }}
+        />
 
-      <RealModal isOpen={realModal} onClose={() => setRealModal(false)} id={value._id} />
+        <RealModal isOpen={realModal} onClose={() => setRealModal(false)} id={value._id} />
+      </Suspense>
     </>
   );
 
@@ -612,8 +619,12 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid }) =>
 
         {/* VIDEO */}
         <div onClick={() => {
-          if (isPlaying) { videoRef.current.pause(); setIsPlaying(false); }
-          else { videoRef.current.play(); setIsPlaying(true); }
+          if (isFeed && type === "reel") {
+            navigate(`/reels?id=${value._id}`);
+          } else {
+            if (isPlaying) { videoRef.current.pause(); setIsPlaying(false); }
+            else { videoRef.current.play(); setIsPlaying(true); }
+          }
         }} onDoubleClick={handleDoubleClick} className="w-full h-full cursor-pointer">
           <video
             ref={videoRef}
@@ -769,7 +780,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid }) =>
         <div className="absolute bottom-6 left-4 right-16 z-30 text-white pointer-events-none">
           <div className="flex items-center gap-3 mb-3 pointer-events-auto">
             <Link to={`/user/${value.owner?._id}`} className="flex items-center gap-2">
-              <img src={value.owner?.profilePic?.url || "https://placehold.co/100"} className="w-9 h-9 rounded-full border border-white/20" alt="" />
+              <img src={value.owner?.profilePic?.url || "https://placehold.co/100"} className="w-9 h-9 rounded-full border border-white/20 object-cover shrink-0" alt="" />
               <span className="font-semibold text-sm shadow-black drop-shadow-md">{value.owner?.name || "Deleted User"}</span>
             </Link>
 

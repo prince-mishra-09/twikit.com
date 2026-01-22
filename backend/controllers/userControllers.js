@@ -204,7 +204,7 @@ export const updateProfile = tryCatch(async (req, res) => {
   if (link !== undefined) user.link = link;
 
   if (username) {
-    const usernameRegex = /^[a-z0-9_]+$/;
+    const usernameRegex = /^[a-z0-9_.]+$/;
     if (!usernameRegex.test(username)) {
       return res.status(400).json({ message: "Invalid username format" });
     }

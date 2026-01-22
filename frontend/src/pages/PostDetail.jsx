@@ -10,29 +10,35 @@ const PostDetail = () => {
   const commentId = searchParams.get("commentId");
   const openComments = searchParams.get("openComments") === "true";
 
-  const [post, setPost] = useState(null);
-  const [morePosts, setMorePosts] = useState([]);
+  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchPost() {
+    async function fetchPosts() {
       try {
-        const { data } = await axios.get(`/api/post/${id}`);
-        setPost(data);
+        setLoading(true);
+        // Fetch the specific post
+        const { data: mainPost } = await axios.get(`/api/post/${id}`);
+
+        // Fetch more posts for the feed
         const { data: randomPosts } = await axios.get("/api/post/random");
-        setMorePosts(randomPosts.filter(p => p._id !== id));
+
+        // Combine: main post first, then unique random posts
+        const filteredRandom = randomPosts.filter(p => p._id !== id && p.type !== 'reel');
+        setPosts([mainPost, ...filteredRandom]);
+
         setLoading(false);
       } catch (error) {
         setLoading(false);
         console.log(error);
       }
     }
-    fetchPost();
+    fetchPosts();
   }, [id]);
 
   if (loading) return <Loading />;
 
-  if (!post) {
+  if (posts.length === 0) {
     return (
       <div className="min-h-screen bg-[#0B0F14] flex justify-center items-center text-white">
         <h1>Post Not Found</h1>
@@ -41,42 +47,32 @@ const PostDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] px-4 py-6">
-      <div className="max-w-xl mx-auto">
-        <Link to="/" className="inline-flex items-center gap-2 text-white mb-4 hover:bg-white/10 px-3 py-1.5 rounded-full transition-all">
+    <div className="min-h-screen bg-[#0B0F14] flex justify-center px-4 py-6">
+      <div className="w-full max-w-xl flex flex-col gap-6">
+        <Link to="/" className="inline-flex items-center gap-2 text-white self-start hover:bg-white/10 px-3 py-1.5 rounded-full transition-all">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
           </svg>
-          Back to Home
+          Back to Feed
         </Link>
 
-        <Post value={post} commentId={commentId} openComments={openComments} />
-
-        <h3 className="text-white mt-8 mb-4 font-semibold text-lg">More posts</h3>
-
-        <div className="grid grid-cols-3 gap-2 mb-8">
-          {morePosts.map(p => (
-            <Link key={p._id} to={`/post/${p._id}`}>
-              {p.post?.url && (
-                p.type === "reel" ? (
-                  <video
-                    src={p.post.url}
-                    className="aspect-square object-cover rounded-lg hover:opacity-80 transition-opacity"
-                  />
-                ) : (
-                  <img
-                    src={p.post.url}
-                    className="aspect-square object-cover rounded-lg hover:opacity-80 transition-opacity"
-                  />
-                )
-              )}
-            </Link>
+        <div className="flex flex-col gap-4">
+          {posts.map((post, index) => (
+            <div key={post._id}>
+              {/* Only pass comment params to the first post (the one requested) */}
+              <Post
+                value={post}
+                commentId={index === 0 ? commentId : null}
+                openComments={index === 0 ? openComments : false}
+              />
+              {/* Add a divider between posts except the last one if needed, but flex gap handles spacing */}
+            </div>
           ))}
         </div>
 
-        <Link to="/" className="block w-full text-center py-3 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/20 transition-all">
-          Go to Home
-        </Link>
+        <div className="text-center py-8">
+          <p className="text-gray-500 text-sm">You've reached the end</p>
+        </div>
       </div>
     </div>
   );

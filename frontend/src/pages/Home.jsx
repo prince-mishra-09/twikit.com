@@ -12,12 +12,15 @@ import { UserData } from "../context/UserContext";
 
 const Home = () => {
   const { isAuth } = UserData();
-  const { posts, loading, fetchNextPage, loadingMore, pagination } = PostData();
+  const { posts, reels, loading, fetchNextPage, loadingMore, pagination } = PostData();
   const { unreadCount } = NotificationData();
   const { totalUnreadMessages } = ChatData();
 
   const [showComposer, setShowComposer] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+
+  // Merge and sort posts and reels by date
+  const allContent = [...(posts || []), ...(reels || [])].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   useEffect(() => {
     const handleScroll = () => {
@@ -106,11 +109,11 @@ const Home = () => {
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => <SkeletonPost key={i} />)}
             </div>
-          ) : posts && posts.length > 0 ? (
+          ) : allContent && allContent.length > 0 ? (
             <>
               <div className="space-y-4">
-                {posts.map((post) => (
-                  <PostCard key={post._id} value={post} type="post" />
+                {allContent.map((item) => (
+                  <PostCard key={item._id} value={item} type={item.type} isFeed={true} />
                 ))}
               </div>
 

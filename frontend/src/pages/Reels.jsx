@@ -5,21 +5,29 @@ import PostCard from "../components/PostCard";
 const Reels = () => {
   const { reels, loading } = PostData();
   const [currentReelId, setCurrentReelId] = useState(null);
+  const [displayReels, setDisplayReels] = useState([]);
 
-  // Logic to handle deep link
+  // Logic to handle deep link and Reordering
   useEffect(() => {
+    if (!reels || reels.length === 0) return;
+
     const params = new URLSearchParams(window.location.search);
     const reelId = params.get("id");
 
-    if (reelId && reels && reels.length > 0) {
-      setTimeout(() => {
-        const element = document.getElementById(reelId);
-        if (element) {
-          element.scrollIntoView({ behavior: "auto" });
-        }
-      }, 500); // Delay to ensure rendering
+    if (reelId) {
+      const selectedReel = reels.find(r => r._id === reelId);
+      if (selectedReel) {
+        const otherReels = reels.filter(r => r._id !== reelId);
+        setDisplayReels([selectedReel, ...otherReels]);
+        // Also set initial active reel
+        setCurrentReelId(reelId);
+      } else {
+        setDisplayReels(reels);
+      }
+    } else {
+      setDisplayReels(reels);
     }
-  }, [reels]);
+  }, [reels, window.location.search]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -41,7 +49,7 @@ const Reels = () => {
     return () => {
       reelElements.forEach((el) => observer.unobserve(el));
     };
-  }, [reels]);
+  }, [displayReels]); // Observe on displayReels change
 
   return (
     <div className="h-[100dvh] w-full bg-[#0B0F14] overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar relative">
@@ -56,8 +64,8 @@ const Reels = () => {
         <div className="h-full w-full flex items-center justify-center">
           <div className="animate-pulse bg-gray-800/50 w-full h-full" />
         </div>
-      ) : reels && reels.length > 0 ? (
-        reels.map((reel) => (
+      ) : displayReels && displayReels.length > 0 ? (
+        displayReels.map((reel) => (
           <div
             key={reel._id}
             id={reel._id}
