@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const Modal = ({ value, title, setShow, onRemove }) => {
   return (

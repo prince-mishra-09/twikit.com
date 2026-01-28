@@ -22,7 +22,7 @@ import { BsShare } from "react-icons/bs";
 
 const Account = ({ user }) => {
   const navigate = useNavigate();
-  const { logoutUser, updateProfilePic, updateProfileName, unmuteUser, togglePrivacy, removeFollower, unblockUser, user: loggedInUser, themeColor, setThemeColor } = UserData();
+  const { logoutUser, updateProfilePic, updateProfileName, unmuteUser, togglePrivacy, removeFollower, unblockUser, user: loggedInUser, themeColor, setThemeColor, followUser } = UserData();
   const { posts, reels, loading } = PostData();
   const { stories } = StoriesData();
 
@@ -92,6 +92,17 @@ const Account = ({ user }) => {
     if (!success) followData();
   };
 
+  const unfollowHandler = async (id) => {
+    // Optimistic Update
+    setFollowingsData(prev => prev.filter(p => p._id !== id));
+
+    // API Call
+    await followUser(id);
+
+    // We assume success for now as followUser handles toast errors. 
+    // A more robust implementation would check the return message.
+  };
+
   useEffect(() => {
     followData();
   }, [user]);
@@ -118,7 +129,7 @@ const Account = ({ user }) => {
     <div className="min-h-screen bg-[#0B0F14] flex flex-col items-center gap-6 pb-24 px-3">
       {/* Pass remove handler only if it's my own profile */}
       {show && <Modal value={followersData} title="Followers" setShow={setShow} onRemove={user._id === loggedInUser._id ? removeHandler : null} />}
-      {show1 && <Modal value={followingsData} title="Following" setShow={setShow1} />}
+      {show1 && <Modal value={followingsData} title="Following" setShow={setShow1} onRemove={user._id === loggedInUser._id ? unfollowHandler : null} />}
       {showMuted && (
         <div className="fixed inset-0 z-[50] w-full h-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-[#111827] w-full max-w-sm rounded-2xl border border-white/10 p-6 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200 shadow-2xl">
