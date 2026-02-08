@@ -14,18 +14,18 @@ body {
 }
 
 :root {
-  /* Default Theme: "The Signature Core" (Off-White/Bone) - Authentic & Modern */
-  --bg-primary: #F9F7F2;
-  --bg-secondary: #FFFFFF;
-  --text-primary: #1A1A1B;
-  --text-secondary: #6B7280;
-  --accent: #5D5FEF;
-  --accent-hover: #4F50D0;
-  --text-on-accent: #FFFFFF;
-  --border: #E5E7EB;
-  --card-bg: #FFFFFF;
-  --accent-secondary: #F59E0B;
-  /* Amber/Orange */
+  /* Default Theme: "Cyber Neon" (Pitch Black) - Night Owls */
+  --bg-primary: #0D0D0D;
+  --bg-secondary: #1F1F1F;
+  --text-primary: #FFFFFF;
+  --text-secondary: #C0C0C0;
+  --accent: #00FFD1;
+  --accent-hover: #00E0B8;
+  --text-on-accent: #000000;
+  --border: #333333;
+  --card-bg: #1F1F1F;
+  --accent-secondary: #FF2E63;
+  /* Hot Pink */
 }
 
 /* Theme Option A: "Cyber Neon" (Pitch Black) - Night Owls */
