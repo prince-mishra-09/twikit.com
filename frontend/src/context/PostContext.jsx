@@ -76,8 +76,16 @@ export const PostContextProvider = ({ children }) => {
   async function sendFeedback(id, feedbackType) {
     try {
       const { data } = await axios.post("/api/post/feedback/" + id, { feedbackType });
+      // Update state immediately if data.post exists to ensure UI consistency
+      if (data.post) {
+        const updateFn = (prev) => prev.map((p) => (p._id === id ? { ...p, ...data.post } : p));
+        setPosts(updateFn);
+        setReels(updateFn);
+      }
+      return data.post;
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Something went wrong");
+      throw error;
     }
   }
 
@@ -88,7 +96,18 @@ export const PostContextProvider = ({ children }) => {
         parentComment,
       });
       toast.success(data.message);
-      fetchPosts();
+
+      // Optimistic Update: Increment comment count immediately
+      const updateFn = (prev) =>
+        prev.map((p) => {
+          if (p._id === id) {
+            return { ...p, commentsCount: (p.commentsCount || 0) + 1 };
+          }
+          return p;
+        });
+      setPosts(updateFn);
+      setReels(updateFn);
+
       setComment("");
       setShow(false);
       return data.comment; // Return the new comment to update UI
@@ -116,7 +135,21 @@ export const PostContextProvider = ({ children }) => {
       const { data } = await axios.delete(`/api/comment/${commentId}`);
 
       toast.success(data.message);
-      fetchPosts();
+
+      // Optimistic Update: Decrement comment count immediately
+      const updateFn = (prev) =>
+        prev.map((p) => {
+          if (p._id === id) {
+            return {
+              ...p,
+              commentsCount: Math.max((p.commentsCount || 0) - 1, 0)
+            };
+          }
+          return p;
+        });
+      setPosts(updateFn);
+      setReels(updateFn);
+
     } catch (error) {
       toast.error(error.response.data.message);
     }

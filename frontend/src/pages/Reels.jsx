@@ -52,9 +52,9 @@ const Reels = () => {
   }, [displayReels]); // Observe on displayReels change
 
   return (
-    <div className="h-[100dvh] w-full bg-[#0B0F14] overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar relative">
+    <div className="h-[100dvh] w-full bg-[var(--bg-primary)] overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar relative">
       {/* Back Button */}
-      <a href="/" className="absolute top-4 left-4 z-50 p-2 bg-black/40 backdrop-blur-md rounded-full text-white border border-white/20">
+      <a href="/" className="absolute top-4 left-4 z-50 p-2 bg-[var(--card-bg)]/40 backdrop-blur-md rounded-full text-[var(--text-primary)] border border-[var(--border)]">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
           <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
         </svg>
@@ -62,7 +62,7 @@ const Reels = () => {
 
       {loading ? (
         <div className="h-full w-full flex items-center justify-center">
-          <div className="animate-pulse bg-gray-800/50 w-full h-full" />
+          <div className="animate-pulse bg-[var(--bg-secondary)]/50 w-full h-full" />
         </div>
       ) : displayReels && displayReels.length > 0 ? (
         displayReels.map((reel) => (
@@ -77,7 +77,7 @@ const Reels = () => {
           </div>
         ))
       ) : (
-        <div className="h-screen flex items-center justify-center text-gray-400">
+        <div className="h-screen flex items-center justify-center text-[var(--text-secondary)]">
           No reels yet
         </div>
       )}

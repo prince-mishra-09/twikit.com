@@ -100,25 +100,25 @@ const Login = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0B0F14] text-white">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] text-[var(--text-primary)]">
         Loading...
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-[#0B0F14] overflow-hidden">
+    <div className="relative min-h-screen flex items-center justify-center bg-[var(--bg-primary)] overflow-hidden">
       {/* Soft background glow */}
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-purple-600/30 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 -right-32 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl"></div>
 
       {/* Login Card */}
-      <div className="relative z-10 w-full max-w-md bg-[#111827]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-8">
-        <h1 className="text-3xl font-semibold text-white text-center">
+      <div className="relative z-10 w-full max-w-md bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--border)] rounded-2xl shadow-2xl p-8">
+        <h1 className="text-3xl font-semibold text-[var(--text-primary)] text-center">
           Welcome back
         </h1>
-        <p className="text-gray-400 text-sm text-center mt-2">
-          Log in to continue on <span className="text-indigo-400">Twikit</span>
+        <p className="text-[var(--text-secondary)] text-sm text-center mt-2">
+          Log in to continue on <span className="text-[var(--accent)]">Twikit</span>
         </p>
 
         {/* Form */}
@@ -128,7 +128,7 @@ const Login = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email address"
-            className="w-full px-4 py-3 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400 transition"
+            className="w-full px-4 py-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition"
             required
           />
 
@@ -138,7 +138,7 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
-              className="w-full px-4 py-3 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400 transition"
+              className="w-full px-4 py-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition"
               required
             />
             <span
@@ -154,7 +154,7 @@ const Login = () => {
             <button
               type="button"
               onClick={() => setShowForgotModal(true)}
-              className="text-sm text-indigo-400 hover:text-indigo-300 transition"
+              className="text-sm text-[var(--accent)] hover:opacity-80 transition"
             >
               Forgot password?
             </button>
@@ -162,29 +162,28 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full py-3 rounded-xl text-white font-medium bg-gradient-to-r from-indigo-500 to-cyan-500 hover:opacity-90 active:scale-[0.98] transition"
+            className="w-full py-3 rounded-xl text-white font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition"
           >
             Log In
           </button>
         </form>
 
-        <p className="text-sm text-gray-400 text-center mt-6">
+        <p className="text-sm text-[var(--text-secondary)] text-center mt-6">
           New on Twikit?{" "}
           <Link
             to="/register"
-            className="text-indigo-400 hover:text-indigo-300 transition"
+            className="text-[var(--accent)] hover:opacity-80 transition"
           >
             Create an account
           </Link>
         </p>
       </div>
 
-      {/* Forgot Password Modal */}
       {showForgotModal && createPortal(
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#111827] border border-white/10 rounded-2xl shadow-2xl p-8 w-full max-w-md">
+          <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-2xl p-8 w-full max-w-md">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-semibold text-white">Reset Password</h2>
+              <h2 className="text-2xl font-semibold text-[var(--text-primary)]">Reset Password</h2>
               <button
                 onClick={closeForgotModal}
                 className="text-gray-400 hover:text-white text-2xl"
@@ -195,11 +194,11 @@ const Login = () => {
 
             {/* Step Indicator */}
             <div className="flex items-center justify-center mb-6 space-x-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${forgotStep >= 1 ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-400'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${forgotStep >= 1 ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
                 1
               </div>
-              <div className={`w-12 h-0.5 ${forgotStep >= 2 ? 'bg-indigo-600' : 'bg-gray-700'}`}></div>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${forgotStep >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-400'}`}>
+              <div className={`w-12 h-0.5 ${forgotStep >= 2 ? 'bg-[var(--accent)]' : 'bg-[var(--bg-secondary)]'}`}></div>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${forgotStep >= 2 ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
                 2
               </div>
             </div>
@@ -215,13 +214,13 @@ const Login = () => {
             {forgotStep === 1 && (
               <form onSubmit={handleSendResetOTP} className="space-y-4">
                 <div>
-                  <label className="text-gray-300 text-sm mb-2 block">Email Address</label>
+                  <label className="text-[var(--text-secondary)] text-sm mb-2 block">Email Address</label>
                   <input
                     type="email"
                     placeholder="your@email.com"
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400 transition"
+                    className="w-full px-4 py-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition"
                     required
                   />
                 </div>
@@ -229,7 +228,7 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={forgotLoading}
-                  className="w-full py-3 rounded-xl text-white font-medium bg-gradient-to-r from-indigo-500 to-cyan-500 hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
+                  className="w-full py-3 rounded-xl text-white font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
                 >
                   {forgotLoading ? "Sending..." : "Send Reset Code"}
                 </button>
@@ -240,9 +239,9 @@ const Login = () => {
             {forgotStep === 2 && (
               <form onSubmit={handleResetPassword} className="space-y-4">
                 <div>
-                  <label className="text-gray-300 text-sm mb-2 block">Verification Code</label>
-                  <p className="text-gray-400 text-xs mb-3">
-                    We sent a 4-digit code to <span className="text-indigo-400">{forgotEmail}</span>
+                  <label className="text-[var(--text-secondary)] text-sm mb-2 block">Verification Code</label>
+                  <p className="text-[var(--text-secondary)] text-xs mb-3">
+                    We sent a 4-digit code to <span className="text-[var(--accent)]">{forgotEmail}</span>
                   </p>
                   <input
                     type="text"
@@ -250,20 +249,20 @@ const Login = () => {
                     value={forgotOTP}
                     onChange={(e) => setForgotOTP(e.target.value.replace(/\D/g, '').slice(0, 4))}
                     maxLength={4}
-                    className="w-full px-4 py-3 rounded-xl bg-[#0B0F14] border border-white/10 text-white text-center text-2xl tracking-widest placeholder-gray-500 focus:outline-none focus:border-indigo-400 transition"
+                    className="w-full px-4 py-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] text-center text-2xl tracking-widest placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="text-gray-300 text-sm mb-2 block">New Password</label>
+                  <label className="text-[var(--text-secondary)] text-sm mb-2 block">New Password</label>
                   <div className="relative">
                     <input
                       type={showNewPassword ? "text" : "password"}
                       placeholder="Enter new password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full px-4 py-3 pr-12 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400 transition"
+                      className="w-full px-4 py-3 pr-12 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition"
                       required
                     />
                     <span
@@ -278,7 +277,7 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={forgotLoading || forgotOTP.length !== 4}
-                  className="w-full py-3 rounded-xl text-white font-medium bg-gradient-to-r from-indigo-500 to-cyan-500 hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
+                  className="w-full py-3 rounded-xl text-white font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
                 >
                   {forgotLoading ? "Resetting..." : "Reset Password"}
                 </button>

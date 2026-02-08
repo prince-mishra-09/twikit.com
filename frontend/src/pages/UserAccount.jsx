@@ -243,14 +243,14 @@ const UserAccount = ({ user: loggedInUser }) => {
   if (loading) return <Loading />;
 
   if (!user) return (
-    <div className="min-h-screen bg-[#0B0F14] flex flex-col items-center justify-center p-6 text-center">
-      <p className="text-gray-400 text-lg mb-4">User not found</p>
-      <button onClick={() => navigate(-1)} className="text-indigo-400 font-semibold hover:underline">Go Back</button>
+    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 text-center">
+      <p className="text-[var(--text-secondary)] text-lg mb-4">User not found</p>
+      <button onClick={() => navigate(-1)} className="text-[var(--accent)] font-semibold hover:underline">Go Back</button>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] flex flex-col items-center gap-6 pb-24 px-3">
+    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center gap-2 pb-24 px-3">
 
       {show && (
         <Modal value={followersData} title="Followers" setShow={setShow} />
@@ -260,35 +260,35 @@ const UserAccount = ({ user: loggedInUser }) => {
       )}
 
       {/* PROFILE CARD */}
-      <div className="w-full max-w-xl bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6 mt-4">
+      <div className="w-full max-w-2xl bg-[var(--card-bg)]/90 backdrop-blur-xl border border-[var(--border)] rounded-2xl shadow-xl px-6 pb-6 pt-4">
 
         {/* NAME + GENDER (TOP LEFT, LIKE INSTAGRAM) */}
         <div className="flex justify-between items-start mb-3">
           <div className="flex flex-col">
-            <p className="text-white font-semibold text-lg flex items-center gap-2">
+            <p className="text-[var(--text-primary)] font-semibold text-lg flex items-center gap-2">
               {user.name}
-              <span className="text-gray-400 text-sm font-normal">
+              <span className="text-[var(--text-secondary)] text-sm font-normal">
                 • {user.gender}
               </span>
               {onlineUsers.includes(user._id) && (
                 <span className="text-green-400 text-xs">●</span>
               )}
             </p>
-            <p className="text-gray-500 text-sm">@{user.username}</p>
+            <p className="text-[var(--text-secondary)] text-sm">@{user.username}</p>
           </div>
 
           {/* MENU BUTTON - Hide if own profile */}
           {user._id !== loggedInUser?._id && (
             <div className="relative z-10">
-              <button onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }} className="text-white p-2 rounded-full hover:bg-white/10">
+              <button onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }} className="text-[var(--text-primary)] p-2 rounded-full hover:bg-[var(--bg-primary)]/10">
                 <FaEllipsisVertical />
               </button>
               {showMenu && (
-                <div className="absolute right-0 top-full mt-2 w-40 bg-[#1F2937] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[50]">
-                  <button onClick={handleBlock} className="w-full text-left px-4 py-3 text-red-500 hover:bg-white/5 font-medium text-sm">
+                <div className="absolute right-0 top-full mt-2 w-40 bg-[var(--card-bg)] rounded-xl shadow-2xl border border-[var(--border)] overflow-hidden z-[50]">
+                  <button onClick={handleBlock} className="w-full text-left px-4 py-3 text-red-500 hover:bg-[var(--bg-primary)]/10 font-medium text-sm">
                     Block User
                   </button>
-                  <button className="w-full text-left px-4 py-3 text-gray-300 hover:bg-white/5 text-sm">
+                  <button className="w-full text-left px-4 py-3 text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 text-sm">
                     Report
                   </button>
                   <button
@@ -296,7 +296,7 @@ const UserAccount = ({ user: loggedInUser }) => {
                       setShareModal(true);
                       setShowMenu(false);
                     }}
-                    className="w-full text-left px-4 py-3 text-gray-300 hover:bg-white/5 text-sm flex items-center gap-2 border-t border-white/5"
+                    className="w-full text-left px-4 py-3 text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 text-sm flex items-center gap-2 border-t border-[var(--border)]"
                   >
                     <BsShare /> Share Profile
                   </button>
@@ -323,30 +323,30 @@ const UserAccount = ({ user: loggedInUser }) => {
 
             {/* POSTS COUNT */}
             <div className="cursor-pointer">
-              <p className="text-white font-semibold">
+              <p className="text-[var(--text-primary)] font-semibold">
                 {myPosts?.length || 0}
               </p>
-              <p className="text-gray-400 text-xs">posts</p>
+              <p className="text-[var(--text-secondary)] text-xs">posts</p>
             </div>
 
             <div
               className="cursor-pointer"
               onClick={() => setShow(true)}
             >
-              <p className="text-white font-semibold">
+              <p className="text-[var(--text-primary)] font-semibold">
                 {user.followers.length}
               </p>
-              <p className="text-gray-400 text-xs">followers</p>
+              <p className="text-[var(--text-secondary)] text-xs">followers</p>
             </div>
 
             <div
               className="cursor-pointer"
               onClick={() => setShow1(true)}
             >
-              <p className="text-white font-semibold">
+              <p className="text-[var(--text-primary)] font-semibold">
                 {user.followings.length}
               </p>
-              <p className="text-gray-400 text-xs">following</p>
+              <p className="text-[var(--text-secondary)] text-xs">following</p>
             </div>
           </div>
         </div>
@@ -363,7 +363,7 @@ const UserAccount = ({ user: loggedInUser }) => {
                 followHandler();
               }
             }}
-            className={`mt-4 w-full py-2 rounded-lg text-white ${followed ? "bg-red-500" : requested ? "bg-gray-600" : "bg-indigo-500"
+            className={`mt-4 w-full py-2 rounded-lg ${followed ? "bg-red-500 text-white" : requested ? "bg-gray-600 text-white" : "bg-[var(--accent)] text-[var(--text-on-accent)]"
               }`}
           >
             {followed ? "Unfollow" : requested ? "Requested" : "Follow"}
@@ -373,16 +373,16 @@ const UserAccount = ({ user: loggedInUser }) => {
 
 
       {/* TOGGLE */}
-      <div className="flex gap-6 bg-[#111827]/90 border border-white/10 rounded-xl px-6 py-2 max-w-xs w-full justify-center">
+      <div className="flex gap-6 bg-[var(--card-bg)]/90 border border-[var(--border)] rounded-xl px-6 py-2 max-w-xs w-full justify-center">
         <button
           onClick={() => setType("post")}
-          className={type === "post" ? "text-indigo-400" : "text-gray-400"}
+          className={type === "post" ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"}
         >
           Posts
         </button>
         <button
           onClick={() => setType("reel")}
-          className={type === "reel" ? "text-indigo-400" : "text-gray-400"}
+          className={type === "reel" ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"}
         >
           Reels
         </button>
@@ -390,13 +390,13 @@ const UserAccount = ({ user: loggedInUser }) => {
 
       {/* POSTS */}
       {type === "post" && (
-        <div className="w-full max-w-xl space-y-4">
+        <div className="w-full max-w-2xl space-y-4">
           {myPosts?.length ? (
             myPosts.map((e) => (
               <PostCard type="post" value={e} key={e._id} />
             ))
           ) : (
-            <p className="text-gray-500 text-center py-4">No posts yet</p>
+            <p className="text-[var(--text-secondary)] text-center py-4">No posts yet</p>
           )}
         </div>
       )}
@@ -412,7 +412,7 @@ const UserAccount = ({ user: loggedInUser }) => {
             ))}
           </div>
         ) : (
-          <p className="text-gray-500 text-center py-4">No reels yet</p>
+          <p className="text-[var(--text-secondary)] text-center py-4">No reels yet</p>
         ))}
 
       {/* Story Viewer Overlay */}

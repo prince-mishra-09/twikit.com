@@ -149,15 +149,15 @@ const MessageContainer = ({ selectedChat, setChats }) => {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col bg-[#0B0F14] md:static md:h-full"
+      className="fixed inset-0 z-[100] flex flex-col bg-[var(--bg-primary)] md:static md:h-full"
       onClick={() => setActiveMessageId(null)} // Close menu on click outside
     >
 
       {/* HEADER - Fixed at top */}
-      <div className="flex-none flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-[#111827]/80 backdrop-blur-md z-20">
+      <div className="flex-none flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] bg-[var(--card-bg)]/80 backdrop-blur-md z-20">
         <button
           onClick={() => setSelectedChat(null)}
-          className="md:hidden mr-1 text-white p-2 rounded-full hover:bg-white/10"
+          className="md:hidden mr-1 text-[var(--text-primary)] p-2 rounded-full hover:bg-[var(--text-primary)]/10"
         >
           <FaArrowLeft />
         </button>
@@ -169,10 +169,10 @@ const MessageContainer = ({ selectedChat, setChats }) => {
               alt=""
             />
             <div>
-              <p className="text-white font-medium">
+              <p className="text-[var(--text-primary)] font-medium">
                 {otherUser.name}
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-[var(--text-secondary)]">
                 {isOnline ? (
                   <span className="text-green-400 font-medium">Active now</span>
                 ) : (
@@ -193,7 +193,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
         <>
           <div
             ref={messageContainerRef}
-            className="flex-1 overflow-y-auto px-4 py-3 space-y-2 bg-[#0B0F14]"
+            className="flex-1 overflow-y-auto px-4 py-3 space-y-2 bg-[var(--bg-primary)]"
           >
             {messages &&
               messages.map((e, i) => {
@@ -206,7 +206,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
                   <React.Fragment key={i}>
                     {showDateSeparator && (
                       <div className="flex justify-center my-4">
-                        <span className="bg-[#1F2937] text-gray-400 text-xs px-3 py-1 rounded-full border border-white/5">
+                        <span className="bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-xs px-3 py-1 rounded-full border border-[var(--border)]">
                           {currentDateLabel}
                         </span>
                       </div>
@@ -225,11 +225,11 @@ const MessageContainer = ({ selectedChat, setChats }) => {
           </div>
 
           {/* INPUT */}
-          <div className="flex-none border-t border-white/10 bg-[#111827]/80 backdrop-blur-md z-10 p-2 pb-4 md:pb-2">
+          <div className="flex-none border-t border-[var(--border)] bg-[var(--card-bg)]/80 backdrop-blur-md z-10 p-2 pb-4 md:pb-2">
             {otherUser?.isPrivate && !user?.followings?.includes(otherUser._id) ? (
-              <div className="flex justify-center items-center py-4 bg-gray-800/30 rounded-lg mx-2 my-1 border border-white/5">
-                <p className="text-gray-400 text-sm">
-                  Follow <span className="font-bold text-white">@{otherUser.username}</span> to message them
+              <div className="flex justify-center items-center py-4 bg-[var(--bg-secondary)]/30 rounded-lg mx-2 my-1 border border-[var(--border)]">
+                <p className="text-[var(--text-secondary)] text-sm">
+                  Follow <span className="font-bold text-[var(--text-primary)]">@{otherUser.username}</span> to message them
                 </p>
               </div>
             ) : (

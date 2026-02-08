@@ -18,11 +18,12 @@ import CreatePostModal from "../components/CreatePostModal";
 import StoryAvatar from "../components/StoryAvatar";
 import { AiOutlinePlus } from "react-icons/ai";
 import ShareModal from "../components/ShareModal";
-import { BsShare } from "react-icons/bs";
+import { BsShare, BsPalette } from "react-icons/bs";
+import ThemeModal from "../components/ThemeModal";
 
 const Account = ({ user }) => {
   const navigate = useNavigate();
-  const { logoutUser, updateProfilePic, updateProfileName, unmuteUser, togglePrivacy, removeFollower, unblockUser, user: loggedInUser, themeColor, setThemeColor, followUser } = UserData();
+  const { logoutUser, updateProfilePic, updateProfileName, unmuteUser, togglePrivacy, removeFollower, unblockUser, user: loggedInUser, followUser } = UserData();
   const { posts, reels, loading } = PostData();
   const { stories } = StoriesData();
 
@@ -71,6 +72,7 @@ const Account = ({ user }) => {
 
   const [showBlocked, setShowBlocked] = useState(false);
   const [shareModal, setShareModal] = useState(false);
+  const [showThemeModal, setShowThemeModal] = useState(false);
 
   const [followersData, setFollowersData] = useState([]);
   const [followingsData, setFollowingsData] = useState([]);
@@ -126,16 +128,16 @@ const Account = ({ user }) => {
   if (loading) return <Loading />;
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] flex flex-col items-center gap-6 pb-24 px-3">
+    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center gap-2 pb-24">
       {/* Pass remove handler only if it's my own profile */}
       {show && <Modal value={followersData} title="Followers" setShow={setShow} onRemove={user._id === loggedInUser._id ? removeHandler : null} />}
       {show1 && <Modal value={followingsData} title="Following" setShow={setShow1} onRemove={user._id === loggedInUser._id ? unfollowHandler : null} />}
       {showMuted && (
         <div className="fixed inset-0 z-[50] w-full h-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-[#111827] w-full max-w-sm rounded-2xl border border-white/10 p-6 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200 shadow-2xl">
-            <div className="flex justify-between items-center border-b border-white/10 pb-3">
-              <h2 className="text-xl font-bold text-white">Muted Users</h2>
-              <button onClick={() => setShowMuted(false)} className="text-gray-400 hover:text-white text-2xl">
+          <div className="bg-[var(--card-bg)] w-full max-w-sm rounded-2xl border border-[var(--border)] p-6 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-[var(--border)] pb-3">
+              <h2 className="text-xl font-bold text-[var(--text-primary)]">Muted Users</h2>
+              <button onClick={() => setShowMuted(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-2xl">
                 &times;
               </button>
             </div>
@@ -144,8 +146,8 @@ const Account = ({ user }) => {
                 user.mutedUsers.map((u) => (
                   <div key={u._id} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <img src={u.profilePic?.url || "https://placehold.co/400"} alt="" className="w-10 h-10 rounded-full border border-white/10 object-cover" />
-                      <p className="text-white font-medium">{u.name || "Unknown"}</p>
+                      <img src={u.profilePic?.url || "https://placehold.co/400"} alt="" className="w-10 h-10 rounded-full border border-[var(--border)] object-cover" />
+                      <p className="text-[var(--text-primary)] font-medium">{u.name || "Unknown"}</p>
                     </div>
                     <button
                       onClick={() => unmuteUser(u._id)}
@@ -156,7 +158,7 @@ const Account = ({ user }) => {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center py-4">No muted users</p>
+                <p className="text-[var(--text-secondary)] text-center py-4">No muted users</p>
               )}
             </div>
           </div>
@@ -167,145 +169,126 @@ const Account = ({ user }) => {
         <Modal value={user.blockedUsers} title="Blocked Users" setShow={setShowBlocked} onRemove={unblockUser} />
       )}
 
-      {/* ================= PROFILE CARD ================= */}
-      <div className="w-full max-w-xl p-4 mt-4 relative z-30">
+      {showThemeModal && <ThemeModal onClose={() => setShowThemeModal(false)} />}
 
-        {/* Settings Menu Button */}
-
-
-        {/* Settings Dropdown */}
-        {showSettings && (
-          <>
-            <div
-              className="fixed inset-0 z-[25] cursor-default"
-              onClick={() => setShowSettings(false)}
-            />
-            <div className="absolute top-14 right-4 w-52 bg-[#1F2937] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[100] animate-in slide-in-from-top-2 fade-in duration-200">
-              <button
-                onClick={() => {
-                  togglePrivacy();
-                  setShowSettings(false);
-                }}
-                className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2 justify-between"
-              >
-                <div className="flex items-center gap-2">
-                  <span>Private Account</span>
-                </div>
-                <div className={`w-8 h-4 rounded-full relative transition-colors ${user.isPrivate ? "bg-[var(--accent)]" : "bg-gray-600"}`}>
-                  <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-transform ${user.isPrivate ? "left-4.5" : "left-0.5"}`} style={{ left: user.isPrivate ? '18px' : '2px' }} />
-                </div>
-              </button>
-
-              <button
-                onClick={() => {
-                  setShareModal(true);
-                  setShowSettings(false);
-                }}
-                className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
-              >
-                <BsShare /> Share Profile
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowEdit(true);
-                  setShowSettings(false);
-                }}
-                className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
-              >
-                Edit Profile
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowUpdatePass(!showUpdatePass);
-                  setShowSettings(false);
-                }}
-                className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
-              >
-                Change Password
-              </button>
-              <button
-                onClick={() => {
-                  setShowMuted(true);
-                  setShowSettings(false);
-                }}
-                className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
-              >
-                Muted Users
-              </button>
-              <button
-                onClick={() => {
-                  setShowBlocked(true);
-                  setShowSettings(false);
-                }}
-                className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
-              >
-                Blocked Users
-              </button>
-              <button
-                onClick={() => {
-                  setType("saved");
-                  setShowSettings(false);
-                }}
-                className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
-              >
-                Saved Posts
-              </button>
-              <div className="px-4 py-3 border-t border-white/5">
-                <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-3">App Theme</p>
-                <div className="flex items-center justify-between gap-2">
-                  {[
-                    { id: 'indigo', color: '#6366f1' },
-                    { id: 'rose', color: '#f43f5e' },
-                    { id: 'emerald', color: '#10b981' },
-                    { id: 'amber', color: '#f59e0b' },
-                    { id: 'sky', color: '#0ea5e9' },
-                    { id: 'violet', color: '#8b5cf6' },
-                  ].map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => setThemeColor(t.id)}
-                      className={`w-6 h-6 rounded-full border-2 transition-all ${themeColor === t.id ? "border-white scale-110 shadow-lg" : "border-transparent opacity-60 hover:opacity-100"
-                        }`}
-                      style={{ backgroundColor: t.color }}
-                      title={t.id.charAt(0).toUpperCase() + t.id.slice(1)}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <button
-                onClick={() => logoutUser(navigate)}
-                className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-500/10 flex items-center gap-2 border-t border-white/5"
-              >
-                Logout
-              </button>
-
-              <div className="px-4 py-3 border-t border-white/5 bg-[#111827]/50">
-                <p className="text-gray-400 text-xs truncate">{user.email}</p>
-                <p className="text-gray-500 text-[10px] mt-0.5 uppercase tracking-wider">{user.gender}</p>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* HEADER ROW: Name & Menu */}
-        {/* HEADER ROW: Name & Menu */}
-        {/* HEADER ROW: Name & Menu */}
-        <div className="flex justify-between items-center mb-6">
+      {/* ================= FULL WIDTH HEADER ================= */}
+      <div className="sticky top-0 z-40 w-full bg-[var(--card-bg)]/95 backdrop-blur-md border-b border-[var(--border)] shadow-sm">
+        <div className="max-w-2xl mx-auto flex justify-between items-center py-3 px-4">
           <div>
-            <h2 className="text-2xl font-bold text-white tracking-wide">{user.name}</h2>
-            <p className="text-gray-400 text-sm">@{user.username}</p>
+            <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-wide">{user.name}</h2>
+            <p className="text-[var(--text-secondary)] text-sm">@{user.username}</p>
           </div>
 
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="text-white text-2xl p-2 hover:bg-white/10 rounded-full transition-colors shrink-0"
-          >
-            <IoMenu />
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="text-[var(--text-primary)] text-2xl p-2 hover:bg-[var(--bg-primary)]/50 rounded-full transition-colors shrink-0"
+            >
+              <IoMenu />
+            </button>
+
+            {/* Settings Dropdown */}
+            {showSettings && (
+              <>
+                <div
+                  className="fixed inset-0 z-[25] cursor-default"
+                  onClick={() => setShowSettings(false)}
+                />
+                <div className="absolute top-full right-0 mt-2 w-52 bg-[var(--card-bg)] rounded-xl shadow-2xl border border-[var(--border)] overflow-hidden z-[100] animate-in slide-in-from-top-2 fade-in duration-200">
+                  <button
+                    onClick={() => {
+                      togglePrivacy();
+                      setShowSettings(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2 justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span>Private Account</span>
+                    </div>
+                    <div className={`w-8 h-4 rounded-full relative transition-colors ${user.isPrivate ? "bg-[var(--accent)]" : "bg-gray-600"}`}>
+                      <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-transform ${user.isPrivate ? "left-4.5" : "left-0.5"}`} style={{ left: user.isPrivate ? '18px' : '2px' }} />
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShareModal(true);
+                      setShowSettings(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2"
+                  >
+                    <BsShare /> Share Profile
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowEdit(true);
+                      setShowSettings(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2"
+                  >
+                    Edit Profile
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowUpdatePass(!showUpdatePass);
+                      setShowSettings(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2"
+                  >
+                    Change Password
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowMuted(true);
+                      setShowSettings(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2"
+                  >
+                    Muted Users
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowBlocked(true);
+                      setShowSettings(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2"
+                  >
+                    Blocked Users
+                  </button>
+                  <div className="border-t border-[var(--border)]">
+                    <button
+                      onClick={() => {
+                        setShowThemeModal(true);
+                        setShowSettings(false);
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2"
+                    >
+                      <BsPalette /> Display & Accessibility
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => logoutUser(navigate)}
+                    className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-500/10 flex items-center gap-2 border-t border-[var(--border)]"
+                  >
+                    Logout
+                  </button>
+
+                  <div className="px-4 py-3 border-t border-[var(--border)] bg-[var(--bg-secondary)]/50">
+                    <p className="text-[var(--text-secondary)] text-xs truncate">{user.email}</p>
+                    <p className="text-[var(--text-secondary)] text-[10px] mt-0.5 uppercase tracking-wider">{user.gender}</p>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
+      </div>
+
+      {/* ================= PROFILE CARD ================= */}
+      <div className="w-full max-w-2xl px-4 pb-4 pt-4 relative z-30">
 
         {/* Top Row: Picture + Stats */}
         <div className="flex flex-row items-center gap-4 w-full">
@@ -319,7 +302,7 @@ const Account = ({ user }) => {
             />
             {!myStoryGroup && (
               <div
-                className="absolute bottom-1 right-1 bg-blue-500 text-white rounded-full p-1 border-2 border-[#111827] cursor-pointer pointer-events-none"
+                className="absolute bottom-1 right-1 bg-blue-500 text-white rounded-full p-1 border-2 border-[var(--bg-primary)] cursor-pointer pointer-events-none"
               >
                 <AiOutlinePlus size={14} />
               </div>
@@ -330,17 +313,17 @@ const Account = ({ user }) => {
           <div className="flex flex-1 justify-around text-center">
             {/* POSTS COUNT */}
             <div className="cursor-pointer">
-              <p className="text-white font-bold text-lg">{myPosts?.length || 0}</p>
-              <p className="text-gray-400 text-xs uppercase tracking-wider">Posts</p>
+              <p className="text-[var(--text-primary)] font-bold text-lg">{myPosts?.length || 0}</p>
+              <p className="text-[var(--text-secondary)] text-xs uppercase tracking-wider">Posts</p>
             </div>
 
             <div onClick={() => setShow(true)} className="cursor-pointer">
-              <p className="text-white font-semibold">{user.followers.length}</p>
-              <p className="text-gray-400 text-xs">followers</p>
+              <p className="text-[var(--text-primary)] font-semibold">{user.followers.length}</p>
+              <p className="text-[var(--text-secondary)] text-xs">followers</p>
             </div>
             <div onClick={() => setShow1(true)} className="cursor-pointer">
-              <p className="text-white font-semibold">{user.followings.length}</p>
-              <p className="text-gray-400 text-xs">following</p>
+              <p className="text-[var(--text-primary)] font-semibold">{user.followings.length}</p>
+              <p className="text-[var(--text-secondary)] text-xs">following</p>
             </div>
           </div>
         </div>
@@ -351,7 +334,7 @@ const Account = ({ user }) => {
             <BioDisplay bio={user.bio} />
           ) : (
             user._id === loggedInUser._id && (
-              <p className="text-gray-500 text-sm italic">Tell people a little about you</p>
+              <p className="text-[var(--text-secondary)] text-sm italic">Tell people a little about you</p>
             )
           )}
 
@@ -375,18 +358,18 @@ const Account = ({ user }) => {
         showUpdatePass && (
           <form
             onSubmit={updatePassword}
-            className="bg-[#111827]/90 border border-white/10 rounded-xl p-4 w-full max-w-md space-y-3"
+            className="bg-[var(--card-bg)]/90 border border-[var(--border)] rounded-xl p-4 w-full max-w-md space-y-3"
           >
             <input
               type="password"
-              className="w-full px-3 py-2 rounded-lg bg-[#0B0F14] border border-white/10 text-white"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)]"
               placeholder="Old password"
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
             />
             <input
               type="password"
-              className="w-full px-3 py-2 rounded-lg bg-[#0B0F14] border border-white/10 text-white"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)]"
               placeholder="New password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -399,18 +382,24 @@ const Account = ({ user }) => {
       }
 
       {/* Toggle */}
-      <div className="flex gap-6 bg-[#111827]/90 border border-white/10 rounded-xl px-6 py-2 max-w-xs w-full justify-center">
+      <div className="flex gap-6 bg-[var(--card-bg)]/90 border border-[var(--border)] rounded-xl px-6 py-2 w-full max-w-md justify-between">
         <button
           onClick={() => setType("post")}
-          className={type === "post" ? "text-[var(--accent)]" : "text-gray-400"}
+          className={type === "post" ? "text-[var(--accent)] font-semibold" : "text-[var(--text-secondary)]"}
         >
           Posts
         </button>
         <button
           onClick={() => setType("reel")}
-          className={type === "reel" ? "text-[var(--accent)]" : "text-gray-400"}
+          className={type === "reel" ? "text-[var(--accent)] font-semibold" : "text-[var(--text-secondary)]"}
         >
           Reels
+        </button>
+        <button
+          onClick={() => setType("saved")}
+          className={type === "saved" ? "text-[var(--accent)] font-semibold" : "text-[var(--text-secondary)]"}
+        >
+          Saved
         </button>
       </div>
 
@@ -433,15 +422,15 @@ const Account = ({ user }) => {
         (myReels?.length ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl mx-auto pb-4">
             {myReels.map((reel) => (
-              <div key={reel._id} id={reel._id} className="account-reel flex justify-center w-full aspect-[9/16] bg-gray-900 rounded-lg overflow-hidden relative group">
+              <div key={reel._id} id={reel._id} className="account-reel flex justify-center w-full aspect-[9/16] bg-[var(--card-bg)] rounded-lg overflow-hidden relative group">
                 <PostCard type="reel" value={reel} isActive={activeReelId === reel._id} isGrid={true} />
               </div>
             ))}
           </div>
-        ) : <p className="text-gray-500 text-center py-4">No reels yet</p>)
+        ) : <p className="text-[var(--text-secondary)] text-center py-4">No reels yet</p>)
       }
 
-      {type === "saved" && <SavedPosts onBack={() => setType("post")} />}
+      {type === "saved" && <SavedPosts />}
       {showEdit && <EditProfile user={user} onBack={() => setShowEdit(false)} />}
 
       {/* Story Viewer Overlay */}
@@ -543,13 +532,13 @@ const EditProfile = ({ user, onBack }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-[60] bg-[#0B0F14] overflow-y-auto animate-in slide-in-from-right duration-300">
-      <div className="sticky top-0 z-10 bg-[#0B0F14]/90 backdrop-blur-md p-4 border-b border-white/10 flex items-center justify-between">
+    <div className="fixed inset-0 z-[60] bg-[var(--bg-primary)] overflow-y-auto animate-in slide-in-from-right duration-300">
+      <div className="sticky top-0 z-10 bg-[var(--bg-primary)]/90 backdrop-blur-md p-4 border-b border-[var(--border)] flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button onClick={onBack} className="text-white text-xl p-2 rounded-full hover:bg-white/10 transition-colors">
+          <button onClick={onBack} className="text-[var(--text-primary)] text-xl p-2 rounded-full hover:bg-[var(--text-primary)]/10 transition-colors">
             <FaArrowLeft />
           </button>
-          <h2 className="text-xl font-bold text-white">Edit Profile</h2>
+          <h2 className="text-xl font-bold text-[var(--text-primary)]">Edit Profile</h2>
         </div>
         <button
           onClick={saveHandler}
@@ -563,8 +552,8 @@ const EditProfile = ({ user, onBack }) => {
       <div className="p-8 flex flex-col items-center gap-6 w-full max-w-sm mx-auto">
         {/* Image Upload */}
         <div className="relative group cursor-pointer" onClick={() => fileInputRef.current.click()}>
-          <img src={preview} alt="Profile" className="w-32 h-32 rounded-full object-cover border-4 border-[#1F2937] shadow-xl group-hover:opacity-80 transition-opacity" />
-          <div className="absolute bottom-1 right-1 bg-indigo-500 p-2 rounded-full shadow-lg border-2 border-[#0B0F14]">
+          <img src={preview} alt="Profile" className="w-32 h-32 rounded-full object-cover border-4 border-[var(--card-bg)] shadow-xl group-hover:opacity-80 transition-opacity" />
+          <div className="absolute bottom-1 right-1 bg-[var(--accent)] p-2 rounded-full shadow-lg border-2 border-[var(--bg-primary)]">
             <FiEdit2 className="text-white text-md" />
           </div>
           <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} accept="image/*" />
@@ -573,54 +562,54 @@ const EditProfile = ({ user, onBack }) => {
         {/* Name Input */}
         <div className="w-full space-y-1">
           <div className="flex justify-between items-center ml-1">
-            <label className="text-gray-400 text-sm">Name</label>
-            <span className={`text-xs font-medium transition-colors ${name.length > 20 ? "text-red-500" : "text-gray-500"}`}>
+            <label className="text-[var(--text-secondary)] text-sm">Name</label>
+            <span className={`text-xs font-medium transition-colors ${name.length > 20 ? "text-red-500" : "text-[var(--text-secondary)]"}`}>
               {name.length}/20
             </span>
           </div>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className={`w-full bg-[#1F2937] border rounded-xl px-4 py-3 text-white focus:outline-none transition-colors ${name.length > 20 ? "border-red-500 focus:border-red-500" : "border-white/10 focus:border-indigo-500"}`}
+            className={`w-full bg-[var(--card-bg)] border rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none transition-colors ${name.length > 20 ? "border-red-500 focus:border-red-500" : "border-[var(--border)] focus:border-[var(--accent)]"}`}
             placeholder="Enter your name"
           />
         </div>
 
         {/* Username Input */}
         <div className="w-full space-y-1">
-          <label className="text-gray-400 text-sm ml-1">Username</label>
+          <label className="text-[var(--text-secondary)] text-sm ml-1">Username</label>
           <input
             value={username}
             onChange={(e) => setUsername(e.target.value.toLowerCase().trim())}
-            className="w-full bg-[#1F2937] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-[var(--card-bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
             placeholder="unique_username"
           />
-          <p className="text-xs text-gray-500 ml-1">Must be unique, lowercase, no spaces.</p>
+          <p className="text-xs text-[var(--text-secondary)] ml-1">Must be unique, lowercase, no spaces.</p>
         </div>
 
         {/* Bio Input */}
         <div className="w-full space-y-1">
           <div className="flex justify-between items-center ml-1">
-            <label className="text-gray-400 text-sm">Bio</label>
-            <span className={`text-xs font-medium transition-colors ${bio.length > 120 ? "text-red-500" : "text-gray-500"}`}>
+            <label className="text-[var(--text-secondary)] text-sm">Bio</label>
+            <span className={`text-xs font-medium transition-colors ${bio.length > 120 ? "text-red-500" : "text-[var(--text-secondary)]"}`}>
               {bio.length}/120
             </span>
           </div>
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            className={`w-full bg-[#1F2937] border rounded-xl px-4 py-3 text-white focus:outline-none transition-colors resize-none h-24 text-sm ${bio.length > 120 ? "border-red-500 focus:border-red-500" : "border-white/10 focus:border-indigo-500"}`}
+            className={`w-full bg-[var(--card-bg)] border rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none transition-colors resize-none h-24 text-sm ${bio.length > 120 ? "border-red-500 focus:border-red-500" : "border-[var(--border)] focus:border-[var(--accent)]"}`}
             placeholder="Tell people a little about you..."
           />
         </div>
 
         {/* Link Input */}
         <div className="w-full space-y-1">
-          <label className="text-gray-400 text-sm ml-1">External Link</label>
+          <label className="text-[var(--text-secondary)] text-sm ml-1">External Link</label>
           <input
             value={link}
             onChange={(e) => setLink(e.target.value)}
-            className="w-full bg-[#1F2937] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-[var(--card-bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
             placeholder="Add a link (e.g. portfolio)"
           />
         </div>
@@ -629,7 +618,7 @@ const EditProfile = ({ user, onBack }) => {
   )
 }
 
-const SavedPosts = ({ onBack }) => {
+const SavedPosts = () => {
   const [savedPosts, setSavedPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activePostId, setActivePostId] = useState(null);
@@ -649,48 +638,19 @@ const SavedPosts = ({ onBack }) => {
     fetchSaved();
   }, []);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActivePostId(entry.target.id);
-          }
-        });
-      },
-      { threshold: 0.6 }
-    );
-
-    const elements = document.querySelectorAll(".saved-post-container");
-    elements.forEach((el) => observer.observe(el));
-
-    return () => {
-      elements.forEach((el) => observer.unobserve(el));
-    };
-  }, [savedPosts]);
-
   return (
-    <div className="fixed inset-0 z-[60] bg-[#0B0F14] overflow-y-auto animate-in slide-in-from-right duration-300">
-      <div className="sticky top-0 z-10 bg-[#0B0F14]/90 backdrop-blur-md p-4 border-b border-white/10 flex items-center gap-4">
-        <button onClick={onBack} className="text-white text-xl p-2 rounded-full hover:bg-white/10 transition-colors">
-          <FaArrowLeft />
-        </button>
-        <h2 className="text-xl font-bold text-white">Saved Posts</h2>
-      </div>
-
-      <div className="p-4 grid grid-cols-1 gap-6 w-full max-w-xl mx-auto pb-20">
-        {loading ? (
-          <Loading />
-        ) : savedPosts && savedPosts.length > 0 ? (
-          savedPosts.map((e) => (
-            <div key={e._id} id={e._id} className="saved-post-container">
-              <PostCard type={e.type} value={e} isActive={activePostId === e._id} />
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-500 text-center mt-20">No saved posts yet</p>
-        )}
-      </div>
+    <div className="w-full max-w-xl space-y-4 pb-20">
+      {loading ? (
+        <Loading />
+      ) : savedPosts && savedPosts.length > 0 ? (
+        savedPosts.map((e) => (
+          <div key={e._id} className="saved-post-container">
+            <PostCard type={e.type} value={e} />
+          </div>
+        ))
+      ) : (
+        <p className="text-[var(--text-secondary)] text-center py-4">No saved posts yet</p>
+      )}
     </div>
   );
 };
@@ -714,13 +674,13 @@ const BioDisplay = ({ bio }) => {
 
   return (
     <div className="relative">
-      <p className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed inline">
+      <p className="text-[var(--text-secondary)] text-sm whitespace-pre-wrap leading-relaxed inline">
         {displayText}
         {!expanded && showToggle && "..."}
         {showToggle && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="text-gray-500 text-xs ml-1 hover:text-gray-300 font-medium inline-block"
+            className="text-[var(--text-secondary)] text-xs ml-1 hover:text-[var(--text-primary)] font-medium inline-block"
           >
             {expanded ? "less" : "more"}
           </button>

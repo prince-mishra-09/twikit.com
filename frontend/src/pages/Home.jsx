@@ -24,43 +24,57 @@ const Home = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const current = window.scrollY;
+      const mainContent = document.getElementById("main-content");
+      if (!mainContent) return;
+      const current = mainContent.scrollTop;
 
       // small threshold to avoid flicker
       if (Math.abs(current - lastScrollY) < 10) return;
 
       if (current > lastScrollY) {
-        // scrolling down → show composer
+        // scrolling down -> show composer
         setShowComposer(false);
       } else {
-        // scrolling up → hide composer
+        // scrolling up -> hide composer
         setShowComposer(true);
       }
 
       setLastScrollY(current);
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    const mainContent = document.getElementById("main-content");
+    if (mainContent) {
+      mainContent.addEventListener("scroll", handleScroll, { passive: true });
+    } else {
+      window.addEventListener("scroll", handleScroll, { passive: true });
+    }
+
+    return () => {
+      if (mainContent) {
+        mainContent.removeEventListener("scroll", handleScroll);
+      } else {
+        window.removeEventListener("scroll", handleScroll);
+      }
+    };
   }, [lastScrollY]);
 
 
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] flex justify-center">
+    <div className="min-h-screen bg-[var(--bg-primary)] flex justify-center md:px-4">
       {/* Feed container */}
-      <div className="w-full max-w-xl pb-20">
+      <div className="w-full max-w-2xl pb-20">
 
         {/* Header + Composer */}
         <div
-          className={`sticky top-0 z-20 transition-all duration-300 bg-[#0B0F14]/90 backdrop-blur-md pb-2 ${showComposer
+          className={`sticky top-0 z-20 transition-all duration-300 bg-[var(--bg-primary)]/90 backdrop-blur-md pb-2 ${showComposer
             ? "translate-y-0 opacity-100"
             : "-translate-y-40 opacity-0 pointer-events-none"
             }`}
         >
           {/* Top Header */}
-          <div className="flex justify-between items-center py-4 px-3">
-            <h1 className="text-xl font-bold bg-white/10 px-4 py-1.5 rounded-full backdrop-blur-md border border-white/5 shadow-lg shadow-indigo-500/10 text-white tracking-wide">
+          <div className="flex justify-between items-center py-2 px-3">
+            <h1 className="text-xl font-bold bg-[var(--text-primary)]/10 px-4 py-1.5 rounded-full backdrop-blur-md border border-[var(--border)] shadow-lg shadow-[var(--accent)]/10 text-[var(--text-primary)] tracking-wide">
               Twikit
             </h1>
             <div className="flex items-center gap-3">
@@ -68,22 +82,22 @@ const Home = () => {
                 <>
                   <Link
                     to="/notifications"
-                    className="relative bg-white/10 p-2.5 rounded-full backdrop-blur-md border border-white/5 hover:bg-white/20 transition-all duration-300 text-white shadow-lg shadow-indigo-500/10 group"
+                    className="relative bg-[var(--text-primary)]/10 p-2.5 rounded-full backdrop-blur-md border border-[var(--border)] hover:bg-[var(--text-primary)]/20 transition-all duration-300 text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/10 group"
                   >
                     <IoNotificationsOutline className="text-xl group-hover:rotate-12 transition-transform" />
                     {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[#0B0F14]">
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[var(--bg-primary)]">
                         {unreadCount > 9 ? "9+" : unreadCount}
                       </span>
                     )}
                   </Link>
                   <Link
                     to="/chat"
-                    className="relative bg-white/10 p-2.5 rounded-full backdrop-blur-md border border-white/5 hover:bg-white/20 transition-all duration-300 text-white shadow-lg shadow-indigo-500/10 group"
+                    className="relative bg-[var(--text-primary)]/10 p-2.5 rounded-full backdrop-blur-md border border-[var(--border)] hover:bg-[var(--text-primary)]/20 transition-all duration-300 text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/10 group"
                   >
                     <IoChatbubbleEllipsesOutline className="text-xl group-hover:scale-110 transition-transform" />
                     {totalUnreadMessages > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[#0B0F14]">
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[var(--bg-primary)]">
                         {totalUnreadMessages > 9 ? "9+" : totalUnreadMessages}
                       </span>
                     )}
@@ -93,7 +107,7 @@ const Home = () => {
               {!isAuth && (
                 <Link
                   to="/login"
-                  className="bg-indigo-600 text-white px-5 py-2 rounded-full font-bold text-sm hover:bg-indigo-500 transition-all"
+                  className="bg-[var(--accent)] text-white px-5 py-2 rounded-full font-bold text-sm hover:opacity-90 transition-all"
                 >
                   Log In
                 </Link>
@@ -103,7 +117,7 @@ const Home = () => {
         </div>
 
         {/* Posts */}
-        <div className="mt-4">
+        <div className="mt-2">
           <StoryRow />
           {loading ? (
             <div className="space-y-4">
@@ -123,7 +137,7 @@ const Home = () => {
                   <button
                     onClick={fetchNextPage}
                     disabled={loadingMore}
-                    className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-full hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="px-6 py-3 bg-[var(--accent)] text-white font-semibold rounded-full hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     {loadingMore ? "Loading..." : "Load More Posts"}
                   </button>
@@ -132,13 +146,13 @@ const Home = () => {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center h-[60vh] text-center w-full z-10 relative">
-              <h3 className="text-2xl font-bold text-white mb-2">No posts yet</h3>
-              <p className="text-gray-300 text-base mb-6">
+              <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-2">No posts yet</h3>
+              <p className="text-[var(--text-secondary)] text-base mb-6">
                 Be the first to post something or follow others!
               </p>
               <Link
                 to="/search"
-                className="px-6 py-2 bg-white text-black font-semibold rounded-full hover:bg-gray-200 transition-colors"
+                className="px-6 py-2 bg-[var(--text-primary)] text-[var(--bg-primary)] font-semibold rounded-full hover:opacity-90 transition-opacity"
               >
                 Discover People
               </Link>
@@ -151,3 +165,4 @@ const Home = () => {
 };
 
 export default Home;
+

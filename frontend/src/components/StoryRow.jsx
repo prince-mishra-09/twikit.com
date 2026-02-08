@@ -39,7 +39,7 @@ const StoryRow = () => {
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide select-none">
 
                 {/* MY STORY ITEM */}
-                <div className="flex flex-col items-center gap-1.5 min-w-[70px] cursor-pointer group">
+                <div className="flex flex-col items-center min-w-[70px] cursor-pointer group">
                     <div className="relative">
                         <div
                             onClick={() => myStoryGroup ? openStory(0, true) : navigate("/account")}
@@ -67,9 +67,6 @@ const StoryRow = () => {
                             </div>
                         )}
                     </div>
-                    <span className="text-xs text-center text-white truncate w-[70px]">
-                        Your Story
-                    </span>
                 </div>
 
                 {/* OTHER USERS STORIES */}
@@ -89,7 +86,7 @@ const StoryRow = () => {
                         return (
                             <div
                                 key={group.user._id}
-                                className="flex flex-col items-center gap-1.5 min-w-[70px] cursor-pointer"
+                                className="flex flex-col items-center min-w-[70px] cursor-pointer"
                                 onClick={() => setSelectedStoryIndex(myStoryGroup ? idx + 1 : idx)}
                             >
                                 <div className={`w-[66px] h-[66px] rounded-full p-[2px] transition-transform duration-300 hover:scale-105 ${isAllSeen
@@ -102,9 +99,6 @@ const StoryRow = () => {
                                         className={`w-full h-full rounded-full object-cover border-2 ${isAllSeen ? "border-gray-800 opacity-80" : "border-[#0B0F14]"}`}
                                     />
                                 </div>
-                                <span className={`text-xs text-center truncate w-[70px] ${isAllSeen ? "text-gray-500" : "text-white"}`}>
-                                    {group.user.name.split(" ")[0]}
-                                </span>
                             </div>
                         );
                     })}

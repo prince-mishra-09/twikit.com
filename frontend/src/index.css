@@ -2,49 +2,106 @@
 
 html {
   scroll-behavior: smooth;
-}
-
-:root {
-  --accent: #6366f1;
-  /* Default Indigo */
-  --accent-soft: rgba(99, 102, 241, 0.1);
-  --accent-hover: #4f46e5;
-}
-
-[data-theme='rose'] {
-  --accent: #f43f5e;
-  --accent-soft: rgba(244, 63, 94, 0.1);
-  --accent-hover: #e11d48;
-}
-
-[data-theme='emerald'] {
-  --accent: #10b981;
-  --accent-soft: rgba(16, 185, 129, 0.1);
-  --accent-hover: #059669;
-}
-
-[data-theme='amber'] {
-  --accent: #f59e0b;
-  --accent-soft: rgba(245, 158, 11, 0.1);
-  --accent-hover: #d97706;
-}
-
-[data-theme='sky'] {
-  --accent: #0ea5e9;
-  --accent-soft: rgba(14, 165, 233, 0.1);
-  --accent-hover: #0284c7;
-}
-
-[data-theme='violet'] {
-  --accent: #8b5cf6;
-  --accent-soft: rgba(139, 92, 246, 0.1);
-  --accent-hover: #7c3aed;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+:root {
+  /* Default Theme: "The Signature Core" (Off-White/Bone) - Authentic & Modern */
+  --bg-primary: #F9F7F2;
+  --bg-secondary: #FFFFFF;
+  --text-primary: #1A1A1B;
+  --text-secondary: #6B7280;
+  --accent: #5D5FEF;
+  --accent-hover: #4F50D0;
+  --text-on-accent: #FFFFFF;
+  --border: #E5E7EB;
+  --card-bg: #FFFFFF;
+  --accent-secondary: #F59E0B;
+  /* Amber/Orange */
+}
+
+/* Theme Option A: "Cyber Neon" (Pitch Black) - Night Owls */
+[data-theme='cyber'] {
+  --bg-primary: #0D0D0D;
+  --bg-secondary: #1F1F1F;
+  --text-primary: #FFFFFF;
+  --text-secondary: #C0C0C0;
+  /* Brighter for better readability on dark bg */
+  --accent: #00FFD1;
+  --accent-hover: #00E0B8;
+  --text-on-accent: #000000;
+  --border: #333333;
+  --card-bg: #1F1F1F;
+  --accent-secondary: #FF2E63;
+  /* Hot Pink */
+}
+
+/* Theme Option B: "Soft Matcha" (Pale Matcha Green) - Aesthetic/Lifestyle */
+[data-theme='matcha'] {
+  --bg-primary: #D8EDD8;
+  --bg-secondary: #F0F8F0;
+  --text-primary: #1A2F1A;
+  /* Darker for better contrast */
+  --text-secondary: #4A634A;
+  /* Darker for better contrast */
+  --accent: #6B8E72;
+  /* Slightly darker to pop */
+  --accent-hover: #5A7F60;
+  --text-on-accent: #1A2F1A;
+  --border: #B8D4B8;
+  --card-bg: #F0F8F0;
+  --accent-secondary: #D4A373;
+  /* Earthy Brown/Orange */
+}
+
+/* Theme Option C: "Retro Pop" (Lavender Blush) - Y2K Nostalgia */
+[data-theme='retro'] {
+  --bg-primary: #FFF0F5;
+  --bg-secondary: #FFFFFF;
+  --text-primary: #D10065;
+  /* Darker pink for readability */
+  --text-secondary: #4A0428;
+  /* Dark purple for secondary text */
+  --accent: #FFD700;
+  --accent-hover: #E6C200;
+  --text-on-accent: #000000;
+  --border: #FFB6C1;
+  /* Softer border than pure black */
+  --card-bg: #FFFFFF;
+  --accent-secondary: #00B4D8;
+  /* Cyan */
+}
+
+/* Theme Option D: "Earthy Slate" (Slate Charcoal) - Quiet Luxury */
+/* Quiet Luxury */
+
+body {
   font-family: 'Inter', sans-serif;
-  background-color: #0B0F14;
-  color: white;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Grain Texture Overlay */
+.grain-overlay::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
 /* ... rest of the file ... */
@@ -56,7 +113,7 @@ h3 {
 
 /* Custom Scrollbar for Dark Theme */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -64,15 +121,29 @@ h3 {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #374151;
+  background: var(--border);
   /* gray-700 */
   border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #4b5563;
+  background: var(--text-secondary);
   /* gray-600 */
 }
+
+/* Hide Scrollbar Globally (while keeping scroll functionality) */
+* {
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari, Opera */
+}
+
 
 /* Shimmer Animation */
 @keyframes shimmer {

@@ -59,15 +59,15 @@ const Search = () => {
   }, [globalReels, globalPosts]);
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] flex justify-center px-0 pt-2 pb-20">
+    <div className="min-h-screen bg-[var(--bg-primary)] flex justify-center px-0 pt-2 pb-20">
       <div className="w-full max-w-xl px-4">
 
         {/* SEARCH BAR */}
-        <div className="sticky top-2 z-20 flex items-center gap-3 bg-[#111827]/90 backdrop-blur-md border border-white/10 rounded-xl px-4 py-3 mb-6 shadow-lg shadow-indigo-500/10">
-          <FaSearch className="text-gray-400" />
+        <div className="sticky top-2 z-20 flex items-center gap-3 bg-[var(--card-bg)]/90 backdrop-blur-md border border-[var(--border)] rounded-xl px-4 py-3 mb-6 shadow-lg shadow-[var(--accent)]/10">
+          <FaSearch className="text-[var(--text-secondary)]" />
           <input
             type="text"
-            className="flex-1 bg-transparent outline-none text-white placeholder-gray-400"
+            className="flex-1 bg-transparent outline-none text-[var(--text-primary)] placeholder-[var(--text-secondary)]"
             placeholder="Search @username or name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -76,7 +76,7 @@ const Search = () => {
           />
           <button
             onClick={fetchUsers}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors"
+            className="bg-[var(--accent)] hover:opacity-90 text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors"
           >
             Search
           </button>
@@ -95,18 +95,18 @@ const Search = () => {
                 <Link
                   key={u._id}
                   to={`/user/${u._id}`}
-                  className="flex items-start gap-4 px-4 py-4 rounded-xl bg-[#1F2937]/50 border border-white/5 hover:bg-[#1F2937] transition-all"
+                  className="flex items-start gap-4 px-4 py-4 rounded-xl bg-[var(--card-bg)]/50 border border-[var(--border)] hover:bg-[var(--card-bg)] transition-all"
                 >
                   <img
                     src={u?.profilePic?.url || "/default-avatar.png"}
                     alt="profile"
-                    className="w-12 h-12 rounded-full object-cover border border-white/10 shrink-0"
+                    className="w-12 h-12 rounded-full object-cover border border-[var(--border)] shrink-0"
                   />
                   <div className="flex flex-col flex-1 min-w-0">
-                    <p className="text-white font-bold text-base truncate">{u.name}</p>
-                    <p className="text-gray-500 text-sm truncate">@{u.username}</p>
+                    <p className="text-[var(--text-primary)] font-bold text-base truncate">{u.name}</p>
+                    <p className="text-[var(--text-secondary)] text-sm truncate">@{u.username}</p>
                     {u.bio && (
-                      <p className="text-gray-400 text-xs mt-1.5 line-clamp-2 break-words leading-relaxed">
+                      <p className="text-[var(--text-secondary)] text-xs mt-1.5 line-clamp-2 break-words leading-relaxed">
                         {u.bio}
                       </p>
                     )}
@@ -117,7 +117,7 @@ const Search = () => {
               {/* 2. REELS GRID (Search Results) */}
               {actualReels.length > 0 && (
                 <div className="pt-4 pb-2">
-                  <h3 className="text-indigo-400 font-semibold text-sm mb-3 px-2 uppercase tracking-wider">Reels</h3>
+                  <h3 className="text-[var(--accent)] font-semibold text-sm mb-3 px-2 uppercase tracking-wider">Reels</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {actualReels.map((reel) => (
                       <SearchReelItem key={reel._id} reel={reel} />
@@ -129,7 +129,7 @@ const Search = () => {
               {/* 3. POSTS LIST (Search Results) */}
               {actualPosts.length > 0 && (
                 <div className="pt-4 pb-2">
-                  <h3 className="text-indigo-400 font-semibold text-sm mb-3 px-2 uppercase tracking-wider">Posts from results</h3>
+                  <h3 className="text-[var(--accent)] font-semibold text-sm mb-3 px-2 uppercase tracking-wider">Posts from results</h3>
                   <div className="space-y-4">
                     {actualPosts.map((post) => (
                       <PostCard key={post._id} value={post} type="post" />
@@ -141,21 +141,21 @@ const Search = () => {
               {/* 4. Remaining Users */}
               {remainingUsers.length > 0 && (
                 <div className="pt-2">
-                  {posts.length > 0 && <h3 className="text-gray-400 font-semibold text-sm mb-3 px-2 uppercase tracking-wider">More Profiles</h3>}
+                  {posts.length > 0 && <h3 className="text-[var(--text-secondary)] font-semibold text-sm mb-3 px-2 uppercase tracking-wider">More Profiles</h3>}
                   {remainingUsers.map((u) => (
                     <Link
                       key={u._id}
                       to={`/user/${u._id}`}
-                      className="flex items-start gap-4 px-4 py-4 rounded-xl bg-[#1F2937]/50 border border-white/5 hover:bg-[#1F2937] transition-all mb-4"
+                      className="flex items-start gap-4 px-4 py-4 rounded-xl bg-[var(--card-bg)]/50 border border-[var(--border)] hover:bg-[var(--card-bg)] transition-all mb-4"
                     >
                       <img
                         src={u?.profilePic?.url || "/default-avatar.png"}
                         alt="profile"
-                        className="w-12 h-12 rounded-full object-cover border border-white/10 shrink-0"
+                        className="w-12 h-12 rounded-full object-cover border border-[var(--border)] shrink-0"
                       />
                       <div className="flex flex-col flex-1 min-w-0">
-                        <p className="text-white font-bold text-base truncate">{u.name}</p>
-                        <p className="text-gray-500 text-sm truncate">@{u.username}</p>
+                        <p className="text-[var(--text-primary)] font-bold text-base truncate">{u.name}</p>
+                        <p className="text-[var(--text-secondary)] text-sm truncate">@{u.username}</p>
                       </div>
                     </Link>
                   ))}
@@ -164,15 +164,15 @@ const Search = () => {
             </div>
           ) : hasSearched && search.trim() ? (
             <div className="text-center mt-10">
-              <p className="text-gray-400 text-lg font-medium">No results found for "{search}"</p>
-              <p className="text-gray-600 text-sm mt-2">Try searching for a specific username or name.</p>
+              <p className="text-[var(--text-secondary)] text-lg font-medium">No results found for "{search}"</p>
+              <p className="text-[var(--text-secondary)] text-sm mt-2">Try searching for a specific username or name.</p>
             </div>
           ) : (
             // EXPLORE FEED (Empty State)
             <div className="mt-4 animate-in fade-in duration-500">
               <div className="flex items-center gap-2 mb-4 px-2">
-                <FaCompass className="text-indigo-500 text-lg" />
-                <h2 className="text-white font-bold text-lg">Explore</h2>
+                <FaCompass className="text-[var(--accent)] text-lg" />
+                <h2 className="text-[var(--text-primary)] font-bold text-lg">Explore</h2>
               </div>
 
               <div className="columns-2 gap-3 space-y-3 pb-20">
@@ -185,7 +185,7 @@ const Search = () => {
                     );
                   } else {
                     return (
-                      <div key={item._id} className="break-inside-avoid mb-3 rounded-xl overflow-hidden border border-white/5 bg-zinc-900">
+                      <div key={item._id} className="break-inside-avoid mb-3 rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--card-bg)]">
                         {item.post?.url && (
                           <Link to={`/post/${item._id}`}>
                             <img src={item.post.url} alt="" className="w-full h-auto object-cover" />
@@ -194,9 +194,9 @@ const Search = () => {
                         <div className="p-2">
                           <div className="flex items-center gap-2 mb-1">
                             <img src={item.owner?.profilePic?.url} className="w-4 h-4 rounded-full" />
-                            <span className="text-xs text-white font-bold truncate">{item.owner?.name}</span>
+                            <span className="text-xs text-[var(--text-primary)] font-bold truncate">{item.owner?.name}</span>
                           </div>
-                          {item.caption && <p className="text-[10px] text-gray-400 line-clamp-2">{item.caption}</p>}
+                          {item.caption && <p className="text-[10px] text-[var(--text-secondary)] line-clamp-2">{item.caption}</p>}
                         </div>
                       </div>
                     )
@@ -206,8 +206,8 @@ const Search = () => {
 
               {exploreContent.length === 0 && (
                 <div className="flex flex-col items-center justify-center mt-20 opacity-50">
-                  <FaSearch className="text-6xl text-gray-700 mb-4" />
-                  <p className="text-gray-500">Search for people, posts, and more</p>
+                  <FaSearch className="text-6xl text-[var(--text-secondary)] mb-4" />
+                  <p className="text-[var(--text-secondary)]">Search for people, posts, and more</p>
                 </div>
               )}
             </div>
@@ -250,7 +250,7 @@ const SearchReelItem = ({ reel }) => {
   }, []);
 
   return (
-    <Link to={`/reels?id=${reel._id}`} className="relative block aspect-[9/16] rounded-xl overflow-hidden group border border-white/10">
+    <Link to={`/reels?id=${reel._id}`} className="relative block aspect-[9/16] rounded-xl overflow-hidden group border border-[var(--border)]">
       <video
         ref={videoRef}
         src={reel.post.url}

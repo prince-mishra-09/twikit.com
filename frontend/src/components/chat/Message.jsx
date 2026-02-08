@@ -37,11 +37,10 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
         onTouchEnd={handleTouchEnd}
         className={`max-w-[75%] px-4 py-2 text-sm rounded-2xl break-words relative cursor-pointer flex flex-wrap items-end gap-2 shadow-sm transition-opacity duration-200 ${message.status === "sending" ? "opacity-70 pointer-events-none" : "opacity-100"
           } ${ownMessage
-            ? "bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white rounded-br-sm"
-            : "bg-[#1F2937] text-gray-100 rounded-bl-sm border border-white/10"
+            ? "bg-[var(--accent)] text-[var(--text-on-accent)] rounded-br-sm"
+            : "bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-bl-sm border border-[var(--border)]"
           }`}
       >
-        {/* SHARED CONTENT CARD */}
         {message.sharedContent && (
           <Link
             to={
@@ -51,7 +50,7 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
                   ? `/reels`
                   : `/post/${message.sharedContent.contentId}`
             }
-            className={`block mb-2 rounded-xl overflow-hidden border border-white/10 ${ownMessage ? "bg-white/10" : "bg-black/20"}`}
+            className={`block mb-2 rounded-xl overflow-hidden border border-white/10 ${ownMessage ? "bg-black/10" : "bg-black/20"}`}
           >
             {/* Image/Video Preview */}
             {/* Image/Video Preview */}
@@ -85,7 +84,7 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
             {/* Text Preview */}
             <div className="p-2">
               <p className="text-xs font-semibold truncate opacity-90">@{message.sharedContent.preview?.username}</p>
-              <p className={`text-xs truncate ${ownMessage ? "text-gray-200" : "text-gray-400"}`}>
+              <p className={`text-xs truncate ${ownMessage ? "opacity-80" : "text-[var(--text-secondary)]"}`}>
                 {message.sharedContent.preview?.title || (
                   message.sharedContent.type === 'profile' ? 'Shared Profile' :
                     message.sharedContent.type === 'reel' ? 'Shared Reel' : 'Shared Post'
@@ -98,7 +97,7 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
         {message.text && <span className="break-words max-w-full leading-relaxed block">{message.text}</span>}
 
         {/* Time & Read Receipt */}
-        <div className={`text-[10px] flex items-center gap-1 ml-auto shrink-0 ${ownMessage ? "text-gray-200" : "text-gray-400"}`}>
+        <div className={`text-[10px] flex items-center gap-1 ml-auto shrink-0 ${ownMessage ? "text-[var(--text-on-accent)]/70" : "text-[var(--text-secondary)]"}`}>
           <span>{
             message.createdAt
               ? new Date(message.createdAt).toLocaleTimeString([], {
@@ -108,29 +107,31 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
               : ""
           }</span>
           {ownMessage && (
-            <BsCheckAll className={`text-sm ${isRead ? "text-cyan-200" : "text-gray-200"}`} />
+            <BsCheckAll className={`text-sm ${isRead ? "text-current" : "opacity-60"}`} />
           )}
         </div>
       </motion.div>
 
       {/* Long Press Menu - Top Left */}
-      {activeMessageId === message._id && ownMessage && (
-        <div className={`absolute top-0 right-10 mt-0 z-30 bg-[#1F2937] border border-white/10 rounded-lg shadow-xl overflow-hidden min-w-[120px] flex flex-col`}>
-          <button
-            onClick={(e) => { e.stopPropagation(); deleteHandler(message._id, "unsend"); setActiveMessageId(null); }}
-            className="px-4 py-2 text-left text-sm text-red-400 hover:bg-white/5 border-b border-white/5"
-          >
-            Unsend
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); deleteHandler(message._id, "delete"); setActiveMessageId(null); }}
-            className="px-4 py-2 text-left text-sm text-gray-300 hover:bg-white/5"
-          >
-            Delete for me
-          </button>
-        </div>
-      )}
-    </div>
+      {
+        activeMessageId === message._id && ownMessage && (
+          <div className={`absolute top-0 right-10 mt-0 z-30 bg-[var(--card-bg)] border border-[var(--border)] rounded-lg shadow-xl overflow-hidden min-w-[120px] flex flex-col`}>
+            <button
+              onClick={(e) => { e.stopPropagation(); deleteHandler(message._id, "unsend"); setActiveMessageId(null); }}
+              className="px-4 py-2 text-left text-sm text-red-400 hover:bg-[var(--bg-secondary)] border-b border-[var(--border)]"
+            >
+              Unsend
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); deleteHandler(message._id, "delete"); setActiveMessageId(null); }}
+              className="px-4 py-2 text-left text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
+            >
+              Delete for me
+            </button>
+          </div>
+        )
+      }
+    </div >
   );
 };
 

@@ -27,11 +27,11 @@ const RealIcon = ({ active }) => (
     height="18"
     viewBox="0 0 24 24"
     fill={active ? "var(--accent)" : "none"}
-    stroke={active ? "var(--accent)" : "#9CA3AF"}
+    stroke={active ? "var(--accent)" : "currentColor"}
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
-    className="transition-colors duration-200"
+    className={`transition-colors duration-200`}
   >
     <path d="M12 2L14.7 9.3H22L16.1 13.4L18.4 20.7L12 16.6L5.6 20.7L7.9 13.4L2 9.3H9.3L12 2Z" />
   </svg>
@@ -43,11 +43,11 @@ const ReflectIcon = ({ active }) => (
     height="18"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="#9CA3AF"
+    stroke={active ? "var(--accent-secondary)" : "currentColor"}
     strokeWidth={active ? "2.5" : "2"}
     strokeLinecap="round"
     strokeLinejoin="round"
-    className={`transition-all duration-200 ${active ? "opacity-100" : "opacity-60"}`}
+    className={`transition-all duration-200 ${active ? "opacity-100" : "opacity-80"}`}
   >
     <circle cx="12" cy="12" r="9" />
     <path d="M16 8L12 12" />
@@ -197,24 +197,24 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                className="relative w-full max-w-md bg-[#1F2937] rounded-t-3xl h-[60vh] md:h-[75vh] flex flex-col shadow-2xl z-20 pointer-events-auto"
+                className="relative w-full max-w-md bg-[var(--card-bg)] rounded-t-3xl h-[60vh] md:h-[75vh] flex flex-col shadow-2xl z-20 pointer-events-auto"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Drawer Handle */}
                 <div className="w-full flex justify-center pt-3 pb-1 cursor-grab" onClick={() => setShow(false)}>
-                  <div className="w-12 h-1.5 bg-gray-600 rounded-full" />
+                  <div className="w-12 h-1.5 bg-[var(--border)] rounded-full opacity-60" />
                 </div>
 
-                <div className="flex justify-between items-center px-4 py-2 border-b border-gray-700">
-                  <h3 className="text-white font-bold text-lg">Comments</h3>
-                  <button onClick={() => setShow(false)} className="p-2 text-gray-400 hover:text-white transition-colors">✕</button>
+                <div className="flex justify-between items-center px-4 py-2 border-b border-[var(--border)]">
+                  <h3 className="text-[var(--text-primary)] font-bold text-lg">Comments</h3>
+                  <button onClick={() => setShow(false)} className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">✕</button>
                 </div>
 
                 <div ref={commentsRef} className="flex-1 overflow-y-auto px-4 py-2 space-y-4 custom-scrollbar relative">
                   <Suspense fallback={<div className="flex justify-center p-4 text-gray-400">Loading comments...</div>}>
                     {loadingComments ? (
                       <div className="flex justify-center items-center h-40">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
                       </div>
                     ) : comments && comments.length > 0 ? (
                       comments.map((c) => (
@@ -242,21 +242,21 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
                   </Suspense>
 
                   {deleteModal.show && (
-                    <div className="absolute inset-x-0 bottom-0 bg-[#2D3748] p-4 rounded-t-2xl shadow-xl z-[60] border-t border-white/10">
-                      <p className="text-white text-center mb-4 font-semibold">Delete this comment?</p>
+                    <div className="absolute inset-x-0 bottom-0 bg-[var(--bg-secondary)] p-4 rounded-t-2xl shadow-xl z-[60] border-t border-[var(--border)]">
+                      <p className="text-[var(--text-primary)] text-center mb-4 font-semibold">Delete this comment?</p>
                       <div className="flex gap-3">
-                        <button onClick={() => setDeleteModal({ show: false, commentId: null })} className="flex-1 py-2 rounded-lg bg-gray-600 text-white font-medium">Cancel</button>
+                        <button onClick={() => setDeleteModal({ show: false, commentId: null })} className="flex-1 py-2 rounded-lg bg-[var(--bg-primary)] text-[var(--text-primary)] font-medium border border-[var(--border)]">Cancel</button>
                         <button onClick={() => { deleteComment(value._id, deleteModal.commentId); setDeleteModal({ show: false, commentId: null }); }} className="flex-1 py-2 rounded-lg bg-red-600 text-white font-medium">Delete</button>
                       </div>
                     </div>
                   )}
                 </div>
 
-                <div className="p-4 border-t border-gray-700 bg-[#1F2937] pb-6 md:pb-4">
+                <div className="p-4 border-t border-[var(--border)] bg-[var(--card-bg)] pb-6 md:pb-4">
                   {replyingTo && (
-                    <div className="flex justify-between items-center bg-gray-800 px-4 py-2 rounded-t-lg mb-2 mx-1">
-                      <span className="text-xs text-gray-300">Replying to <span className="text-indigo-400 font-bold">@{replyingTo.user.username || replyingTo.user.name?.toLowerCase().replace(/\s+/g, '_')}</span></span>
-                      <button onClick={() => setReplyingTo(null)} className="text-gray-400 hover:text-white">✕</button>
+                    <div className="flex justify-between items-center bg-[var(--bg-secondary)] px-4 py-2 rounded-t-lg mb-2 mx-1">
+                      <span className="text-xs text-[var(--text-secondary)]">Replying to <span className="text-[var(--accent)] font-bold">@{replyingTo.user.username || replyingTo.user.name?.toLowerCase().replace(/\s+/g, '_')}</span></span>
+                      <button onClick={() => setReplyingTo(null)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">✕</button>
                     </div>
                   )}
                   <div className="flex justify-between mb-3 px-2">
@@ -265,10 +265,10 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
                     ))}
                   </div>
                   <form onSubmit={addCommentHandler} className="flex gap-3 items-center">
-                    <img src={user?.profilePic?.url || "https://placehold.co/100"} className="w-10 h-10 rounded-full border border-gray-600 object-cover" alt="" />
+                    <img src={user?.profilePic?.url || "https://placehold.co/100"} className="w-10 h-10 rounded-full border border-[var(--border)] object-cover" alt="" />
                     <div className="flex-1 relative">
-                      <input type="text" className="w-full bg-gray-800 text-white text-sm rounded-full px-4 py-3 focus:outline-none focus:ring-1 focus:ring-indigo-500 border border-transparent placeholder:text-gray-500" placeholder={replyingTo ? "Write a reply..." : `Comment as @${user?.username || user?.name?.toLowerCase().replace(/\s+/g, '_') || "guest"}...`} value={comment} onChange={(e) => setComment(e.target.value)} autoFocus={!!replyingTo} />
-                      <button type="submit" disabled={!comment.trim()} className="absolute right-2 top-1/2 -translate-y-1/2 text-indigo-400 font-bold text-sm hover:opacity-80 disabled:opacity-50 px-3">Post</button>
+                      <input type="text" className="w-full bg-[var(--bg-secondary)] text-[var(--text-primary)] text-sm rounded-full px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] border border-[var(--border)] placeholder:text-[var(--text-secondary)]" placeholder={replyingTo ? "Write a reply..." : `Comment as @${user?.username || user?.name?.toLowerCase().replace(/\s+/g, '_') || "guest"}...`} value={comment} onChange={(e) => setComment(e.target.value)} autoFocus={!!replyingTo} />
+                      <button type="submit" disabled={!comment.trim()} className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--accent)] font-bold text-sm hover:opacity-80 disabled:opacity-50 px-3">Post</button>
                     </div>
                   </form>
                 </div>
@@ -434,13 +434,22 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
 
   const formatDate = value.createdAt ? format(new Date(value.createdAt), "MMMM do") : "Unknown Date";
 
+  // Separate effects to prevent race conditions/overwrites during partial updates
   useEffect(() => {
-    // Check feedback status and counts
-    setIsReal(value.reals?.includes(user?._id));
-    setRealCount(value.reals?.length || 0);
-    setIsReflect(value.reflections?.includes(user?._id));
-    setReflectCount(value.reflections?.length || 0);
-  }, [value, user?._id]);
+    // Only update Real state when reals array changes
+    if (value.reals) {
+      setIsReal(value.reals.includes(user?._id));
+      setRealCount(value.reals.length);
+    }
+  }, [value.reals, user?._id]);
+
+  useEffect(() => {
+    // Only update Reflect state when reflections array changes
+    if (value.reflections) {
+      setIsReflect(value.reflections.includes(user?._id));
+      setReflectCount(value.reflections.length);
+    }
+  }, [value.reflections, user?._id]);
 
   useEffect(() => {
     if (user && value.owner) {
@@ -496,28 +505,37 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
       setShowLoginPrompt(true);
       return;
     }
-    // Optimistic UI update
+    // Optimistic UI update with Mutual Exclusivity
     if (feedbackType === "real") {
       const newState = !isReal;
       setIsReal(newState);
       setRealCount(newState ? realCount + 1 : realCount - 1);
+
+      // Mutually Exclusive: If adding Real, remove Reflect
+      if (newState && isReflect) {
+        setIsReflect(false);
+        setReflectCount(reflectCount - 1);
+      }
     } else {
       const newState = !isReflect;
       setIsReflect(newState);
       setReflectCount(newState ? reflectCount + 1 : reflectCount - 1);
+
+      // Mutually Exclusive: If adding Reflect, remove Real
+      if (newState && isReal) {
+        setIsReal(false);
+        setRealCount(realCount - 1);
+      }
     }
 
-    // Fire and forget (don't await) 
+    // Fire and forget (but catch error to revert)
     sendFeedback(value._id, feedbackType).catch((error) => {
       console.error("Feedback error, reverting:", error);
-      // Revert on error
-      if (feedbackType === "real") {
-        setIsReal(!isReal);
-        setRealCount(isReal ? realCount + 1 : realCount - 1);
-      } else {
-        setIsReflect(!isReflect);
-        setReflectCount(isReflect ? reflectCount + 1 : reflectCount - 1);
-      }
+      // Revert to original state from props if error occurs
+      setIsReal(value.reals?.includes(user?._id));
+      setRealCount(value.reals?.length || 0);
+      setIsReflect(value.reflections?.includes(user?._id));
+      setReflectCount(value.reflections?.length || 0);
     });
   };
 
@@ -790,7 +808,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
                 onClick={followHandler}
                 className={`text-xs px-3 py-1 rounded-lg backdrop-blur-md transition border ${isFollowed
                   ? "bg-white/10 border-white/30 text-white"
-                  : "bg-indigo-600/80 border-indigo-500/50 text-white hover:bg-indigo-500"
+                  : "bg-[var(--accent)] border-[var(--accent)] text-[var(--text-on-accent)] hover:opacity-90"
                   }`}
               >
                 {isFollowed ? "Following" : "Follow"}
@@ -809,6 +827,8 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
               </p>
             </div>
           )}
+          {/* Date below caption */}
+          <p className="text-[var(--text-secondary)] text-xs mt-1 pointer-events-auto">{formatDate}</p>
         </div>
 
         {renderCommonUI()}
@@ -818,11 +838,11 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
 
   // ===================== POST RENDER =====================
   return (
-    <div className="bg-[#0B0F14] w-full border-b border-white/10 pb-4">
+    <div className="bg-[var(--card-bg)] w-full border-b border-[var(--border)] pb-4">
       {/* ===== POST IMAGE & OVERLAY HEADER ===== */}
       <div className="relative w-full group">
         {/* Header Overlay */}
-        <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-10 bg-gradient-to-b from-black/60 to-transparent pointer-events-none">
+        <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-10 pointer-events-none">
           <Link
             to={`/user/${value.owner?._id}`}
             className="flex items-center gap-3 pointer-events-auto"
@@ -837,7 +857,6 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
               <p className="text-white font-bold text-sm shadow-black drop-shadow-md">
                 {value.owner?.name || "Deleted User"}
               </p>
-              <p className="text-gray-200 text-[10px] drop-shadow-md">{formatDate}</p>
             </div>
           </Link>
 
@@ -856,7 +875,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
                   onClick={followHandler}
                   className={`text-xs font-bold px-4 py-1.5 rounded-full backdrop-blur-md transition-all shadow-lg ${isFollowed
                     ? "bg-white/20 text-white border border-white/20"
-                    : "bg-indigo-600/90 text-white hover:bg-indigo-500"
+                    : "bg-[var(--accent)] text-[var(--text-on-accent)] hover:opacity-90"
                     }`}
                 >
                   {isFollowed ? "Following" : "Follow"}
@@ -909,7 +928,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
           src={value.post.url}
           alt=""
           onClick={() => setShowImage(true)}
-          className="w-full h-auto object-cover cursor-pointer active:opacity-95 transition-opacity min-h-[300px]"
+          className="w-full aspect-[3/4] object-cover cursor-pointer active:opacity-95 transition-opacity"
         />
       </div>
 
@@ -945,13 +964,17 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
             onClick={() => feedbackHandler("real")}
             className="flex items-center gap-2 group transition-transform active:scale-95 translate-y-[-1px]"
           >
-            <RealIcon active={isReal} />
-            <span className={`text-sm font-bold tracking-tight ${isReal ? "text-indigo-400" : "text-gray-400"}`}>
+            <div className={`transition-colors ${isReal ? "text-[var(--accent)]" : "text-[var(--text-primary)]"}`}>
+              <RealIcon active={isReal} />
+            </div>
+            <span
+              className={`text-sm font-bold tracking-tight ${isReal ? "text-[var(--accent)]" : "text-[var(--text-primary)]"}`}
+            >
               Real
             </span>
             <span
               onClick={(e) => { e.stopPropagation(); setRealModal(true); }}
-              className={`text-sm font-medium ml-0.5 ${isReal ? "text-indigo-400/80" : "text-gray-500"} hover:underline`}
+              className={`text-sm font-medium ml-0.5 ${isReal ? "text-[var(--accent)]" : "text-[var(--text-primary)]"} hover:underline`}
             >
               {realCount}
             </span>
@@ -961,12 +984,16 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
             onClick={() => feedbackHandler("reflect")}
             className="flex items-center gap-2 group transition-transform active:scale-95 translate-y-[-1px]"
           >
-            <ReflectIcon active={isReflect} />
-            <span className={`text-sm font-bold tracking-tight ${isReflect ? "text-gray-200" : "text-gray-400"}`}>
+            <div className={`transition-colors ${isReflect ? "text-[var(--accent-secondary)]" : "text-[var(--text-primary)]"}`}>
+              <ReflectIcon active={isReflect} />
+            </div>
+            <span
+              className={`text-sm font-bold tracking-tight ${isReflect ? "text-[var(--accent-secondary)]" : "text-[var(--text-primary)]"}`}
+            >
               Less real
             </span>
             {isOwner && (
-              <span className="text-[10px] text-gray-500 font-medium italic translate-y-[1px]">
+              <span className="text-[10px] text-[var(--text-primary)] font-medium italic translate-y-[1px]">
                 {reflectCount}p
               </span>
             )}
@@ -978,9 +1005,9 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
               onClick={() => setShow(!show)}
               className="text-2xl transition-transform active:scale-75"
             >
-              <BsChatFill className="text-white" />
+              <BsChatFill className="text-[var(--text-primary)]" />
             </button>
-            <span className="text-white font-semibold text-sm">{value.commentsCount || 0}</span>
+            <span className="text-[var(--text-primary)] font-semibold text-sm">{value.commentsCount || 0}</span>
           </div>
 
           {/* Share Group */}
@@ -989,7 +1016,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
               onClick={() => setShareModal(true)}
               className="text-2xl transition-transform active:scale-75"
             >
-              <IoPaperPlaneOutline className="text-white" />
+              <IoPaperPlaneOutline className="text-[var(--text-primary)]" />
             </button>
           </div>
 
@@ -999,22 +1026,22 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
               onClick={saveHandler}
               className="text-2xl transition-transform active:scale-75"
             >
-              {isSaved ? <BsBookmarkFill className="text-white" /> : <BsBookmark className="text-white" />}
+              {isSaved ? <BsBookmarkFill className="text-[var(--text-primary)]" /> : <BsBookmark className="text-[var(--text-primary)]" />}
             </button>
           </div>
         </div>
 
         {/* Caption */}
         {value.caption && (
-          <div className="text-white text-sm mb-2">
+          <div className="text-[var(--text-primary)] text-sm mb-2">
             <Link to={`/user/${value.owner?._id}`} className="font-bold mr-2">
               @{value.owner?.username || value.owner?.name?.toLowerCase().replace(/\s+/g, '_') || "user"}
             </Link>
-            <span className="text-gray-200">
+            <span className="text-[var(--text-secondary)]">
               {expanded ? value.caption : (value.caption.slice(0, captionLimit) + (value.caption.length > captionLimit ? "..." : ""))}
             </span>
             {value.caption.length > captionLimit && (
-              <button onClick={() => setExpanded(!expanded)} className="text-gray-400 text-xs ml-1 hover:text-white">
+              <button onClick={() => setExpanded(!expanded)} className="text-[var(--text-secondary)] text-xs ml-1 hover:text-[var(--text-primary)]">
                 {expanded ? "less" : "more"}
               </button>
             )}
@@ -1025,7 +1052,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
         {value.commentsCount > 0 && (
           <button
             onClick={() => setShow(!show)}
-            className="text-gray-500 text-xs font-medium"
+            className="text-[var(--text-secondary)] text-xs font-medium"
           >
             View all {value.commentsCount} comments
           </button>
@@ -1044,6 +1071,7 @@ export default React.memo(PostCard, (prevProps, nextProps) => {
     prevProps.value._id === nextProps.value._id &&
     prevProps.value.reals?.length === nextProps.value.reals?.length &&
     prevProps.value.reflections?.length === nextProps.value.reflections?.length &&
+    prevProps.value.commentsCount === nextProps.value.commentsCount && // Added commentsCount check
     prevProps.isActive === nextProps.isActive &&
     prevProps.commentId === nextProps.commentId &&
     prevProps.openComments === nextProps.openComments

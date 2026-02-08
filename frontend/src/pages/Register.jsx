@@ -202,38 +202,38 @@ const Register = () => {
 
   if (registerLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0B0F14] text-white">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] text-[var(--text-primary)]">
         Loading...
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-[#0B0F14] overflow-hidden">
+    <div className="relative min-h-screen flex items-center justify-center bg-[var(--bg-primary)] overflow-hidden">
       {/* Background glow */}
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-indigo-600/30 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 -right-32 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl"></div>
 
       {/* Register Card */}
-      <div className="relative z-10 w-full max-w-md bg-[#111827]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-8">
-        <h1 className="text-3xl font-semibold text-white text-center">
+      <div className="relative z-10 w-full max-w-md bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--border)] rounded-2xl shadow-2xl p-8">
+        <h1 className="text-3xl font-semibold text-[var(--text-primary)] text-center">
           Create your account
         </h1>
-        <p className="text-gray-400 text-sm text-center mt-2">
-          Join <span className="text-indigo-400">Twikit</span> and start sharing
+        <p className="text-[var(--text-secondary)] text-sm text-center mt-2">
+          Join <span className="text-[var(--accent)]">Twikit</span> and start sharing
         </p>
 
         {/* Step Indicator */}
         <div className="flex items-center justify-center mt-6 space-x-2">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 1 ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-400'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 1 ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
             1
           </div>
-          <div className={`w-12 h-0.5 ${step >= 2 ? 'bg-indigo-600' : 'bg-gray-700'}`}></div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-400'}`}>
+          <div className={`w-12 h-0.5 ${step >= 2 ? 'bg-[var(--accent)]' : 'bg-[var(--bg-secondary)]'}`}></div>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 2 ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
             2
           </div>
-          <div className={`w-12 h-0.5 ${step >= 3 ? 'bg-indigo-600' : 'bg-gray-700'}`}></div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 3 ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-400'}`}>
+          <div className={`w-12 h-0.5 ${step >= 3 ? 'bg-[var(--accent)]' : 'bg-[var(--bg-secondary)]'}`}></div>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 3 ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
             3
           </div>
         </div>
@@ -249,13 +249,13 @@ const Register = () => {
         {step === 1 && (
           <form className="mt-6 space-y-4" onSubmit={sendOTP}>
             <div>
-              <label className="text-gray-300 text-sm mb-2 block">Email Address</label>
+              <label className="text-[var(--text-secondary)] text-sm mb-2 block">Email Address</label>
               <input
                 type="email"
                 placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400 transition"
+                className="w-full px-4 py-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition"
                 required
               />
             </div>
@@ -263,7 +263,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl text-white font-medium bg-gradient-to-r from-indigo-500 to-cyan-500 hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
+              className="w-full py-3 rounded-xl text-white font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
             >
               {loading ? "Sending..." : "Send Verification Code"}
             </button>
@@ -274,9 +274,9 @@ const Register = () => {
         {step === 2 && (
           <form className="mt-6 space-y-4" onSubmit={verifyOTPHandler}>
             <div>
-              <label className="text-gray-300 text-sm mb-2 block">Verification Code</label>
-              <p className="text-gray-400 text-xs mb-3">
-                We sent a 4-digit code to <span className="text-indigo-400">{email}</span>
+              <label className="text-[var(--text-secondary)] text-sm mb-2 block">Verification Code</label>
+              <p className="text-[var(--text-secondary)] text-xs mb-3">
+                We sent a 4-digit code to <span className="text-[var(--accent)]">{email}</span>
               </p>
               <input
                 type="text"
@@ -284,7 +284,7 @@ const Register = () => {
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
                 maxLength={4}
-                className="w-full px-4 py-3 rounded-xl bg-[#0B0F14] border border-white/10 text-white text-center text-2xl tracking-widest placeholder-gray-500 focus:outline-none focus:border-indigo-400 transition"
+                className="w-full px-4 py-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] text-center text-2xl tracking-widest placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition"
                 required
               />
             </div>
@@ -292,7 +292,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading || otp.length !== 4}
-              className="w-full py-3 rounded-xl text-white font-medium bg-gradient-to-r from-indigo-500 to-cyan-500 hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
+              className="w-full py-3 rounded-xl text-white font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
             >
               {loading ? "Verifying..." : "Verify Code"}
             </button>
@@ -315,10 +315,10 @@ const Register = () => {
               <div
                 onClick={() => fileInputRef.current.click()}
                 className={`relative cursor-pointer group w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 border-2 ${file
-                    ? "border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.3)]"
-                    : error && error.includes("Profile image")
-                      ? "border-red-500 shadow-[0_0_15px_rgba(239,44,44,0.3)]"
-                      : "border-dashed border-white/20 hover:border-indigo-400"
+                  ? "border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+                  : error && error.includes("Profile image")
+                    ? "border-red-500 shadow-[0_0_15px_rgba(239,44,44,0.3)]"
+                    : "border-dashed border-[var(--border)] hover:border-[var(--accent)]"
                   }`}
               >
                 {filePrev ? (
@@ -328,7 +328,7 @@ const Register = () => {
                     className="w-full h-full rounded-full object-cover"
                   />
                 ) : (
-                  <div className="text-gray-500 text-xs text-center flex flex-col items-center">
+                  <div className="text-[var(--text-secondary)] text-xs text-center flex flex-col items-center">
                     <span className="text-xl mb-1">📸</span>
                     Upload
                   </div>
@@ -356,7 +356,7 @@ const Register = () => {
 
             {/* Username (required) */}
             <div>
-              <label className="text-gray-300 text-sm mb-2 block">
+              <label className="text-[var(--text-secondary)] text-sm mb-2 block">
                 Username <span className="text-red-400">*</span>
               </label>
               <div className="relative">
@@ -365,7 +365,7 @@ const Register = () => {
                   placeholder="Choose a unique username"
                   value={username}
                   onChange={handleUsernameChange}
-                  className="w-full px-4 py-3 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400 transition"
+                  className="w-full px-4 py-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition"
                   required
                 />
                 {checkingUsername && (
@@ -391,7 +391,7 @@ const Register = () => {
               placeholder="Full Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400 transition"
+              className="w-full px-4 py-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition"
               required
             />
 
@@ -401,7 +401,7 @@ const Register = () => {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 pr-12 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400 transition"
+                className="w-full px-4 py-3 pr-12 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition"
                 required
               />
 
@@ -416,7 +416,7 @@ const Register = () => {
             <select
               value={gender}
               onChange={(e) => setGender(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-[#0B0F14] border border-white/10 text-gray-400 focus:outline-none focus:border-indigo-400 transition"
+              className="w-full px-4 py-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition"
               required
             >
               <option value="">Select gender</option>
@@ -426,18 +426,18 @@ const Register = () => {
 
             <button
               type="submit"
-              className="w-full py-3 rounded-xl text-white font-medium bg-gradient-to-r from-indigo-500 to-cyan-500 hover:opacity-90 active:scale-[0.98] transition"
+              className="w-full py-3 rounded-xl text-white font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition"
             >
               Create Account
             </button>
           </form>
         )}
 
-        <p className="text-sm text-gray-400 text-center mt-6">
+        <p className="text-sm text-[var(--text-secondary)] text-center mt-6">
           Already on Twikit?{" "}
           <Link
             to="/login"
-            className="text-indigo-400 hover:text-indigo-300 transition"
+            className="text-[var(--accent)] hover:opacity-80 transition"
           >
             Log in
           </Link>

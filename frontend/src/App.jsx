@@ -20,6 +20,8 @@ import { StoriesProvider } from "./context/StoriesContext";
 import Notifications from "./pages/Notifications";
 import { useEffect } from "react";
 import LoginPromptModal from "./components/LoginPromptModal";
+import ScrollToTop from "./components/ScrollToTop";
+import Layout from "./components/Layout";
 
 function App() {
   const { loading, isAuth, user, setUser } = UserData();
@@ -54,26 +56,28 @@ function App() {
     <>
       <Toaster position="top-center" />
       <Toaster position="top-center" />
-      {loading ? <Loading /> : <BrowserRouter><NotificationProvider><StoriesProvider>
-        <LoginPromptModal />
-        <Routes>
-          <Route path="/landing" element={isAuth ? <Home /> : <TwikitLanding />} />
-          <Route path="/" element={isAuth ? <Home /> : <TwikitLanding />} />
-          <Route path="/feed" element={<Home />} />
-          <Route path="/reels" element={<Reels />} />
-          <Route path="/user/:id" element={<UserAccount user={user} />} />
-          <Route path="/account" element={isAuth ? <Account user={user} /> : <Login />} />
-          <Route path="/register" element={!isAuth ? <Register /> : <Home />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/chat" element={isAuth ? <ChatPage user={user} /> : <Login />} />
-          <Route path="/notifications" element={isAuth ? <Notifications /> : <Login />} />
-          <Route path="/login" element={!isAuth ? <Login /> : <Home />} />
-          <Route path="*" element={<NotFound />} />
-          <Route path="/post/:id" element={<PostDetail />} />
-
-        </Routes>
-        <NavigationBar />
-      </StoriesProvider></NotificationProvider></BrowserRouter>}
+      {loading ? <Loading /> : <BrowserRouter>
+        <ScrollToTop />
+        <NotificationProvider><StoriesProvider>
+          <LoginPromptModal />
+          <Layout>
+            <Routes>
+              <Route path="/landing" element={isAuth ? <Home /> : <TwikitLanding />} />
+              <Route path="/" element={isAuth ? <Home /> : <TwikitLanding />} />
+              <Route path="/feed" element={<Home />} />
+              <Route path="/reels" element={<Reels />} />
+              <Route path="/user/:id" element={<UserAccount user={user} />} />
+              <Route path="/account" element={isAuth ? <Account user={user} /> : <Login />} />
+              <Route path="/register" element={!isAuth ? <Register /> : <Home />} />
+              <Route path="/search" element={<Search />} />
+              <Route path="/chat" element={isAuth ? <ChatPage user={user} /> : <Login />} />
+              <Route path="/notifications" element={isAuth ? <Notifications /> : <Login />} />
+              <Route path="/login" element={!isAuth ? <Login /> : <Home />} />
+              <Route path="*" element={<NotFound />} />
+              <Route path="/post/:id" element={<PostDetail />} />
+            </Routes>
+          </Layout>
+        </StoriesProvider></NotificationProvider></BrowserRouter>}
     </>
   );
 }

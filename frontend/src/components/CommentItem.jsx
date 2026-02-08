@@ -79,7 +79,7 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
     return (
         <div id={`comment-${comment._id}`} className="flex flex-col gap-2 transition-colors duration-500 rounded-lg">
             {/* Main Comment */}
-            <div className={`flex gap-3 items-start p-2 rounded-lg hover:bg-white/5 transition-all duration-200 group ${comment.status === "sending" ? "opacity-60 pointer-events-none" : "opacity-100"}`}>
+            <div className={`flex gap-3 items-start p-2 rounded-lg hover:bg-[var(--bg-primary)] transition-all duration-200 group ${comment.status === "sending" ? "opacity-60 pointer-events-none" : "opacity-100"}`}>
                 <Link to={`/user/${comment.user?._id}`} className="shrink-0">
                     <StoryAvatar user={comment.user} size="w-8 h-8" />
                 </Link>
@@ -88,39 +88,39 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
                     <div className="flex items-baseline justify-between w-full">
                         <div className="flex items-baseline gap-2">
                             <Link to={`/user/${comment.user?._id}`}>
-                                <span className="text-sm font-semibold text-white hover:underline">
+                                <span className="text-sm font-semibold text-[var(--text-primary)] hover:underline">
                                     @{getFormattedUsername(comment.user)}
                                 </span>
                             </Link>
-                            <span className="text-xs text-gray-400">{formatCommentDate(comment.createdAt)}</span>
+                            <span className="text-xs text-[var(--text-secondary)]">{formatCommentDate(comment.createdAt)}</span>
                         </div>
 
                         {isOwner && (
                             <div className="relative">
                                 <button
                                     onClick={(e) => { e.stopPropagation(); toggleCommentMenu(comment._id); }}
-                                    className={`text-gray-400 hover:text-white p-1 transition-opacity ${activeCommentMenuId === comment._id ? 'opacity-100' : 'opacity-100'}`}
+                                    className={`text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-1 transition-opacity ${activeCommentMenuId === comment._id ? 'opacity-100' : 'opacity-100'}`}
                                 >
                                     <BsThreeDotsVertical className="text-xs" />
                                 </button>
                                 {/* Delete Modal for this specific comment */}
                                 {activeCommentMenuId === comment._id && (
-                                    <div className="absolute right-0 top-full mt-1 bg-[#2D3748] p-2 rounded items-center flex gap-2 z-50 shadow-lg border border-white/10 w-32 animate-in fade-in zoom-in-95 duration-100">
+                                    <div className="absolute right-0 top-full mt-1 bg-[var(--bg-secondary)] p-2 rounded items-center flex gap-2 z-50 shadow-lg border border-[var(--border)] w-32 animate-in fade-in zoom-in-95 duration-100">
                                         <button onClick={handleDelete} className="text-xs text-red-500 font-bold hover:underline">Delete</button>
-                                        <button onClick={() => toggleCommentMenu(comment._id)} className="text-xs text-white hover:underline">Cancel</button>
+                                        <button onClick={() => toggleCommentMenu(comment._id)} className="text-xs text-[var(--text-primary)] hover:underline">Cancel</button>
                                     </div>
                                 )}
                             </div>
                         )}
                     </div>
 
-                    <p className="text-sm text-gray-200 mt-0.5 leading-tight whitespace-pre-wrap">{comment.comment}</p>
+                    <p className="text-sm text-[var(--text-primary)] mt-0.5 leading-tight whitespace-pre-wrap">{comment.comment}</p>
 
                     {/* Actions: Reply Button */}
                     <div className="flex gap-4 mt-1">
                         <button
                             onClick={handleReplyClick}
-                            className="text-xs text-gray-400 font-semibold hover:text-white"
+                            className="text-xs text-[var(--text-secondary)] font-semibold hover:text-[var(--text-primary)]"
                         >
                             Reply
                         </button>
@@ -133,21 +133,21 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
                 <div className="pl-12">
                     {!showReplies ? (
                         <button onClick={() => setShowReplies(true)} className="flex items-center gap-2 my-1">
-                            <div className="w-8 h-[1px] bg-gray-600"></div>
-                            <span className="text-xs text-gray-400 font-semibold hover:text-white">View {comment.replies.length} replies</span>
+                            <div className="w-8 h-[1px] bg-[var(--border)]"></div>
+                            <span className="text-xs text-[var(--text-secondary)] font-semibold hover:text-[var(--text-primary)]">View {comment.replies.length} replies</span>
                         </button>
                     ) : (
-                        <div className="flex flex-col gap-3 mt-2 border-l-2 border-gray-700 pl-4">
-                            <div onClick={() => setShowReplies(false)} className="cursor-pointer text-xs text-gray-500 mb-1 hover:text-white">Hide replies</div>
+                        <div className="flex flex-col gap-3 mt-2 border-l-2 border-[var(--border)] pl-4">
+                            <div onClick={() => setShowReplies(false)} className="cursor-pointer text-xs text-[var(--text-secondary)] mb-1 hover:text-[var(--text-primary)]">Hide replies</div>
                             {comment.replies.map((reply) => (
-                                <div id={`comment-${reply._id}`} key={reply._id} className={`flex gap-2 items-start transition-all duration-200 rounded-lg p-1 ${reply.status === "sending" ? "opacity-50 pointer-events-none" : "opacity-90 hover:bg-white/5"}`}>
+                                <div id={`comment-${reply._id}`} key={reply._id} className={`flex gap-2 items-start transition-all duration-200 rounded-lg p-1 ${reply.status === "sending" ? "opacity-50 pointer-events-none" : "opacity-90 hover:bg-[var(--bg-primary)]"}`}>
                                     <Link to={`/user/${reply.user?._id}`} className="shrink-0">
                                         <StoryAvatar user={reply.user} size="w-6 h-6" />
                                     </Link>
                                     <div className="flex flex-col flex-1">
                                         <div className="flex items-baseline gap-2">
-                                            <span className="text-xs font-bold text-white">@{getFormattedUsername(reply.user)}</span>
-                                            <span className="text-[10px] text-gray-400">{formatCommentDate(reply.createdAt)}</span>
+                                            <span className="text-xs font-bold text-[var(--text-primary)]">@{getFormattedUsername(reply.user)}</span>
+                                            <span className="text-[10px] text-[var(--text-secondary)]">{formatCommentDate(reply.createdAt)}</span>
                                             {/* Simple delete for reply */}
                                             {(user?._id === reply.user?._id || user?._id === postOwnerId) && (
                                                 <button
@@ -157,13 +157,13 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
                                                             onDelete(reply._id, comment._id);
                                                         }
                                                     }}
-                                                    className="text-[10px] text-gray-500 hover:text-red-500 ml-auto"
+                                                    className="text-[10px] text-[var(--text-secondary)] hover:text-red-500 ml-auto"
                                                 >
                                                     Delete
                                                 </button>
                                             )}
                                         </div>
-                                        <p className="text-xs text-gray-300 mt-0.5">{reply.comment}</p>
+                                        <p className="text-xs text-[var(--text-primary)] mt-0.5">{reply.comment}</p>
                                     </div>
                                 </div>
                             ))}

@@ -76,7 +76,7 @@ const MessageInput = ({ setMessages, selectedChat }) => {
       <input
         type="text"
         placeholder="Message..."
-        className="flex-1 px-4 py-2 rounded-full bg-[#0B0F14] border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-indigo-400"
+        className="flex-1 px-4 py-2 rounded-full bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)]"
         value={textMsg}
         onChange={(e) => setTextMsg(e.target.value)}
       />
@@ -85,7 +85,7 @@ const MessageInput = ({ setMessages, selectedChat }) => {
       <button
         type="submit"
         disabled={!textMsg.trim()}
-        className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white p-3 rounded-full transition"
+        className="bg-[var(--accent)] hover:opacity-90 disabled:opacity-50 text-[var(--text-on-accent)] p-3 rounded-full transition"
       >
         <BsSendFill />
       </button>

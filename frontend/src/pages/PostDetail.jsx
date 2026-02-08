@@ -40,16 +40,16 @@ const PostDetail = () => {
 
   if (posts.length === 0) {
     return (
-      <div className="min-h-screen bg-[#0B0F14] flex justify-center items-center text-white">
+      <div className="min-h-screen bg-[var(--bg-primary)] flex justify-center items-center text-[var(--text-primary)]">
         <h1>Post Not Found</h1>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] flex justify-center px-4 py-6">
+    <div className="min-h-screen bg-[var(--bg-primary)] flex justify-center px-4 py-2">
       <div className="w-full max-w-xl flex flex-col gap-6">
-        <Link to="/" className="inline-flex items-center gap-2 text-white self-start hover:bg-white/10 px-3 py-1.5 rounded-full transition-all">
+        <Link to="/" className="inline-flex items-center gap-2 text-[var(--text-primary)] self-start hover:bg-[var(--text-primary)]/10 px-3 py-1.5 rounded-full transition-all">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
           </svg>
@@ -71,7 +71,7 @@ const PostDetail = () => {
         </div>
 
         <div className="text-center py-8">
-          <p className="text-gray-500 text-sm">You've reached the end</p>
+          <p className="text-[var(--text-secondary)] text-sm">You've reached the end</p>
         </div>
       </div>
     </div>

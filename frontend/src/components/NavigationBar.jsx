@@ -23,7 +23,7 @@ const NavigationBar = () => {
   }, [location.pathname]);
 
   const activeStyle = "text-[var(--accent)] scale-110";
-  const inactiveStyle = "text-gray-400 hover:text-[var(--accent)] transition";
+  const inactiveStyle = "text-[var(--text-primary)] opacity-100 hover:text-[var(--accent)] transition";
 
   // Hide Navbar on Reels and Chat pages
   // Hide Navbar on Reels, Chat, Landing, and Auth pages
@@ -38,7 +38,7 @@ const NavigationBar = () => {
     <>
       {showCreateModal && <CreatePostModal setShow={setShowCreateModal} />}
 
-      <div className="fixed bottom-0 left-0 w-full z-40 border-t border-white/10 bg-[#0B0F14]/90 backdrop-blur-xl">
+      <div className="fixed bottom-0 left-0 w-full z-40 bg-[var(--card-bg)]/95 backdrop-blur-xl">
         <div className="flex justify-between items-center py-3 px-6 max-w-xl mx-auto">
 
           {/* Home */}
@@ -50,7 +50,7 @@ const NavigationBar = () => {
                 fetchPosts();
               }
             }}
-            className={`text-2xl transition-all duration-200 ${tab === "/" || tab === "/feed" ? activeStyle : inactiveStyle
+            className={`text-3xl transition-all duration-200 ${tab === "/" || tab === "/feed" ? activeStyle : inactiveStyle
               }`}
           >
             {tab === "/" || tab === "/feed" ? <AiFillHome /> : <AiOutlineHome />}
@@ -59,7 +59,7 @@ const NavigationBar = () => {
           {/* Search */}
           <Link
             to="/search"
-            className={`text-2xl transition-all duration-200 ${tab === "/search" ? activeStyle : inactiveStyle
+            className={`text-3xl transition-all duration-200 ${tab === "/search" ? activeStyle : inactiveStyle
               }`}
           >
             {tab === "/search" ? <IoSearchCircle className="text-3xl" /> : <IoSearchCircleOutline className="text-3xl" />}
@@ -74,7 +74,7 @@ const NavigationBar = () => {
                 setShowLoginPrompt(true);
               }
             }}
-            className="bg-[var(--accent)] text-white p-3 rounded-xl shadow-lg shadow-[var(--accent)]/30 hover:opacity-90 hover:scale-105 transition-all -mt-8 border-4 border-[#0B0F14]"
+            className="bg-[var(--accent)] text-[var(--bg-secondary)] p-3 rounded-xl shadow-lg shadow-[var(--accent)]/30 hover:opacity-90 hover:scale-105 transition-all -mt-8 border-4 border-[var(--bg-primary)]"
           >
             <AiOutlinePlus className="text-2xl font-bold" />
           </button>
@@ -82,7 +82,7 @@ const NavigationBar = () => {
           {/* Reels */}
           <Link
             to="/reels"
-            className={`text-2xl transition-all duration-200 ${tab === "/reels" ? activeStyle : inactiveStyle
+            className={`text-3xl transition-all duration-200 ${tab === "/reels" ? activeStyle : inactiveStyle
               }`}
           >
             {tab === "/reels" ? <BsCameraReelsFill /> : <BsCameraReels />}
@@ -91,7 +91,7 @@ const NavigationBar = () => {
           {/* Account */}
           <Link
             to="/account"
-            className={`text-2xl transition-all duration-200 ${tab === "/account" ? activeStyle : inactiveStyle
+            className={`text-3xl transition-all duration-200 ${tab === "/account" ? activeStyle : inactiveStyle
               }`}
           >
             {tab === "/account" ? <RiAccountCircleFill /> : <RiAccountCircleLine />}
