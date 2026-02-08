@@ -7,8 +7,17 @@ let redisServer;
 const connectRedis = async () => {
     try {
         // 1. Try connecting to standard Redis (e.g., localhost:6379)
+        // 1. Try connecting to standard Redis (e.g., localhost:6379)
+        let redisHost = process.env.REDIS_HOST || "127.0.0.1";
+
+        // FIX: Strip protocol if user accidentally pasted the HTTP endpoint (e.g. from Upstash REST API)
+        if (redisHost.startsWith("http://") || redisHost.startsWith("https://")) {
+            console.warn("⚠️ Warning: REDIS_HOST contains unsupported protocol (http/https). Stripping it to use TCP.");
+            redisHost = redisHost.replace(/^https?:\/\//, "");
+        }
+
         redis = new Redis({
-            host: process.env.REDIS_HOST || "127.0.0.1",
+            host: redisHost,
             port: process.env.REDIS_PORT || 6379,
             password: process.env.REDIS_PASSWORD || undefined,
             retryStrategy: (times) => {
