@@ -137,6 +137,17 @@ const port = process.env.PORT || 5000;
 
 server.listen(port, async () => {
   console.log(`Server is running on port ${port}`);
+
+  // CRITICAL: Check for required environment variables
+  if (!process.env.MONGO_CONNECTION) {
+    console.error("FATAL ERROR: MONGO_CONNECTION is not defined in environment variables.");
+    process.exit(1);
+  }
+  if (!process.env.JWT_SECRET) {
+    console.error("FATAL ERROR: JWT_SECRET is not defined in environment variables.");
+    process.exit(1);
+  }
+
   await connectDB();
   await migrateUsernames();
 
