@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { StoriesData } from "../context/StoriesContext";
 import { UserData } from "../context/UserContext";
 import StoryViewer from "./StoryViewer";
+import { SkeletonStory } from "./Skeleton";
 import { AiOutlinePlus } from "react-icons/ai";
 import CreatePostModal from "./CreatePostModal";
 import { useNavigate } from "react-router-dom";
@@ -49,8 +50,10 @@ const StoryRow = () => {
                                 }`}
                         >
                             <img
-                                src={user?.profilePic?.url || "https://placehold.co/400"}
+                                src={user?.profilePic?.url ? user.profilePic.url.replace("/upload/", "/upload/f_auto,q_auto/") : "https://placehold.co/400"}
                                 alt={user?.name}
+                                loading="lazy"
+                                decoding="async"
                                 className="w-full h-full rounded-full object-cover border-2 border-[#0B0F14]"
                             />
                         </div>
@@ -94,8 +97,10 @@ const StoryRow = () => {
                                     : "bg-gradient-to-tr from-indigo-500 via-purple-500 to-orange-500"
                                     }`}>
                                     <img
-                                        src={group.user.profilePic?.url || "https://placehold.co/400"}
+                                        src={group.user.profilePic?.url ? group.user.profilePic.url.replace("/upload/", "/upload/f_auto,q_auto/") : "https://placehold.co/400"}
                                         alt={group.user.name}
+                                        loading="lazy"
+                                        decoding="async"
                                         className={`w-full h-full rounded-full object-cover border-2 ${isAllSeen ? "border-gray-800 opacity-80" : "border-[#0B0F14]"}`}
                                     />
                                 </div>
@@ -103,15 +108,7 @@ const StoryRow = () => {
                         );
                     })}
 
-                {loading && stories.length === 0 && (
-                    // Skeleton loader
-                    [1, 2, 3].map(i => (
-                        <div key={i} className="flex flex-col items-center gap-1.5 min-w-[70px] animate-pulse">
-                            <div className="w-[66px] h-[66px] rounded-full bg-white/10" />
-                            <div className="w-12 h-3 bg-white/10 rounded" />
-                        </div>
-                    ))
-                )}
+                {loading && stories.length === 0 && <SkeletonStory />}
             </div>
 
             {/* STORY VIEWER OVERLAY */}

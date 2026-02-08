@@ -105,3 +105,18 @@ export const SkeletonComment = () => {
         </div>
     );
 };
+// 5. Story Skeleton
+export const SkeletonStory = () => {
+    return (
+        <div className="flex gap-4 overflow-x-hidden pb-4">
+            {[...Array(6)].map((_, i) => (
+                <div key={i} className="flex flex-col items-center gap-1.5 min-w-[70px]">
+                    <div className="relative">
+                        <SkeletonPulse className="w-[66px] h-[66px] rounded-full border-2 border-[#252529]" />
+                    </div>
+                    <SkeletonPulse className="w-12 h-2.5 rounded" />
+                </div>
+            ))}
+        </div>
+    );
+};

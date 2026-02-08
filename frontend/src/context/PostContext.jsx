@@ -1,5 +1,5 @@
 import axios from "axios";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useMemo, useCallback } from "react";
 import toast from "react-hot-toast";
 import { SocketData } from "./SocketContext";
 
@@ -18,7 +18,7 @@ export const PostContextProvider = ({ children }) => {
   const { socket } = SocketData();
 
 
-  async function fetchPosts(page = 1) {
+  const fetchPosts = useCallback(async (page = 1) => {
     try {
       const { data } = await axios.get(`/api/post/all?page=${page}&limit=20`);
 
@@ -44,19 +44,19 @@ export const PostContextProvider = ({ children }) => {
       setLoading(false);
       setLoadingMore(false);
     }
-  }
+  }, []);
 
-  async function fetchNextPage() {
+  const fetchNextPage = useCallback(async () => {
     if (!pagination.hasMorePosts || loadingMore) return;
     setLoadingMore(true);
     await fetchPosts(pagination.page + 1);
-  }
+  }, [pagination.hasMorePosts, pagination.page, loadingMore, fetchPosts]);
 
   const [addLoading, setAddLoading] = useState(false);
 
 
 
-  async function addPost(formdata, setFile, setFilePrev, setCaption, type) {
+  const addPost = useCallback(async (formdata, setFile, setFilePrev, setCaption, type) => {
     setAddLoading(true);
     try {
       const { data } = await axios.post("/api/post/new?type=" + type, formdata);
@@ -71,9 +71,9 @@ export const PostContextProvider = ({ children }) => {
       toast.error(error.response.data.message);
       setAddLoading(false);
     }
-  }
+  }, [fetchPosts]);
 
-  async function sendFeedback(id, feedbackType) {
+  const sendFeedback = useCallback(async (id, feedbackType) => {
     try {
       const { data } = await axios.post("/api/post/feedback/" + id, { feedbackType });
       // Update state immediately if data.post exists to ensure UI consistency
@@ -87,9 +87,9 @@ export const PostContextProvider = ({ children }) => {
       toast.error(error.response?.data?.message || "Something went wrong");
       throw error;
     }
-  }
+  }, []);
 
-  async function addComment(id, comment, setComment, setShow, parentComment = null) {
+  const addComment = useCallback(async (id, comment, setComment, setShow, parentComment = null) => {
     try {
       const { data } = await axios.post("/api/comment/" + id, {
         comment,
@@ -114,9 +114,9 @@ export const PostContextProvider = ({ children }) => {
     } catch (error) {
       toast.error(error.response.data.message);
     }
-  }
+  }, []);
 
-  async function deletePost(id) {
+  const deletePost = useCallback(async (id) => {
     setLoading(true);
     try {
       const { data } = await axios.delete("/api/post/" + id);
@@ -128,9 +128,9 @@ export const PostContextProvider = ({ children }) => {
       toast.error(error.response.data.message);
       setLoading(false);
     }
-  }
+  }, [fetchPosts]);
 
-  async function deleteComment(id, commentId) {
+  const deleteComment = useCallback(async (id, commentId) => {
     try {
       const { data } = await axios.delete(`/api/comment/${commentId}`);
 
@@ -153,11 +153,11 @@ export const PostContextProvider = ({ children }) => {
     } catch (error) {
       toast.error(error.response.data.message);
     }
-  }
+  }, []);
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [fetchPosts]);
 
   useEffect(() => {
     if (!socket) return;
@@ -225,24 +225,24 @@ export const PostContextProvider = ({ children }) => {
 
 
 
+  const value = useMemo(() => ({
+    reels,
+    posts,
+    addPost,
+    sendFeedback,
+    addComment,
+    loading,
+    addLoading,
+    fetchPosts,
+    deletePost,
+    deleteComment,
+    fetchNextPage,
+    loadingMore,
+    pagination
+  }), [reels, posts, addPost, sendFeedback, addComment, loading, addLoading, fetchPosts, deletePost, deleteComment, fetchNextPage, loadingMore, pagination]);
+
   return (
-    <PostContext.Provider
-      value={{
-        reels,
-        posts,
-        addPost,
-        sendFeedback,
-        addComment,
-        loading,
-        addLoading,
-        fetchPosts,
-        deletePost,
-        deleteComment,
-        fetchNextPage,
-        loadingMore,
-        pagination
-      }}
-    >
+    <PostContext.Provider value={value}>
       {children}
     </PostContext.Provider>
   );

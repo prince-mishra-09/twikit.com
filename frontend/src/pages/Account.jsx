@@ -8,6 +8,7 @@ import { IoMenu } from "react-icons/io5";
 import Modal from "../components/Modal";
 import axios from "axios";
 import { Loading } from "../components/Loading";
+import { SkeletonProfile } from "../components/Skeleton";
 import { CiEdit } from "react-icons/ci";
 import toast from "react-hot-toast";
 import { FiEdit2 } from "react-icons/fi";
@@ -125,7 +126,7 @@ const Account = ({ user }) => {
     setShowUpdatePass(false);
   }
 
-  if (loading) return <Loading />;
+  if (loading) return <SkeletonProfile />;
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center gap-2 pb-24">
@@ -146,7 +147,13 @@ const Account = ({ user }) => {
                 user.mutedUsers.map((u) => (
                   <div key={u._id} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <img src={u.profilePic?.url || "https://placehold.co/400"} alt="" className="w-10 h-10 rounded-full border border-[var(--border)] object-cover" />
+                      <img
+                        loading="lazy"
+                        decoding="async"
+                        src={u.profilePic?.url ? u.profilePic.url.replace("/upload/", "/upload/f_auto,q_auto/") : "https://placehold.co/400"}
+                        alt=""
+                        className="w-10 h-10 rounded-full border border-[var(--border)] object-cover"
+                      />
                       <p className="text-[var(--text-primary)] font-medium">{u.name || "Unknown"}</p>
                     </div>
                     <button
@@ -552,7 +559,13 @@ const EditProfile = ({ user, onBack }) => {
       <div className="p-8 flex flex-col items-center gap-6 w-full max-w-sm mx-auto">
         {/* Image Upload */}
         <div className="relative group cursor-pointer" onClick={() => fileInputRef.current.click()}>
-          <img src={preview} alt="Profile" className="w-32 h-32 rounded-full object-cover border-4 border-[var(--card-bg)] shadow-xl group-hover:opacity-80 transition-opacity" />
+          <img
+            loading="lazy"
+            decoding="async"
+            src={preview ? (preview.includes("cloudinary") ? preview.replace("/upload/", "/upload/f_auto,q_auto/") : preview) : "https://placehold.co/400"}
+            alt="Profile"
+            className="w-32 h-32 rounded-full object-cover border-4 border-[var(--card-bg)] shadow-xl group-hover:opacity-80 transition-opacity"
+          />
           <div className="absolute bottom-1 right-1 bg-[var(--accent)] p-2 rounded-full shadow-lg border-2 border-[var(--bg-primary)]">
             <FiEdit2 className="text-white text-md" />
           </div>

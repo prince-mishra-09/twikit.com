@@ -48,7 +48,9 @@ const Modal = ({ value, title, setShow, onRemove }) => {
                 >
                   <div className="flex items-center gap-3">
                     <img
-                      src={e?.profilePic?.url || "https://placehold.co/400"}
+                      loading="lazy"
+                      decoding="async"
+                      src={e?.profilePic?.url ? e.profilePic.url.replace("/upload/", "/upload/f_auto,q_auto/") : "https://placehold.co/400"}
                       alt=""
                       className="w-9 h-9 rounded-full object-cover border border-white/10"
                     />

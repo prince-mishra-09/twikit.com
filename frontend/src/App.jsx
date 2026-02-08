@@ -1,27 +1,28 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import Register from "./pages/Register";
 import { Toaster } from "react-hot-toast";
-import Login from "./pages/Login";
 import { UserData } from "./context/UserContext";
-import Account from "./pages/Account";
-import NavigationBar from "./components/NavigationBar";
-import NotFound from "./components/NotFound";
-import Reels from "./pages/Reels";
 import { Loading } from "./components/Loading";
-import UserAccount from "./pages/UserAccount";
-import Search from "./pages/Search";
-import ChatPage from "./pages/ChatPage";
-import TwikitLanding from "./pages/TwikitLanding";
-import PostDetail from "./pages/PostDetail";
 import { SocketData } from "./context/SocketContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { StoriesProvider } from "./context/StoriesContext";
-import Notifications from "./pages/Notifications";
-import { useEffect } from "react";
+import { useEffect, Suspense, lazy } from "react";
 import LoginPromptModal from "./components/LoginPromptModal";
 import ScrollToTop from "./components/ScrollToTop";
 import Layout from "./components/Layout";
+import NotFound from "./components/NotFound";
+
+// Lazy Imports
+const Home = lazy(() => import("./pages/Home"));
+const Register = lazy(() => import("./pages/Register"));
+const Login = lazy(() => import("./pages/Login"));
+const Account = lazy(() => import("./pages/Account"));
+const Reels = lazy(() => import("./pages/Reels"));
+const UserAccount = lazy(() => import("./pages/UserAccount"));
+const Search = lazy(() => import("./pages/Search"));
+const ChatPage = lazy(() => import("./pages/ChatPage"));
+const TwikitLanding = lazy(() => import("./pages/TwikitLanding"));
+const PostDetail = lazy(() => import("./pages/PostDetail"));
+const Notifications = lazy(() => import("./pages/Notifications"));
 
 function App() {
   const { loading, isAuth, user, setUser } = UserData();
@@ -29,9 +30,8 @@ function App() {
 
   useEffect(() => {
     if (socket && user) {
-      socket.on("userFollowed", (data) => {
+      const handleFollow = (data) => {
         if (data.followerId === user._id) {
-          // I followed someone, update my following list
           setUser((prev) => ({
             ...prev,
             followings: prev.followings?.includes(data.followingId)
@@ -39,7 +39,6 @@ function App() {
               : [...(prev.followings || []), data.followingId]
           }));
         } else if (data.followingId === user._id) {
-          // Someone followed me, update my followers list
           setUser((prev) => ({
             ...prev,
             followers: prev.followers?.includes(data.followerId)
@@ -47,35 +46,37 @@ function App() {
               : [...(prev.followers || []), data.followerId]
           }));
         }
-      });
-      return () => socket.off("userFollowed");
+      };
+      socket.on("userFollowed", handleFollow);
+      return () => socket.off("userFollowed", handleFollow);
     }
   }, [socket, user, setUser]);
 
   return (
     <>
       <Toaster position="top-center" />
-      <Toaster position="top-center" />
       {loading ? <Loading /> : <BrowserRouter>
         <ScrollToTop />
         <NotificationProvider><StoriesProvider>
           <LoginPromptModal />
           <Layout>
-            <Routes>
-              <Route path="/landing" element={isAuth ? <Home /> : <TwikitLanding />} />
-              <Route path="/" element={isAuth ? <Home /> : <TwikitLanding />} />
-              <Route path="/feed" element={<Home />} />
-              <Route path="/reels" element={<Reels />} />
-              <Route path="/user/:id" element={<UserAccount user={user} />} />
-              <Route path="/account" element={isAuth ? <Account user={user} /> : <Login />} />
-              <Route path="/register" element={!isAuth ? <Register /> : <Home />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/chat" element={isAuth ? <ChatPage user={user} /> : <Login />} />
-              <Route path="/notifications" element={isAuth ? <Notifications /> : <Login />} />
-              <Route path="/login" element={!isAuth ? <Login /> : <Home />} />
-              <Route path="*" element={<NotFound />} />
-              <Route path="/post/:id" element={<PostDetail />} />
-            </Routes>
+            <Suspense fallback={<Loading />}>
+              <Routes>
+                <Route path="/landing" element={isAuth ? <Home /> : <TwikitLanding />} />
+                <Route path="/" element={isAuth ? <Home /> : <TwikitLanding />} />
+                <Route path="/feed" element={<Home />} />
+                <Route path="/reels" element={<Reels />} />
+                <Route path="/user/:id" element={<UserAccount user={user} />} />
+                <Route path="/account" element={isAuth ? <Account user={user} /> : <Login />} />
+                <Route path="/register" element={!isAuth ? <Register /> : <Home />} />
+                <Route path="/search" element={<Search />} />
+                <Route path="/chat" element={isAuth ? <ChatPage user={user} /> : <Login />} />
+                <Route path="/notifications" element={isAuth ? <Notifications /> : <Login />} />
+                <Route path="/login" element={!isAuth ? <Login /> : <Home />} />
+                <Route path="*" element={<NotFound />} />
+                <Route path="/post/:id" element={<PostDetail />} />
+              </Routes>
+            </Suspense>
           </Layout>
         </StoriesProvider></NotificationProvider></BrowserRouter>}
     </>

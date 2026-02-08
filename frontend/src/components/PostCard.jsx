@@ -265,7 +265,13 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
                     ))}
                   </div>
                   <form onSubmit={addCommentHandler} className="flex gap-3 items-center">
-                    <img src={user?.profilePic?.url || "https://placehold.co/100"} className="w-10 h-10 rounded-full border border-[var(--border)] object-cover" alt="" />
+                    <img
+                      loading="lazy"
+                      decoding="async"
+                      src={user?.profilePic?.url ? user.profilePic.url.replace("/upload/", "/upload/f_auto,q_auto/") : "https://placehold.co/100"}
+                      className="w-10 h-10 rounded-full border border-[var(--border)] object-cover"
+                      alt=""
+                    />
                     <div className="flex-1 relative">
                       <input type="text" className="w-full bg-[var(--bg-secondary)] text-[var(--text-primary)] text-sm rounded-full px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] border border-[var(--border)] placeholder:text-[var(--text-secondary)]" placeholder={replyingTo ? "Write a reply..." : `Comment as @${user?.username || user?.name?.toLowerCase().replace(/\s+/g, '_') || "guest"}...`} value={comment} onChange={(e) => setComment(e.target.value)} autoFocus={!!replyingTo} />
                       <button type="submit" disabled={!comment.trim()} className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--accent)] font-bold text-sm hover:opacity-80 disabled:opacity-50 px-3">Post</button>
@@ -531,6 +537,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
     // Fire and forget (but catch error to revert)
     sendFeedback(value._id, feedbackType).catch((error) => {
       console.error("Feedback error, reverting:", error);
+      toast.error("Failed to update. Please try again.");
       // Revert to original state from props if error occurs
       setIsReal(value.reals?.includes(user?._id));
       setRealCount(value.reals?.length || 0);
@@ -798,7 +805,13 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
         <div className="absolute bottom-6 left-4 right-16 z-30 text-white pointer-events-none">
           <div className="flex items-center gap-3 mb-3 pointer-events-auto">
             <Link to={`/user/${value.owner?._id}`} className="flex items-center gap-2">
-              <img src={value.owner?.profilePic?.url || "https://placehold.co/100"} className="w-9 h-9 rounded-full border border-white/20 object-cover shrink-0" alt="" />
+              <img
+                loading="lazy"
+                decoding="async"
+                src={value.owner?.profilePic?.url ? value.owner.profilePic.url.replace("/upload/", "/upload/f_auto,q_auto/") : "https://placehold.co/100"}
+                className="w-9 h-9 rounded-full border border-white/20 object-cover shrink-0"
+                alt=""
+              />
               <span className="font-semibold text-sm shadow-black drop-shadow-md">{value.owner?.name || "Deleted User"}</span>
             </Link>
 
@@ -924,12 +937,16 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
         </div>
 
         {/* The Image */}
-        <img
-          src={value.post.url}
-          alt=""
-          onClick={() => setShowImage(true)}
-          className="w-full aspect-[3/4] object-cover cursor-pointer active:opacity-95 transition-opacity"
-        />
+        <div className="w-full aspect-[3/4] bg-[var(--bg-secondary)] relative overflow-hidden">
+          <img
+            src={value.post.url.replace("/upload/", "/upload/f_auto,q_auto/")}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            onClick={() => setShowImage(true)}
+            className="w-full h-full object-cover cursor-pointer active:opacity-95 transition-opacity"
+          />
+        </div>
       </div>
 
       {/* FULL SCREEN IMAGE VIEWER VIA PORTAL */}

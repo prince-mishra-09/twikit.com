@@ -1,5 +1,5 @@
 import axios from "axios";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useMemo, useCallback } from "react";
 import toast from "react-hot-toast";
 import { SocketData } from "./SocketContext";
 import { UserData } from "./UserContext";
@@ -14,14 +14,14 @@ export const ChatContextProvider = ({ children }) => {
   const { socket } = SocketData();
   const { user } = UserData();
 
-  async function getAllChats() {
+  const getAllChats = useCallback(async () => {
     try {
       const { data } = await axios.get("/api/messages/chats");
       setChats(data);
     } catch (error) {
       console.log(error);
     }
-  }
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -103,7 +103,7 @@ export const ChatContextProvider = ({ children }) => {
     }
   }, [socket, user, selectedChat]);
 
-  async function createChat(id) {
+  const createChat = useCallback(async (id) => {
     try {
       const { data } = await axios.post("/api/messages", {
         recieverId: id,
@@ -119,21 +119,15 @@ export const ChatContextProvider = ({ children }) => {
       toast.error(error.response?.data?.message);
       console.log(error);
     }
-  }
+  }, [chats]);
+
+  const value = useMemo(() => ({
+    createChat, selectedChat, setSelectedChat, chats,
+    setChats, totalUnreadMessages, setTotalUnreadMessages, getAllChats
+  }), [createChat, selectedChat, chats, totalUnreadMessages, getAllChats]);
 
   return (
-    <ChatContext.Provider
-      value={{
-        createChat,
-        selectedChat,
-        setSelectedChat,
-        chats,
-        setChats,
-        totalUnreadMessages,
-        setTotalUnreadMessages,
-        getAllChats,
-      }}
-    >
+    <ChatContext.Provider value={value}>
       {children}
     </ChatContext.Provider>
   );

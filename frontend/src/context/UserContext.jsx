@@ -1,5 +1,5 @@
 import axios from "axios";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useMemo, useCallback } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
 
@@ -14,7 +14,7 @@ export const UserContextProvider = ({ children }) => {
   const getErrorMessage = (error) =>
     error.response?.data?.message || error.message || "Something went wrong";
 
-  async function registerUser(formdata, navigate, fetchPosts) {
+  const registerUser = useCallback(async (formdata, navigate, fetchPosts) => {
     setLoading(true);
     try {
       const { data } = await axios.post("/api/auth/register", formdata, {
@@ -31,9 +31,9 @@ export const UserContextProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
-  async function loginUser(email, password, navigate, fetchPosts) {
+  const loginUser = useCallback(async (email, password, navigate, fetchPosts) => {
     setLoading(true);
     try {
       const { data } = await axios.post("/api/auth/login", {
@@ -51,9 +51,9 @@ export const UserContextProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
-  async function fetchUser() {
+  const fetchUser = useCallback(async () => {
     try {
       const { data } = await axios.get("/api/user/me");
       setUser(data);
@@ -64,9 +64,9 @@ export const UserContextProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
-  async function logoutUser(navigate) {
+  const logoutUser = useCallback(async (navigate) => {
     try {
       const { data } = await axios.get("/api/auth/logout");
       toast.success(data.message);
@@ -76,9 +76,9 @@ export const UserContextProvider = ({ children }) => {
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
-  }
+  }, []);
 
-  async function followUser(id) {
+  const followUser = useCallback(async (id) => {
     try {
       const { data } = await axios.post("/api/user/follow/" + id);
       toast.success(data.message);
@@ -87,9 +87,9 @@ export const UserContextProvider = ({ children }) => {
       toast.error(getErrorMessage(error));
       return null;
     }
-  }
+  }, []);
 
-  async function updateProfilePic(id, formdata, setFile) {
+  const updateProfilePic = useCallback(async (id, formdata, setFile) => {
     try {
       const { data } = await axios.put("/api/user/" + id, formdata, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -100,9 +100,9 @@ export const UserContextProvider = ({ children }) => {
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
-  }
+  }, [fetchUser]);
 
-  async function updateProfileInfo(id, { name, username, bio, link }, setShowInput) {
+  const updateProfileInfo = useCallback(async (id, { name, username, bio, link }, setShowInput) => {
     try {
       const { data } = await axios.put("/api/user/" + id, { name, username, bio, link });
       toast.success(data.message);
@@ -111,9 +111,9 @@ export const UserContextProvider = ({ children }) => {
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
-  }
+  }, [fetchUser]);
 
-  async function savePost(postId) {
+  const savePost = useCallback(async (postId) => {
     try {
       const { data } = await axios.post("/api/post/save/" + postId);
       toast.success(data.message);
@@ -121,10 +121,10 @@ export const UserContextProvider = ({ children }) => {
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
-  }
+  }, [fetchUser]);
 
   // --- Feed Controls ---
-  async function hidePost(postId) {
+  const hidePost = useCallback(async (postId) => {
     try {
       const { data } = await axios.post("/api/feed/hide-post/" + postId);
       toast.success(data.message);
@@ -134,9 +134,9 @@ export const UserContextProvider = ({ children }) => {
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
-  }
+  }, [fetchUser]);
 
-  async function muteUser(userId) {
+  const muteUser = useCallback(async (userId) => {
     try {
       const { data } = await axios.post("/api/feed/mute-user/" + userId);
       toast.success(data.message);
@@ -144,9 +144,9 @@ export const UserContextProvider = ({ children }) => {
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
-  }
+  }, [fetchUser]);
 
-  async function unmuteUser(userId) {
+  const unmuteUser = useCallback(async (userId) => {
     try {
       const { data } = await axios.delete("/api/feed/unmute-user/" + userId);
       toast.success(data.message);
@@ -154,9 +154,9 @@ export const UserContextProvider = ({ children }) => {
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
-  }
+  }, [fetchUser]);
 
-  async function togglePrivacy() {
+  const togglePrivacy = useCallback(async () => {
     try {
       const { data } = await axios.put("/api/user/privacy");
       toast.success(data.message);
@@ -164,9 +164,9 @@ export const UserContextProvider = ({ children }) => {
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
-  }
+  }, [fetchUser]);
 
-  async function removeFollower(userId) {
+  const removeFollower = useCallback(async (userId) => {
     try {
       const { data } = await axios.delete("/api/user/follower/" + userId);
       toast.success(data.message);
@@ -176,9 +176,9 @@ export const UserContextProvider = ({ children }) => {
       toast.error(getErrorMessage(error));
       return false;
     }
-  }
+  }, [fetchUser]);
 
-  async function blockUser(id, navigate) {
+  const blockUser = useCallback(async (id, navigate) => {
     try {
       const { data } = await axios.post("/api/user/block/" + id);
       toast.success(data.message);
@@ -187,9 +187,9 @@ export const UserContextProvider = ({ children }) => {
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
-  }
+  }, [fetchUser]);
 
-  async function unblockUser(id) {
+  const unblockUser = useCallback(async (id) => {
     try {
       const { data } = await axios.delete("/api/user/unblock/" + id);
       toast.success(data.message);
@@ -197,9 +197,9 @@ export const UserContextProvider = ({ children }) => {
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
-  }
+  }, [fetchUser]);
 
-  async function registerPush() {
+  const registerPush = useCallback(async () => {
     if (!("serviceWorker" in navigator)) return;
 
     try {
@@ -224,40 +224,22 @@ export const UserContextProvider = ({ children }) => {
         console.error("Push Error:", error);
       }
     }
-  }
+  }, []);
 
   useEffect(() => {
     fetchUser();
-  }, []);
+  }, [fetchUser]);
+
+  const value = useMemo(() => ({
+    loginUser, isAuth, setIsAuth, user, setUser, loading,
+    logoutUser, registerUser, followUser, updateProfilePic,
+    updateProfileInfo, savePost, hidePost, muteUser, unmuteUser,
+    togglePrivacy, removeFollower, blockUser, unblockUser,
+    registerPush, showLoginPrompt, setShowLoginPrompt
+  }), [loginUser, isAuth, user, loading, logoutUser, registerUser, followUser, updateProfilePic, updateProfileInfo, savePost, hidePost, muteUser, unmuteUser, togglePrivacy, removeFollower, blockUser, unblockUser, registerPush, showLoginPrompt]);
 
   return (
-    <UserContext.Provider
-      value={{
-        loginUser,
-        isAuth,
-        setIsAuth,
-        user,
-        setUser,
-        loading,
-        logoutUser,
-        registerUser,
-        followUser,
-        updateProfilePic,
-        updateProfileInfo,
-        savePost,
-        hidePost,
-        muteUser,
-        unmuteUser,
-        togglePrivacy,
-        removeFollower,
-        blockUser,
-
-        unblockUser,
-        registerPush,
-        showLoginPrompt,
-        setShowLoginPrompt,
-      }}
-    >
+    <UserContext.Provider value={value}>
       {children}
       <Toaster />
     </UserContext.Provider>

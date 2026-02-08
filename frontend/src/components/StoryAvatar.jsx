@@ -35,6 +35,8 @@ const StoryAvatar = ({ user: targetUser, size = "w-10 h-10", border = true, onCl
             <img
                 src={targetUser?.profilePic?.url || "https://placehold.co/400"}
                 alt={targetUser?.name}
+                loading="lazy"
+                decoding="async"
                 className={`${size} rounded-full object-cover border-2 border-[#0B0F14]`}
             />
         </div>
