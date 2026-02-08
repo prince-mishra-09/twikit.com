@@ -73,7 +73,8 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
         // but we also want to close the modal on success.
         // The original addPost takes setters. We can wrap them.
 
-        await addPost(formdata, setFile, setFilePrev, setCaption, type);
+        // Fire and forget - let Context handle the upload in background
+        addPost(formdata, () => { }, () => { }, () => { }, type);
         setShow(false);
     };
 
@@ -215,22 +216,10 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                     disabled={addLoading || error}
                                     className="w-full py-3 rounded-xl text-white font-medium bg-indigo-600/90 hover:bg-indigo-600 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-indigo-600/10"
                                 >
-                                    {addLoading || storyLoading ? (
-                                        <div className="flex items-center justify-center gap-2">
-                                            <LoadingAnimation />
-                                            {uploadProgress > 0 && <span className="text-xs opacity-80">{uploadProgress}%</span>}
-                                        </div>
-                                    ) : "Share"}
+                                    {/* Just show "Share" - progress will be on Home screen */}
+                                    Share
                                 </button>
-                                {/* Progress Bar */}
-                                {(addLoading && uploadProgress > 0) && (
-                                    <div className="w-full h-1 bg-gray-700 rounded-full overflow-hidden mt-[-10px]">
-                                        <div
-                                            className="h-full bg-indigo-500 transition-all duration-300 ease-out"
-                                            style={{ width: `${uploadProgress}%` }}
-                                        />
-                                    </div>
-                                )}
+                                {/* Progress bar removed from here as it will be shown on Home screen */}
 
                             </form>
                         </div>
