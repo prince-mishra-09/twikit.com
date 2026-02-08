@@ -75,6 +75,19 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Fix for Express 5 & express-mongo-sanitize compatibility
+// Express 5 makes req.query a getter-only property by default, which causes mongoSanitize to crash
+app.use((req, res, next) => {
+  Object.defineProperty(req, 'query', {
+    value: req.query,
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  });
+  next();
+});
+
 app.use(mongoSanitize()); // Prevent NoSQL Injection
 
 // Initialize monitoring system
