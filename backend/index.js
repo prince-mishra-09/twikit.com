@@ -5,6 +5,7 @@ import cloudinary from "cloudinary";
 import express from "express";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
+import mongoSanitize from "express-mongo-sanitize";
 import { app, server, io } from "./socket/socket.js";
 import { connectDB } from "./database/db.js";
 
@@ -68,9 +69,13 @@ app.use(
   })
 );
 
+// TODO: In production, replace the allowedOrigins array with the single production domain
+// to strictly limit access, rather than allowing localhost/network IPs.
+
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(mongoSanitize()); // Prevent NoSQL Injection
 
 // Initialize monitoring system
 const monitoringService = new MonitoringService(io);
@@ -99,8 +104,9 @@ app.use("/api/comment", commentRoutes);
 
 // Monitoring metrics endpoint (protected - briefly checks key or similar if needed)
 app.get("/api/metrics", (req, res) => {
-  // Simple check for internal use
-  if (req.query.secret !== process.env.JWT_SECRET) {
+  // Secure check using Authorization Header
+  const authHeader = req.headers.authorization;
+  if (!authHeader || authHeader !== `Bearer ${process.env.JWT_SECRET}`) {
     return res.status(403).json({ message: "Forbidden" });
   }
   const metrics = monitoringService.getCurrentMetrics();
@@ -109,6 +115,11 @@ app.get("/api/metrics", (req, res) => {
 
 app.get("/", (req, res) => {
   res.send("Server is working");
+});
+
+// Health Check Endpoint for Uptime Monitors
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
 });
 
 // Global Error Handler
@@ -136,4 +147,20 @@ server.listen(port, async () => {
   console.log(`Server running on:`);
   console.log(`- Local:   http://localhost:${port}`);
   console.log(`- Network: Use your PC's IP address (e.g., http://192.168.x.x:${port}) for real devices`);
+
+  // Prevent Cold Starts (Render/Fly.io Free Tier)
+  // Ping the server every 14 minutes (840000 ms)
+  if (process.env.NODE_ENV === "production") {
+    const keepAliveURL = process.env.BASE_URL || `http://localhost:${port}`;
+    console.log(`⏰ Keep-Alive system active. Pinging ${keepAliveURL}/health every 14 mins.`);
+
+    setInterval(async () => {
+      try {
+        await fetch(`${keepAliveURL}/health`);
+        // console.log("Ping successful"); // Uncomment for debugging
+      } catch (error) {
+        console.error("Keep-Alive Ping Failed:", error.message);
+      }
+    }, 840000);
+  }
 });

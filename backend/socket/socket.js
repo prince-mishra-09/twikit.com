@@ -63,7 +63,16 @@ io.on("connection", (socket) => {
 
   if (userId) {
     userSocketMap[userId] = socket.id;
-    socket.join(userId); // Join private room based on verified ID
+    socket.join("user:" + userId); // Join private room based on verified ID
+
+    // Post Room Events
+    socket.on("join-post", (postId) => {
+      socket.join("post:" + postId);
+    });
+
+    socket.on("leave-post", (postId) => {
+      socket.leave("post:" + postId);
+    });
 
     // Presence broadcast removed for privacy, can be implemented per-follower if needed
   }

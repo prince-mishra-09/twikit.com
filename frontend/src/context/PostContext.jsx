@@ -15,6 +15,7 @@ export const PostContextProvider = ({ children }) => {
     hasMorePosts: true,
     hasMoreReels: true
   });
+  const [uploadProgress, setUploadProgress] = useState(0); // Add upload progress state
   const { socket } = SocketData();
 
 
@@ -58,20 +59,31 @@ export const PostContextProvider = ({ children }) => {
 
   const addPost = useCallback(async (formdata, setFile, setFilePrev, setCaption, type) => {
     setAddLoading(true);
+    setUploadProgress(0);
     try {
-      const { data } = await axios.post("/api/post/new?type=" + type, formdata);
+      const { data } = await axios.post("/api/post/new?type=" + type, formdata, {
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(percentCompleted);
+        }
+      });
 
       toast.success(data.message);
-      fetchPosts();
+      // fetchPosts(); // Don't fetch immediately, wait for socket or optimistic update? 
+      // The server returns 202 Accepted, so the post isn't ready yet.
+      // We rely on socket "post:ready" to add it to the feed.
+
       setFile("");
       setFilePrev("");
       setCaption("");
       setAddLoading(false);
+      setUploadProgress(0);
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Something went wrong");
       setAddLoading(false);
+      setUploadProgress(0);
     }
-  }, [fetchPosts]);
+  }, []);
 
   const sendFeedback = useCallback(async (id, feedbackType) => {
     try {
@@ -214,10 +226,24 @@ export const PostContextProvider = ({ children }) => {
       );
     });
 
+    socket.on("post:ready", (newPost) => {
+      toast.success("Your post is ready!");
+      setPosts((prev) => [newPost, ...prev]);
+      if (newPost.type === "reel") {
+        setReels((prev) => [newPost, ...prev]);
+      }
+    });
+
+    socket.on("post:failed", (data) => {
+      toast.error(data.message || "Post processing failed");
+    });
+
     return () => {
       socket.off("postRealUpdated");
       socket.off("postReflectionUpdated");
       socket.off("postCommentUpdated");
+      socket.off("post:ready");
+      socket.off("post:failed");
     };
   }, [socket]);
 
@@ -238,8 +264,9 @@ export const PostContextProvider = ({ children }) => {
     deleteComment,
     fetchNextPage,
     loadingMore,
-    pagination
-  }), [reels, posts, addPost, sendFeedback, addComment, loading, addLoading, fetchPosts, deletePost, deleteComment, fetchNextPage, loadingMore, pagination]);
+    pagination,
+    uploadProgress
+  }), [reels, posts, addPost, sendFeedback, addComment, loading, addLoading, fetchPosts, deletePost, deleteComment, fetchNextPage, loadingMore, pagination, uploadProgress]);
 
   return (
     <PostContext.Provider value={value}>

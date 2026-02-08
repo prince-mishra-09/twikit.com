@@ -10,6 +10,7 @@ import LoginPromptModal from "./components/LoginPromptModal";
 import ScrollToTop from "./components/ScrollToTop";
 import Layout from "./components/Layout";
 import NotFound from "./components/NotFound";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // Lazy Imports
 const Home = lazy(() => import("./pages/Home"));
@@ -55,30 +56,32 @@ function App() {
   return (
     <>
       <Toaster position="top-center" />
-      {loading ? <Loading /> : <BrowserRouter>
-        <ScrollToTop />
-        <NotificationProvider><StoriesProvider>
-          <LoginPromptModal />
-          <Layout>
-            <Suspense fallback={<Loading />}>
-              <Routes>
-                <Route path="/landing" element={isAuth ? <Home /> : <TwikitLanding />} />
-                <Route path="/" element={isAuth ? <Home /> : <TwikitLanding />} />
-                <Route path="/feed" element={<Home />} />
-                <Route path="/reels" element={<Reels />} />
-                <Route path="/user/:id" element={<UserAccount user={user} />} />
-                <Route path="/account" element={isAuth ? <Account user={user} /> : <Login />} />
-                <Route path="/register" element={!isAuth ? <Register /> : <Home />} />
-                <Route path="/search" element={<Search />} />
-                <Route path="/chat" element={isAuth ? <ChatPage user={user} /> : <Login />} />
-                <Route path="/notifications" element={isAuth ? <Notifications /> : <Login />} />
-                <Route path="/login" element={!isAuth ? <Login /> : <Home />} />
-                <Route path="*" element={<NotFound />} />
-                <Route path="/post/:id" element={<PostDetail />} />
-              </Routes>
-            </Suspense>
-          </Layout>
-        </StoriesProvider></NotificationProvider></BrowserRouter>}
+      <ErrorBoundary>
+        {loading ? <Loading /> : <BrowserRouter>
+          <ScrollToTop />
+          <NotificationProvider><StoriesProvider>
+            <LoginPromptModal />
+            <Layout>
+              <Suspense fallback={<Loading />}>
+                <Routes>
+                  <Route path="/landing" element={isAuth ? <Home /> : <TwikitLanding />} />
+                  <Route path="/" element={isAuth ? <Home /> : <TwikitLanding />} />
+                  <Route path="/feed" element={<Home />} />
+                  <Route path="/reels" element={<Reels />} />
+                  <Route path="/user/:id" element={<UserAccount user={user} />} />
+                  <Route path="/account" element={isAuth ? <Account user={user} /> : <Login />} />
+                  <Route path="/register" element={!isAuth ? <Register /> : <Home />} />
+                  <Route path="/search" element={<Search />} />
+                  <Route path="/chat" element={isAuth ? <ChatPage user={user} /> : <Login />} />
+                  <Route path="/notifications" element={isAuth ? <Notifications /> : <Login />} />
+                  <Route path="/login" element={!isAuth ? <Login /> : <Home />} />
+                  <Route path="*" element={<NotFound />} />
+                  <Route path="/post/:id" element={<PostDetail />} />
+                </Routes>
+              </Suspense>
+            </Layout>
+          </StoriesProvider></NotificationProvider></BrowserRouter>}
+      </ErrorBoundary>
     </>
   );
 }

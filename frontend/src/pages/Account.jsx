@@ -21,6 +21,7 @@ import { AiOutlinePlus } from "react-icons/ai";
 import ShareModal from "../components/ShareModal";
 import { BsShare, BsPalette } from "react-icons/bs";
 import ThemeModal from "../components/ThemeModal";
+import { getOptimizedImg } from "../utils/cloudinary";
 
 const Account = ({ user }) => {
   const navigate = useNavigate();
@@ -150,7 +151,7 @@ const Account = ({ user }) => {
                       <img
                         loading="lazy"
                         decoding="async"
-                        src={u.profilePic?.url ? u.profilePic.url.replace("/upload/", "/upload/f_auto,q_auto/") : "https://placehold.co/400"}
+                        src={u.profilePic?.url ? getOptimizedImg(u.profilePic.url) : "https://placehold.co/400"}
                         alt=""
                         className="w-10 h-10 rounded-full border border-[var(--border)] object-cover"
                       />
@@ -179,7 +180,8 @@ const Account = ({ user }) => {
       {showThemeModal && <ThemeModal onClose={() => setShowThemeModal(false)} />}
 
       {/* ================= FULL WIDTH HEADER ================= */}
-      <div className="sticky top-0 z-40 w-full bg-[var(--card-bg)]/95 backdrop-blur-md border-b border-[var(--border)] shadow-sm">
+      {/* ================= FULL WIDTH HEADER ================= */}
+      <div className="sticky top-0 z-40 w-full bg-[var(--bg-primary)]/95 backdrop-blur-md border-b border-[var(--border)] shadow-sm">
         <div className="max-w-2xl mx-auto flex justify-between items-center py-3 px-4">
           <div>
             <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-wide">{user.name}</h2>
@@ -295,7 +297,8 @@ const Account = ({ user }) => {
       </div>
 
       {/* ================= PROFILE CARD ================= */}
-      <div className="w-full max-w-2xl px-4 pb-4 pt-4 relative z-30">
+      {/* Reduced padding-top and removed padding-bottom to bring content closer */}
+      <div className="w-full max-w-2xl px-4 pt-4 relative z-30">
 
         {/* Top Row: Picture + Stats */}
         <div className="flex flex-row items-center gap-4 w-full">
@@ -336,7 +339,8 @@ const Account = ({ user }) => {
         </div>
 
         {/* Bio & Link Section (Below Profile Pic/Stats) */}
-        <div className="mt-6">
+        {/* Reduced margin-top */}
+        <div className="mt-4">
           {user.bio ? (
             <BioDisplay bio={user.bio} />
           ) : (
@@ -389,28 +393,30 @@ const Account = ({ user }) => {
       }
 
       {/* Toggle */}
-      <div className="flex gap-6 bg-[var(--card-bg)]/90 border border-[var(--border)] rounded-xl px-6 py-2 w-full max-w-md justify-between">
+      <div className="flex w-full max-w-xl border-b border-[var(--border)] mt-2">
         <button
           onClick={() => setType("post")}
-          className={type === "post" ? "text-[var(--accent)] font-semibold" : "text-[var(--text-secondary)]"}
+          className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${type === "post" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
         >
           Posts
+          {type === "post" && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--accent)] rounded-t-full" />}
         </button>
         <button
           onClick={() => setType("reel")}
-          className={type === "reel" ? "text-[var(--accent)] font-semibold" : "text-[var(--text-secondary)]"}
+          className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${type === "reel" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
         >
           Reels
+          {type === "reel" && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--accent)] rounded-t-full" />}
         </button>
         <button
           onClick={() => setType("saved")}
-          className={type === "saved" ? "text-[var(--accent)] font-semibold" : "text-[var(--text-secondary)]"}
+          className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${type === "saved" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
         >
           Saved
+          {type === "saved" && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--accent)] rounded-t-full" />}
         </button>
       </div>
 
-      {/* Content */}
       {/* Content */}
       {
         type === "post" && (
@@ -429,7 +435,7 @@ const Account = ({ user }) => {
         (myReels?.length ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl mx-auto pb-4">
             {myReels.map((reel) => (
-              <div key={reel._id} id={reel._id} className="account-reel flex justify-center w-full aspect-[9/16] bg-[var(--card-bg)] rounded-lg overflow-hidden relative group">
+              <div key={reel._id} id={reel._id} className="account-reel flex justify-center w-full aspect-[9/16] bg-[var(--bg-secondary)] rounded-lg overflow-hidden relative group">
                 <PostCard type="reel" value={reel} isActive={activeReelId === reel._id} isGrid={true} />
               </div>
             ))}
@@ -437,7 +443,9 @@ const Account = ({ user }) => {
         ) : <p className="text-[var(--text-secondary)] text-center py-4">No reels yet</p>)
       }
 
+
       {type === "saved" && <SavedPosts />}
+      {showEdit && <EditProfile user={user} onBack={() => setShowEdit(false)} />}
       {showEdit && <EditProfile user={user} onBack={() => setShowEdit(false)} />}
 
       {/* Story Viewer Overlay */}
@@ -562,7 +570,7 @@ const EditProfile = ({ user, onBack }) => {
           <img
             loading="lazy"
             decoding="async"
-            src={preview ? (preview.includes("cloudinary") ? preview.replace("/upload/", "/upload/f_auto,q_auto/") : preview) : "https://placehold.co/400"}
+            src={preview ? getOptimizedImg(preview) : "https://placehold.co/400"}
             alt="Profile"
             className="w-32 h-32 rounded-full object-cover border-4 border-[var(--card-bg)] shadow-xl group-hover:opacity-80 transition-opacity"
           />

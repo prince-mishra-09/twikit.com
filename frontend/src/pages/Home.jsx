@@ -12,7 +12,7 @@ import { UserData } from "../context/UserContext";
 
 const Home = () => {
   const { isAuth } = UserData();
-  const { posts, reels, loading, fetchNextPage, loadingMore, pagination } = PostData();
+  const { posts, reels, loading, fetchNextPage, loadingMore, pagination, addLoading, uploadProgress } = PostData();
   const { unreadCount } = NotificationData();
   const { totalUnreadMessages } = ChatData();
 
@@ -62,6 +62,19 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] flex justify-center md:px-4">
+      {/* Fixed Top Upload Progress */}
+      {addLoading && uploadProgress > 0 && (
+        <div className="fixed top-0 left-0 w-full h-1 z-[9999] bg-transparent">
+          <div
+            className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 bg-[length:200%_100%] animate-[shimmer_2s_infinite] shadow-[0_0_15px_rgba(99,102,241,1)] transition-all duration-300 ease-out"
+            style={{ width: `${uploadProgress}%` }}
+          />
+          <div className="absolute top-3 right-3 z-[9999] bg-black/80 backdrop-blur-md border border-white/10 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            Uploading... {uploadProgress}%
+          </div>
+        </div>
+      )}
       {/* Feed container */}
       <div className="w-full max-w-2xl pb-20">
 
@@ -119,6 +132,27 @@ const Home = () => {
         {/* Posts */}
         <div className="mt-2">
           <StoryRow />
+
+          {/* Global Upload Progress */}
+          {addLoading && uploadProgress > 0 && (
+            <div className="mx-4 mb-6 relative z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="flex justify-between items-center mb-1.5 px-0.5">
+                <span className="text-[10px] font-semibold text-indigo-400 uppercase tracking-wider animate-pulse">
+                  Uploading Post
+                </span>
+                <span className="text-[10px] font-bold text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded">
+                  {uploadProgress}%
+                </span>
+              </div>
+              <div className="h-1 bg-gray-800/50 rounded-full overflow-hidden border border-white/5 ring-1 ring-white/10 shadow-lg">
+                <div
+                  className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 bg-[length:200%_100%] animate-[shimmer_2s_infinite] shadow-[0_0_12px_rgba(99,102,241,0.8)] transition-all duration-300 ease-out"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           {loading ? (
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => <SkeletonPost key={i} />)}

@@ -54,7 +54,7 @@ const Reels = () => {
   return (
     <div className="h-[100dvh] w-full bg-[var(--bg-primary)] overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar relative">
       {/* Back Button */}
-      <a href="/" className="absolute top-4 left-4 z-50 p-2 bg-[var(--card-bg)]/40 backdrop-blur-md rounded-full text-[var(--text-primary)] border border-[var(--border)]">
+      <a href="/" className="absolute top-4 left-4 z-50 p-2 bg-[var(--bg-primary)]/40 backdrop-blur-md rounded-full text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--bg-secondary)] transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
           <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
         </svg>
@@ -71,7 +71,7 @@ const Reels = () => {
             id={reel._id}
             className="reel-container h-[100dvh] w-full snap-start snap-always flex justify-center items-center relative"
           >
-            <div className="w-full h-full md:max-w-md relative flex items-center bg-black">
+            <div className="w-full h-full md:max-w-md relative flex items-center bg-[var(--bg-primary)]">
               <PostCard value={reel} type="reel" isActive={currentReelId === reel._id} />
             </div>
           </div>

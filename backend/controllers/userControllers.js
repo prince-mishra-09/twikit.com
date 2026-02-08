@@ -7,6 +7,7 @@ import getDataUrl from "../utils/urlGenerator.js";
 import cloudinary from "cloudinary";
 import { sendPushNotification } from "./notificationController.js";
 import { io } from "../socket/socket.js";
+import redis from "../utils/redis.js";
 
 export const myProfile = tryCatch(async (req, res) => {
   const user = await User.findById(req.user._id)
@@ -22,27 +23,64 @@ export const userProfile = async (req, res) => {
     return res.status(400).json({ message: "Invalid user id" });
   }
 
-  const user = await User.findById(req.params.id).select("-password");
+  const userId = req.params.id;
+  const cacheKey = `user:${userId}`;
+
+  // 1. Try Cache
+  try {
+    const cachedUser = await redis.get(cacheKey);
+    if (cachedUser) {
+      const user = JSON.parse(cachedUser);
+      const isGuest = !req.user;
+
+      // CHECK BLOCK STATUS (only for logged in users) - Logic duplicated for Cache
+      if (!isGuest) {
+        if (req.user.blockedUsers.includes(user._id)) {
+          return res.status(404).json({ message: "User Not Found" });
+        }
+        if (user.blockedUsers && user.blockedUsers.includes(req.user._id.toString())) {
+          return res.status(404).json({ message: "User Not Found" });
+        }
+      }
+
+      // Privacy Check
+      if (isGuest && user.isPrivate) {
+        return res.status(401).json({ message: "Login required to view private profile" });
+      }
+
+      return res.json(user);
+    }
+  } catch (error) {
+    console.error("Redis Cache Error:", error);
+  }
+
+  // 2. Database Fallback
+  const user = await User.findById(userId).select("-password");
 
   if (!user) return res.status(404).json({ message: "User Not Found" });
 
   const isGuest = !req.user;
 
-  // CHECK BLOCK STATUS (only for logged in users)
+  // CHECK BLOCK STATUS
   if (!isGuest) {
-    // 1. If I blocked them
     if (req.user.blockedUsers.includes(user._id)) {
       return res.status(404).json({ message: "User Not Found" });
     }
-    // 2. If they blocked me
     if (user.blockedUsers.includes(req.user._id)) {
       return res.status(404).json({ message: "User Not Found" });
     }
   }
 
-  // Privacy Check for guests
+  // Privacy Check
   if (isGuest && user.isPrivate) {
     return res.status(401).json({ message: "Login required to view private profile" });
+  }
+
+  // 3. Set Cache (300 seconds = 5 minutes)
+  try {
+    await redis.set(cacheKey, JSON.stringify(user), "EX", 300);
+  } catch (error) {
+    console.error("Redis Set Error:", error);
   }
 
   res.json(user);
@@ -77,12 +115,15 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
     await loggedInUser.save();
     await user.save();
 
-    // CLEANUP NOTIFICATION
+    // CLEANUP NOTIFICATION & INVALIDATE CACHE
     await Notification.deleteMany({
       sender: loggedInUser._id,
       receiver: user._id,
       type: "follow"
     });
+
+    await redis.del(`user:${loggedInUser._id}`);
+    await redis.del(`user:${user._id}`);
 
     res.json({
       message: "User Unfollowed",
@@ -117,8 +158,7 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
       });
 
       await notification.populate("sender", "name profilePic username");
-
-      io.to(user._id.toString()).emit("notification:new", notification);
+      io.to("user:" + user._id.toString()).emit("notification:new", notification);
 
       // SEND PUSH NOTIFICATION
       await sendPushNotification(user._id, {
@@ -158,7 +198,10 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
     });
   }
 
-  // Real-time update
+  // Real-time update & Cache Invalidation
+  await redis.del(`user:${loggedInUser._id}`);
+  await redis.del(`user:${user._id}`);
+
   io.emit("userFollowed", {
     followerId: loggedInUser._id,
     followingId: user._id,
@@ -231,6 +274,7 @@ export const updateProfile = tryCatch(async (req, res) => {
   }
 
   await user.save();
+  await redis.del(`user:${user._id}`);
 
   res.json({
     message: "Profile updated",
@@ -463,6 +507,10 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
   });
 
   res.json({ message: "Request Accepted" });
+
+  // Invalidate Cache for both
+  await redis.del(`user:${loggedInUser._id}`);
+  await redis.del(`user:${sender._id}`);
 });
 
 export const rejectFollowRequest = tryCatch(async (req, res) => {
@@ -500,6 +548,8 @@ export const togglePrivacy = tryCatch(async (req, res) => {
     message: user.isPrivate ? "Account is now Private" : "Account is now Public",
     isPrivate: user.isPrivate
   });
+
+  await redis.del(`user:${user._id}`);
 });
 
 export const removeFollower = tryCatch(async (req, res) => {
@@ -523,6 +573,9 @@ export const removeFollower = tryCatch(async (req, res) => {
   }
 
   res.json({ message: "Follower Removed" });
+
+  await redis.del(`user:${user._id}`);
+  await redis.del(`user:${followerToRemove._id}`);
 });
 
 export const blockUser = tryCatch(async (req, res) => {
@@ -574,6 +627,9 @@ export const blockUser = tryCatch(async (req, res) => {
   );
 
   res.json({ message: "User blocked successfully" });
+
+  await redis.del(`user:${loggedInUser._id}`);
+  await redis.del(`user:${userToBlock._id}`);
 });
 
 export const unblockUser = tryCatch(async (req, res) => {
@@ -591,4 +647,7 @@ export const unblockUser = tryCatch(async (req, res) => {
   await loggedInUser.save();
 
   res.json({ message: "User unblocked successfully" });
+
+  await redis.del(`user:${loggedInUser._id}`);
+  await redis.del(`user:${userToUnblock._id}`);
 });

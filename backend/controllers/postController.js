@@ -1,4 +1,5 @@
 import { Post } from "../models/postModel.js";
+import mongoose from "mongoose";
 import User from "../models/userModel.js";
 import TryCatch from "../utils/tryCatch.js";
 import getDataUrl from "../utils/urlGenerator.js";
@@ -8,43 +9,56 @@ import { Notification } from "../models/Notification.js";
 import { sendPushNotification } from "./notificationController.js";
 
 export const newPost = TryCatch(async (req, res) => {
-    //     console.log("req.file:", req.file);
-    // console.log("req.body:", req.body);
-
     const { caption } = req.body;
-    // console.log("main caption");
-
     const ownerId = req.user._id;
-
     const file = req.file;
-    const fileUrl = getDataUrl(file);
-
-    let option;
-
     const type = req.query.type;
-    if (type === "reel") {
-        option = {
-            resource_type: "video",
-        };
-    } else {
-        option = {};
+
+    if (!file) {
+        return res.status(400).json({ message: "No file provided" });
     }
 
-    const myCloud = await cloudinary.v2.uploader.upload(fileUrl.content, option);
-
-    const post = await Post.create({
-        caption,
-        post: {
-            id: myCloud.public_id,
-            url: myCloud.secure_url,
-        },
-        owner: ownerId,
-        type,
+    // 1. Send Immediate Response (Optimistic)
+    res.status(202).json({
+        message: "Post upload started",
+        status: "processing",
     });
 
-    res.status(201).json({
-        message: "Post created",
-        post,
+    // 2. Process in Background (Non-blocking)
+    setImmediate(async () => {
+        try {
+            const fileUrl = getDataUrl(file);
+            const option = type === "reel" ? { resource_type: "video" } : {};
+
+            // Heavy: Cloudinary Upload
+            const myCloud = await cloudinary.v2.uploader.upload(fileUrl.content, option);
+
+            // Heavy: DB Creation
+            const post = await Post.create({
+                caption,
+                post: {
+                    id: myCloud.public_id,
+                    url: myCloud.secure_url,
+                },
+                owner: ownerId,
+                type,
+            });
+
+            // Populate for frontend (match getAllPosts projection)
+            await post.populate("owner", "name username profilePic isPrivate");
+
+            // 3. Emit "Ready" Event to User
+            io.to("user:" + ownerId.toString()).emit("post:ready", post);
+
+        } catch (error) {
+            console.error("Background Upload Error:", error);
+
+            // Emit "Failed" Event
+            io.to("user:" + ownerId.toString()).emit("post:failed", {
+                message: "Post upload failed",
+                error: error.message || "Unknown error"
+            });
+        }
     });
 });
 
@@ -76,113 +90,151 @@ export const deletePost = TryCatch(async (req, res) => {
 });
 
 export const getAllPosts = TryCatch(async (req, res) => {
-    // Pagination parameters
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20; // Default 20 posts per page
+    const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
     const isGuest = !req.user;
-    let user = null;
-    let blockedByUsers = [];
-    let hiddenUserIds = [];
+    let userId = null;
+    let hiddenUserObjectIds = [];
+    let mutedUserObjectIds = [];
+    let hiddenPostIds = [];
 
     if (!isGuest) {
-        user = await User.findById(req.user._id);
-        // 0. Fetch users who have BLOCKED the current user ('blockedBy')
-        blockedByUsers = await User.find({ blockedUsers: req.user._id }).distinct('_id');
-        // 1. Combine with users I have BLOCKED
-        const blockedUsers = user.blockedUsers || [];
-        hiddenUserIds = [
-            ...blockedUsers.map(id => id.toString()),
-            ...blockedByUsers.map(id => id.toString())
-        ];
+        userId = req.user._id;
+        const user = await User.findById(userId);
+        const blockedByUsers = await User.find({ blockedUsers: userId }).distinct('_id');
+
+        hiddenUserObjectIds = [
+            ...(user.blockedUsers || []),
+            ...blockedByUsers
+        ].map(id => new mongoose.Types.ObjectId(id));
+
+        mutedUserObjectIds = (user.mutedUsers || []).map(id => new mongoose.Types.ObjectId(id));
+        hiddenPostIds = (user.hiddenPosts || []);
     }
 
-    const baseQuery = (type) => {
-        const query = { type };
-        if (!isGuest) {
-            query._id = { $nin: user.hiddenPosts };
-            query.owner = { $nin: [...user.mutedUsers, ...hiddenUserIds] };
-        } else {
-            // For guests, we only want posts from non-private owners
-            // We'll handle this in the aggregation or manual filter later if needed,
-            // but for simple find, we can't easily join here without aggregate.
-            // Let's use populate then filter, or better: aggregate.
+    const userObjectId = userId ? new mongoose.Types.ObjectId(userId) : null;
+
+    // 1. Initial Document Filter (Blocking & Muting & Hidden Posts)
+    const initialMatch = {};
+    if (!isGuest) {
+        const excludedOwners = [...hiddenUserObjectIds, ...mutedUserObjectIds];
+        if (excludedOwners.length > 0) {
+            initialMatch.owner = { $nin: excludedOwners };
         }
-        return query;
+        if (hiddenPostIds.length > 0) {
+            initialMatch._id = { $nin: hiddenPostIds };
+        }
+    }
+
+    // 2. Privacy Filter Pipeline (Runs after lookup)
+    const privacyMatch = {
+        $match: {
+            $or: [
+                { "owner.isPrivate": false }, // Public Account
+                ...(userObjectId ? [
+                    { "owner._id": userObjectId }, // My own posts
+                    { "owner.followers": userObjectId } // I am a follower
+                ] : [])
+            ]
+        }
     };
 
-    let posts = await Post.find(baseQuery("post"))
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .populate("owner", "-password");
-
-    let reels = await Post.find(baseQuery("reel"))
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .populate("owner", "-password");
-
-    const filterPublicOnly = (items) => {
-        return items.filter(item => {
-            if (!item.owner) return false;
-            // If logged in, check privacy rules
-            if (!isGuest) {
-                if (item.owner._id.toString() === req.user._id.toString()) return true;
-                if (!item.owner.isPrivate) return true;
-                if (item.owner.followers.includes(req.user._id)) return true;
-                return false;
-            }
-            // If guest, only public accounts
-            return !item.owner.isPrivate;
-        });
-    };
-
-    // Sanitize engagement (remove reals/reflections from blocked users AND blockedBy users)
-    const sanitizeEngagement = (items) => {
-        return items.map(item => {
-            const isOwner = !isGuest && item.owner._id.toString() === req.user._id.toString();
-
-            // Filter Reals
-            if (item.reals && item.reals.length > 0 && !isGuest) {
-                item.reals = item.reals.filter(id => id && !hiddenUserIds.includes(id.toString()));
-            }
-
-            // Filter Reflections (Only owner sees these)
-            if (isOwner) {
-                if (item.reflections && item.reflections.length > 0) {
-                    item.reflections = item.reflections.filter(id => id && !hiddenUserIds.includes(id.toString()));
+    // 3. Projection Stage (Optimization & Sanitization)
+    const projectStage = {
+        $project: {
+            caption: 1,
+            post: 1,
+            type: 1,
+            createdAt: 1,
+            views: 1,
+            commentsCount: 1,
+            owner: {
+                _id: 1,
+                name: 1,
+                username: 1,
+                profilePic: 1,
+                isPrivate: 1
+            },
+            reals: {
+                $filter: {
+                    input: "$reals",
+                    as: "r",
+                    cond: { $not: { $in: ["$$r", hiddenUserObjectIds] } }
                 }
-            } else {
-                // If not owner OR guest, hide reflections
-                item.reflections = [];
+            },
+            reflections: {
+                $cond: {
+                    if: { $eq: ["$owner._id", userObjectId] },
+                    then: {
+                        $filter: {
+                            input: "$reflections",
+                            as: "r",
+                            cond: { $not: { $in: ["$$r", hiddenUserObjectIds] } }
+                        }
+                    },
+                    else: []
+                }
             }
-
-            return item;
-        });
+        }
     };
 
-    const sanctionedPosts = filterPublicOnly(posts);
-    const sanctionedReels = filterPublicOnly(reels);
+    const aggregationPipeline = [
+        { $match: initialMatch },
+        {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner"
+            }
+        },
+        { $unwind: "$owner" },
+        privacyMatch,
+        {
+            $facet: {
+                posts: [
+                    { $match: { type: "post" } },
+                    { $sort: { createdAt: -1 } },
+                    { $skip: skip },
+                    { $limit: limit },
+                    projectStage
+                ],
+                reels: [
+                    { $match: { type: "reel" } },
+                    { $sort: { createdAt: -1 } },
+                    { $skip: skip },
+                    { $limit: limit },
+                    projectStage
+                ],
+                totalPosts: [
+                    { $match: { type: "post" } },
+                    { $count: "count" }
+                ],
+                totalReels: [
+                    { $match: { type: "reel" } },
+                    { $count: "count" }
+                ]
+            }
+        }
+    ];
 
-    const sanitizedPosts = sanitizeEngagement(sanctionedPosts);
-    const sanitizedReels = sanitizeEngagement(sanctionedReels);
+    const [result] = await Post.aggregate(aggregationPipeline);
 
-    // Get total counts for pagination metadata
-    const totalPostsCount = await Post.countDocuments(baseQuery("post"));
-    const totalReelsCount = await Post.countDocuments(baseQuery("reel"));
+    const totalPosts = result.totalPosts[0]?.count || 0;
+    const totalReels = result.totalReels[0]?.count || 0;
 
     res.json({
-        posts: sanitizedPosts,
-        reels: sanitizedReels,
+        posts: result.posts,
+        reels: result.reels,
         pagination: {
             page,
             limit,
-            totalPosts: totalPostsCount,
-            totalReels: totalReelsCount,
-            hasMorePosts: skip + posts.length < totalPostsCount,
-            hasMoreReels: skip + reels.length < totalReelsCount
+            totalPosts,
+            totalReels,
+            hasMorePosts: skip + result.posts.length < totalPosts,
+            hasMoreReels: skip + result.reels.length < totalReels
         }
     });
 });
@@ -233,7 +285,7 @@ export const handleFeedback = TryCatch(async (req, res) => {
     // 🔥 REAL-TIME EMIT (PRIVACY SAFE)
     // Only emit PUBLIC REAL update if it actually changed
     if (feedbackType === "real" || (feedbackType === "reflect" && action === "added" && existingPost.reals.includes(userId))) {
-        io.emit("postRealUpdated", {
+        io.to("post:" + updatedPost._id).emit("postRealUpdated", {
             postId: updatedPost._id,
             reals: updatedPost.reals,
             realsCount: updatedPost.reals.length,
@@ -242,7 +294,7 @@ export const handleFeedback = TryCatch(async (req, res) => {
     }
 
     // Emit REFLECTION update ONLY to owner's private room
-    io.to(updatedPost.owner.toString()).emit("postReflectionUpdated", {
+    io.to("user:" + updatedPost.owner.toString()).emit("postReflectionUpdated", {
         postId: updatedPost._id,
         reflections: updatedPost.reflections,
         reflectionsCount: updatedPost.reflections.length,
@@ -276,7 +328,7 @@ export const handleFeedback = TryCatch(async (req, res) => {
 
                 await notification.populate("sender", "name profilePic");
                 await notification.populate("postId", "post");
-                io.to(updatedPost.owner.toString()).emit("notification:new", notification);
+                io.to("user:" + updatedPost.owner.toString()).emit("notification:new", notification);
 
                 if (feedbackType === "real") {
                     await sendPushNotification(updatedPost.owner, {
@@ -405,7 +457,7 @@ export const saveUnsavePost = TryCatch(async (req, res) => {
 
 export const getPost = TryCatch(async (req, res) => {
     try {
-        const post = await Post.findById(req.params.id).populate("owner", "-password");
+        const post = await Post.findById(req.params.id).populate("owner", "name username profilePic isPrivate");
 
         if (!post) {
             return res.status(404).json({

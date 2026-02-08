@@ -13,6 +13,7 @@ import { MdDelete } from "react-icons/md";
 import { SocketData } from "../context/SocketContext";
 import StoryAvatar from "./StoryAvatar";
 import { Suspense } from "react";
+import { getOptimizedImg } from "../utils/cloudinary";
 
 const CommentItem = React.lazy(() => import("./CommentItem"));
 const ShareModal = React.lazy(() => import("./ShareModal"));
@@ -268,7 +269,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
                     <img
                       loading="lazy"
                       decoding="async"
-                      src={user?.profilePic?.url ? user.profilePic.url.replace("/upload/", "/upload/f_auto,q_auto/") : "https://placehold.co/100"}
+                      src={user?.profilePic?.url ? getOptimizedImg(user.profilePic.url) : "https://placehold.co/100"}
                       className="w-10 h-10 rounded-full border border-[var(--border)] object-cover"
                       alt=""
                     />
@@ -851,7 +852,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
 
   // ===================== POST RENDER =====================
   return (
-    <div className="bg-[var(--card-bg)] w-full border-b border-[var(--border)] pb-4">
+    <div className="bg-[var(--bg-primary)] w-full border-b border-[var(--border)] pb-4">
       {/* ===== POST IMAGE & OVERLAY HEADER ===== */}
       <div className="relative w-full group">
         {/* Header Overlay */}
@@ -869,6 +870,9 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
             <div className="flex flex-col">
               <p className="text-white font-bold text-sm shadow-black drop-shadow-md">
                 {value.owner?.name || "Deleted User"}
+              </p>
+              <p className="text-white/70 text-[10px] font-medium drop-shadow-md">
+                {formatDate}
               </p>
             </div>
           </Link>
@@ -939,7 +943,13 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
         {/* The Image */}
         <div className="w-full aspect-[3/4] bg-[var(--bg-secondary)] relative overflow-hidden">
           <img
-            src={value.post.url.replace("/upload/", "/upload/f_auto,q_auto/")}
+            src={getOptimizedImg(value.post.url, 800)}
+            srcSet={`
+              ${getOptimizedImg(value.post.url, 400)} 400w,
+              ${getOptimizedImg(value.post.url, 800)} 800w,
+              ${getOptimizedImg(value.post.url, 1200)} 1200w
+            `}
+            sizes="(max-width: 640px) 100vw, 650px"
             alt=""
             loading="lazy"
             decoding="async"
@@ -963,7 +973,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
               &times;
             </button>
             <img
-              src={value.post.url}
+              src={getOptimizedImg(value.post.url)}
               alt=""
               className="max-w-screen max-h-screen object-contain"
               onClick={(e) => e.stopPropagation()}

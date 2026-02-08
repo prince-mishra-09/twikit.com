@@ -260,7 +260,7 @@ const UserAccount = ({ user: loggedInUser }) => {
       )}
 
       {/* PROFILE CARD */}
-      <div className="w-full max-w-2xl bg-[var(--card-bg)]/90 backdrop-blur-xl border border-[var(--border)] rounded-2xl shadow-xl px-6 pb-6 pt-4">
+      <div className="w-full max-w-2xl bg-[var(--bg-primary)] border-b border-[var(--border)] px-4 pb-6 pt-4">
 
         {/* NAME + GENDER (TOP LEFT, LIKE INSTAGRAM) */}
         <div className="flex justify-between items-start mb-3">
@@ -406,7 +406,7 @@ const UserAccount = ({ user: loggedInUser }) => {
         (myReels?.length ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl mx-auto pb-4">
             {myReels.map((reel, i) => (
-              <div key={reel._id} className="relative aspect-[9/16] bg-gray-900 rounded-lg overflow-hidden">
+              <div key={reel._id} className="relative aspect-[9/16] bg-[var(--bg-secondary)] rounded-lg overflow-hidden">
                 <PostCard type="reel" value={reel} isGrid={true} />
               </div>
             ))}

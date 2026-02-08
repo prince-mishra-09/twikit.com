@@ -51,9 +51,9 @@ const postSchema = new mongoose.Schema({
 });
 
 // Indexes for performance optimization
-postSchema.index({ owner: 1, createdAt: -1 }); // User's posts sorted by date
-postSchema.index({ type: 1, createdAt: -1 }); // Posts/Reels sorted by date
-postSchema.index({ createdAt: -1 }); // Feed sorting
-postSchema.index({ owner: 1, type: 1 }); // User's posts/reels filter
+postSchema.index({ owner: 1, createdAt: -1 }); // User's posts sorted by date (General)
+postSchema.index({ type: 1, createdAt: -1 }); // Posts/Reels sorted by date (Feed)
+postSchema.index({ createdAt: -1 }); // Feed sorting (Fallback)
+postSchema.index({ owner: 1, type: 1, createdAt: -1 }); // User's specific posts/reels sorted (Profile)
 
 export const Post = mongoose.model("Post", postSchema);
