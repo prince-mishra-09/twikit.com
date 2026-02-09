@@ -14,6 +14,10 @@ export const newPost = TryCatch(async (req, res) => {
     const file = req.file;
     const type = req.query.type;
 
+    if (type !== 'story' && (!caption || caption.trim() === "")) {
+        return res.status(400).json({ message: "Caption is required" });
+    }
+
     if (!file) {
         return res.status(400).json({ message: "No file provided" });
     }

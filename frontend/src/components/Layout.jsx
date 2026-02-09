@@ -33,7 +33,7 @@ const Layout = ({ children }) => {
                 {/* Scrollable Area */}
                 <div
                     id="main-content"
-                    className={`flex-1 w-full ${isReels ? 'overflow-hidden' : 'overflow-y-auto'} custom-scrollbar relative`}
+                    className={`flex-1 w-full ${isReels ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden'} custom-scrollbar relative`}
                 >
                     {/* Content Wrapper to center feed if needed */}
                     <div className={`w-full min-h-full ${showSidebars ? 'flex justify-center' : ''}`}>

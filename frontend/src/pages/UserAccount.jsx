@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { PostData } from "../context/PostContext";
 import PostCard from "../components/PostCard";
 import { FaArrowDownLong, FaArrowUp, FaEllipsisVertical } from "react-icons/fa6"; // Updated Import
+import { IoClose } from "react-icons/io5"; // Added import
 import axios from "axios";
 
 import { SkeletonProfile } from "../components/Skeleton";
@@ -35,6 +36,7 @@ const UserAccount = ({ user: loggedInUser }) => {
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [feedModal, setFeedModal] = useState(null); // Added state
 
   async function fetchUser() {
     try {
@@ -55,10 +57,12 @@ const UserAccount = ({ user: loggedInUser }) => {
   const [userReels, setUserReels] = useState([]);
 
   // Fetch User's Posts directly (Privacy Aware)
-  async function fetchUserPosts() {
-    if (!user) return;
+  // Fetch User's Posts directly (Privacy Aware)
+  async function fetchUserPosts(id) {
+    const targetId = id || user?._id;
+    if (!targetId) return;
     try {
-      const { data } = await axios.get("/api/post/user/" + user._id);
+      const { data } = await axios.get("/api/post/user/" + targetId);
       setUserPosts(data.posts);
       setUserReels(data.reels);
     } catch (error) {
@@ -68,17 +72,14 @@ const UserAccount = ({ user: loggedInUser }) => {
     }
   }
 
-  const [followed, setFollowed] = useState(false);
-  const [requested, setRequested] = useState(false);
 
-  useEffect(() => {
-    fetchUserPosts();
-  }, [user, followed, requested]); // Refetch if access changes
+  // Restore local state variables
 
-  // Use local state instead of global context filtering
+
+  // Restore local state variables
+  // Restore local state variables
   const myPosts = userPosts;
   const myReels = userReels;
-
   const [type, setType] = useState("post");
   const [index, setIndex] = useState(0);
 
@@ -86,51 +87,39 @@ const UserAccount = ({ user: loggedInUser }) => {
   const nextReel = () =>
     index !== myReels.length - 1 && setIndex(index + 1);
 
+  // Initialize state from props/context directly to avoid flicker
+  // Use params.id immediately instead of waiting for user object
+  const [followed, setFollowed] = useState(() => {
+    if (!loggedInUser) return false;
+    // Check against params.id since user might be null initially
+    return loggedInUser.followings?.includes(params.id);
+  });
+
+  const [requested, setRequested] = useState(() => {
+    // Note: requests usually need the user object, but we can't do much about that
+    // without the user object or a separate requests list in loggedInUser.
+    // However, if we visited this page before, user might be in cache.
+    if (user) return user.followRequests?.includes(loggedInUser?._id);
+    return false;
+  });
+
+  // Restore useEffect to fetch posts when user or follow status changes
+  // Restore useEffect to fetch posts when user or follow status changes
   useEffect(() => {
-    if (!loggedInUser) {
-      setFollowed(false);
-      setRequested(false);
-      return;
-    }
+    fetchUserPosts(params.id);
+  }, [params.id, followed, requested]);
 
-    if (loggedInUser.followings?.includes(user?._id)) {
-      setFollowed(true);
-      setRequested(false);
-    } else if (user?.followRequests?.includes(loggedInUser._id)) {
-      // This part still relies on the profile user data, which is fine for requests
-      // as usually you don't toggle requests repeatedly
-      setRequested(true);
-      setFollowed(false);
-    } else {
-      setFollowed(false);
-      setRequested(false);
-    }
-  }, [user, loggedInUser]);
-
-  // Real-time update for profile stats
-  const { socket } = SocketData();
-
+  // Keep state in sync if props change (e.g. navigation to another user)
   useEffect(() => {
-    if (!socket || !user?._id) return;
+    if (!loggedInUser) return;
+    // Use params.id for faster check if user object isn't loaded yet
+    const targetId = user?._id || params.id;
+    setFollowed(loggedInUser.followings?.includes(targetId));
 
-    const handleFollow = (data) => {
-      if (data.followingId === user._id) {
-        setUser((prev) => {
-          if (!prev) return prev; // Safety check
-          const isFollower = prev.followers.includes(data.followerId);
-          return {
-            ...prev,
-            followers: isFollower
-              ? prev.followers.filter(id => id !== data.followerId)
-              : [...prev.followers, data.followerId]
-          };
-        });
-      }
-    };
-
-    socket.on("userFollowed", handleFollow);
-    return () => socket.off("userFollowed", handleFollow);
-  }, [socket, user?._id]);
+    if (user) {
+      setRequested(user.followRequests?.includes(loggedInUser._id));
+    }
+  }, [loggedInUser, user, params.id]); // Added params.id dependency
 
   const followHandler = async () => {
     if (!loggedInUser) {
@@ -140,11 +129,14 @@ const UserAccount = ({ user: loggedInUser }) => {
     // 1. STORE PREVIOUS STATE
     const prevFollowed = followed;
     const prevRequested = requested;
+    const prevFollowers = user.followers;
 
     // 2. OPTIMISTIC UPDATE
     if (followed) {
       setFollowed(false);
       setRequested(false);
+      // Optimistic: Remove from followers
+      setUser(prev => ({ ...prev, followers: prev.followers.filter(id => id !== loggedInUser._id) }));
     } else if (requested) {
       setRequested(false);
       setFollowed(false);
@@ -153,6 +145,8 @@ const UserAccount = ({ user: loggedInUser }) => {
         setRequested(true);
       } else {
         setFollowed(true);
+        // Optimistic: Add to followers
+        setUser(prev => ({ ...prev, followers: [...prev.followers, loggedInUser._id] }));
       }
     }
 
@@ -163,6 +157,8 @@ const UserAccount = ({ user: loggedInUser }) => {
       if (message === "Follow Request Sent") {
         setRequested(true);
         setFollowed(false);
+        // Revert follower count change if it was private (request sent)
+        setUser(prev => ({ ...prev, followers: prevFollowers }));
       } else if (message === "User Followed") {
         setFollowed(true);
         setRequested(false);
@@ -175,11 +171,13 @@ const UserAccount = ({ user: loggedInUser }) => {
         // Revert on failure
         setFollowed(prevFollowed);
         setRequested(prevRequested);
+        setUser(prev => ({ ...prev, followers: prevFollowers }));
       }
     } catch (error) {
       console.error("Follow error:", error);
       setFollowed(prevFollowed);
       setRequested(prevRequested);
+      setUser(prev => ({ ...prev, followers: prevFollowers }));
       toast.error("An error occurred. Please try again.");
     }
   };
@@ -254,7 +252,7 @@ const UserAccount = ({ user: loggedInUser }) => {
   );
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center gap-2 pb-24 px-3">
+    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center gap-2 pb-24 px-1">
 
       {show && (
         <Modal value={followersData} title="Followers" setShow={setShow} />
@@ -377,28 +375,38 @@ const UserAccount = ({ user: loggedInUser }) => {
 
 
       {/* TOGGLE */}
-      <div className="flex gap-6 bg-[var(--card-bg)]/90 border border-[var(--border)] rounded-xl px-6 py-2 max-w-xs w-full justify-center">
+      <div className="flex w-full max-w-[630px] border-b border-[var(--border)] mt-2">
         <button
           onClick={() => setType("post")}
-          className={type === "post" ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"}
+          className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${type === "post" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
         >
           Posts
+          {type === "post" && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--accent)] rounded-t-full" />}
         </button>
         <button
           onClick={() => setType("reel")}
-          className={type === "reel" ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"}
+          className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${type === "reel" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
         >
           Reels
+          {type === "reel" && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--accent)] rounded-t-full" />}
         </button>
       </div>
 
       {/* POSTS */}
       {type === "post" && (
-        <div className="w-full max-w-[630px] space-y-4">
+        <div className="w-full max-w-[630px]">
           {myPosts?.length ? (
-            myPosts.map((e) => (
-              <PostCard type="post" value={e} key={e._id} />
-            ))
+            <div className="grid grid-cols-3 gap-1">
+              {myPosts.map((e, i) => (
+                <PostCard
+                  type="post"
+                  value={e}
+                  key={e._id}
+                  isGrid={true}
+                  onClick={() => setFeedModal({ posts: myPosts, index: i })}
+                />
+              ))}
+            </div>
           ) : (
             <p className="text-[var(--text-secondary)] text-center py-4">No posts yet</p>
           )}
@@ -408,10 +416,15 @@ const UserAccount = ({ user: loggedInUser }) => {
       {/* REELS */}
       {type === "reel" &&
         (myReels?.length ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-[630px] mx-auto pb-4">
+          <div className="grid grid-cols-3 gap-1 w-full max-w-[630px] mx-auto pb-4">
             {myReels.map((reel, i) => (
               <div key={reel._id} className="relative aspect-[9/16] bg-[var(--bg-secondary)] rounded-lg overflow-hidden">
-                <PostCard type="reel" value={reel} isGrid={true} />
+                <PostCard
+                  type="reel"
+                  value={reel}
+                  isGrid={true}
+                  onClick={() => setFeedModal({ posts: myReels, index: i })}
+                />
               </div>
             ))}
           </div>
@@ -425,6 +438,14 @@ const UserAccount = ({ user: loggedInUser }) => {
           stories={[activeStory]}
           initialIndex={0}
           onClose={() => setShowStoryViewer(false)}
+        />
+      )}
+      {/* Feed Modal */}
+      {feedModal && (
+        <FeedModal
+          posts={feedModal.posts}
+          initialIndex={feedModal.index}
+          onClose={() => setFeedModal(null)}
         />
       )}
       {/* Share Modal */}
@@ -448,3 +469,45 @@ const UserAccount = ({ user: loggedInUser }) => {
 };
 
 export default UserAccount;
+
+// Feed Modal - copy from Account.jsx
+const FeedModal = ({ posts, initialIndex, onClose }) => {
+  const modalRef = React.useRef(null);
+  const [currentIndex, setCurrentIndex] = React.useState(initialIndex);
+
+  useEffect(() => {
+    // Scroll to the initial post on mount
+    if (modalRef.current) {
+      setTimeout(() => {
+        const element = document.getElementById(`feed-post-${initialIndex}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "auto" });
+        }
+      }, 100);
+    }
+  }, [initialIndex]);
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-md overflow-y-auto custom-scrollbar flex justify-center">
+      <button
+        onClick={onClose}
+        className="fixed top-4 right-4 text-white/70 hover:text-white text-3xl z-[70] p-2 bg-black/20 rounded-full backdrop-blur-sm transition-colors"
+      >
+        <IoClose />
+      </button>
+
+      <div className="w-full max-w-md md:max-w-lg py-10 min-h-screen" ref={modalRef}>
+        {posts.map((post, index) => (
+          <div
+            key={post._id}
+            id={`feed-post-${index}`}
+            className={`mb-6 last:mb-20 ${post.type === 'reel' ? 'aspect-[9/16] w-full max-w-[350px] mx-auto' : ''}`}
+          >
+            <PostCard type={post.type || "post"} value={post} />
+          </div>
+        ))}
+        <div className="h-20 text-center text-white/50 text-sm">End of list</div>
+      </div>
+    </div>
+  );
+};

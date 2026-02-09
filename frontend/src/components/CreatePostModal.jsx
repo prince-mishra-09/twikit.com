@@ -16,8 +16,16 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
     const fileInputRef = useRef(null);
     const [showStoryEditor, setShowStoryEditor] = useState(initialTab === "story"); // Start true if initial is story
 
+    const [blinkCaption, setBlinkCaption] = useState(false);
+    const [blinkFile, setBlinkFile] = useState(false);
+
     const [showConfirmDiscard, setShowConfirmDiscard] = useState(false);
     const [error, setError] = useState("");
+
+    const triggerBlink = (setter) => {
+        setter(true);
+        setTimeout(() => setter(false), 2000);
+    };
 
     // Lock Body Scroll
     React.useEffect(() => {
@@ -68,6 +76,18 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
 
     const submitHandler = async (e) => {
         e.preventDefault();
+
+        // VALIDATION
+        if (!file) {
+            triggerBlink(setBlinkFile);
+            return setError("Please select a file to share.");
+        }
+
+        if (type !== 'story' && !caption.trim()) {
+            triggerBlink(setBlinkCaption);
+            return setError("Please write a caption.");
+        }
+
         const formdata = new FormData();
 
         formdata.append("caption", caption);
@@ -114,7 +134,7 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                     }}
                 />
             ) : (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-primary)] p-4">
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-[var(--bg-primary)] p-4">
                     <div className="w-full max-w-[630px] bg-[#111827] border border-white/10 rounded-2xl shadow-2xl overflow-hidden relative flex flex-col max-h-[90vh]">
 
                         {/* Header */}
@@ -153,11 +173,11 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                 </button>
                             </div>
 
-                            <form onSubmit={submitHandler} className="flex flex-col gap-4">
+                            <form onSubmit={submitHandler} className="flex flex-col gap-4 z-[1000]">
                                 {/* File Input Area */}
                                 <div
-                                    onClick={() => fileInputRef.current.click()}
-                                    className="cursor-pointer rounded-xl border-2 border-dashed border-white/10 bg-[#0B0F14] text-gray-400 flex items-center justify-center min-h-[250px] hover:border-indigo-500/50 hover:bg-[#0B0F14]/50 transition group overflow-hidden"
+                                    onClick={() => { setBlinkFile(false); fileInputRef.current.click(); }}
+                                    className={`cursor-pointer rounded-xl border-2 border-dashed ${blinkFile ? "border-red-500 animate-pulse bg-red-500/5 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "border-white/10 bg-[#0B0F14] hover:border-indigo-500/50 hover:bg-[#0B0F14]/50"} text-gray-400 flex items-center justify-center min-h-[250px] transition-all group overflow-hidden duration-300`}
                                 >
                                     {filePrev ? (
                                         <div className="relative w-full h-[300px] bg-black rounded-lg overflow-hidden flex items-center justify-center">
@@ -197,7 +217,7 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                     className="hidden"
                                     accept={type === "post" ? "image/*" : type === "reel" ? "video/*" : "image/*,video/*"}
                                     onChange={changeFileHandler}
-                                    required={!file}
+                                // required={!file} // Manual validation now
                                 />
 
                                 {/* Caption */}
@@ -205,13 +225,13 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                     rows={3}
                                     placeholder={`Write a caption for your ${type}...`}
                                     value={caption}
-                                    onChange={(e) => setCaption(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 transition resize-none custom-scrollbar"
+                                    onChange={(e) => { setBlinkCaption(false); setCaption(e.target.value); }}
+                                    className={`w-full px-4 py-3 rounded-xl bg-[#0B0F14] border ${blinkCaption ? "border-red-500 animate-pulse bg-red-500/5 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "border-white/10 focus:border-indigo-500/50"} text-white placeholder-gray-500 focus:outline-none transition-all resize-none custom-scrollbar duration-300`}
                                 />
 
                                 {/* Error Message */}
                                 {error && (
-                                    <p className="text-xs text-red-500/90 text-center font-medium bg-red-500/10 py-2 rounded-lg border border-red-500/20">
+                                    <p className="text-xs text-red-500/90 text-center font-medium bg-red-500/10 py-2 rounded-lg border border-red-500/20 animate-in fade-in slide-in-from-top-2">
                                         {error}
                                     </p>
                                 )}
@@ -226,7 +246,7 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
 
                                 {/* Submit */}
                                 <button
-                                    disabled={addLoading || error || !file}
+                                    disabled={addLoading}
                                     className="w-full py-3 rounded-xl text-white font-medium bg-indigo-600/90 hover:bg-indigo-600 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-indigo-600/10"
                                 >
                                     Share

@@ -131,7 +131,7 @@ const Account = ({ user }) => {
   if (loading) return <SkeletonProfile />;
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center gap-2 pb-24">
+    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center gap-2 pb-24 px-1">
       {/* Pass remove handler only if it's my own profile */}
       {show && <Modal value={followersData} title="Followers" setShow={setShow} onRemove={user._id === loggedInUser._id ? removeHandler : null} />}
       {show1 && <Modal value={followingsData} title="Following" setShow={setShow1} onRemove={user._id === loggedInUser._id ? unfollowHandler : null} />}
@@ -423,27 +423,17 @@ const Account = ({ user }) => {
         type === "post" && (
           <div className="w-full max-w-[630px]">
             {myPosts?.length ? (
-              <>
-                {/* Mobile List View */}
-                <div className="space-y-4 md:hidden">
-                  {myPosts.map((e) => (
-                    <PostCard type="post" value={e} key={e._id} />
-                  ))}
-                </div>
-
-                {/* Desktop Grid View */}
-                <div className="hidden md:grid grid-cols-3 gap-1">
-                  {myPosts.map((e, i) => (
-                    <PostCard
-                      type="post"
-                      value={e}
-                      key={e._id}
-                      isGrid={true}
-                      onClick={() => setFeedModal({ posts: myPosts, index: i })}
-                    />
-                  ))}
-                </div>
-              </>
+              <div className="grid grid-cols-3 gap-1">
+                {myPosts.map((e, i) => (
+                  <PostCard
+                    type="post"
+                    value={e}
+                    key={e._id}
+                    isGrid={true}
+                    onClick={() => setFeedModal({ posts: myPosts, index: i })}
+                  />
+                ))}
+              </div>
             ) : (
               <p className="text-gray-500 text-center py-4">No posts yet</p>
             )}
@@ -454,7 +444,7 @@ const Account = ({ user }) => {
       {
         type === "reel" &&
         (myReels?.length ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-[630px] mx-auto pb-4">
+          <div className="grid grid-cols-3 gap-1 w-full max-w-[630px] mx-auto pb-4">
             {myReels.map((reel, i) => (
               <div key={reel._id} id={reel._id} className="account-reel flex justify-center w-full aspect-[9/16] bg-[var(--bg-secondary)] rounded-lg overflow-hidden relative group">
                 <PostCard
@@ -701,29 +691,17 @@ const SavedPosts = ({ onPostClick }) => {
           <SkeletonPost />
         </div>
       ) : savedPosts && savedPosts.length > 0 ? (
-        <>
-          {/* Mobile List View */}
-          <div className="space-y-4 md:hidden">
-            {savedPosts.map((e) => (
-              <div key={e._id} className="saved-post-container">
-                <PostCard type={e.type} value={e} />
-              </div>
-            ))}
-          </div>
-
-          {/* Desktop Grid View */}
-          <div className="hidden md:grid grid-cols-3 gap-1">
-            {savedPosts.map((e, i) => (
-              <PostCard
-                key={e._id}
-                type={e.type || "post"}
-                value={e}
-                isGrid={true}
-                onClick={() => onPostClick && onPostClick(savedPosts, i)}
-              />
-            ))}
-          </div>
-        </>
+        <div className="grid grid-cols-3 gap-1">
+          {savedPosts.map((e, i) => (
+            <PostCard
+              key={e._id}
+              type={e.type || "post"}
+              value={e}
+              isGrid={true}
+              onClick={() => onPostClick && onPostClick(savedPosts, i)}
+            />
+          ))}
+        </div>
       ) : (
         <p className="text-[var(--text-secondary)] text-center py-4">No saved posts yet</p>
       )}

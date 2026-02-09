@@ -172,7 +172,7 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
 
     return (
         <div
-            className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center"
+            className="fixed inset-0 z-[1000] bg-black/90 flex items-center justify-center"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
@@ -209,7 +209,7 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
                     className="absolute top-8 left-4 z-20 flex items-center gap-3 bg-black/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-lg cursor-pointer hover:bg-black/30 transition">
                     <img
                         src={currentUserStories.user.profilePic?.url || "https://placehold.co/400"}
-                        className="w-8 h-8 rounded-full border border-white/20"
+                        className="w-8 h-8 rounded-full border border-white/20 object-cover shrink-0"
                     />
                     <div className="flex flex-col gap-0.5">
                         <span className="text-white font-bold text-sm leading-none drop-shadow-md">
@@ -316,7 +316,7 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
                                 .filter(v => v._id !== currentUserStories.user._id)
                                 .map((viewer, idx) => (
                                     <div key={idx} className="flex items-center gap-3 py-2 border-b border-gray-800 last:border-0">
-                                        <img src={viewer.profilePic?.url || "https://placehold.co/100"} className="w-10 h-10 rounded-full bg-gray-700" />
+                                        <img src={viewer.profilePic?.url || "https://placehold.co/100"} className="w-10 h-10 rounded-full bg-gray-700 object-cover shrink-0" />
                                         <span className="text-white font-medium">{viewer.name || "Unknown User"}</span>
                                     </div>
                                 ))

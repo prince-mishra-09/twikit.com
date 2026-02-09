@@ -51,7 +51,6 @@ const initializeRedis = async () => {
                 }
                 return Math.min(times * 50, 2000);
             },
-            maxRetriesPerRequest: 1
         };
 
         // Attempt initial connection

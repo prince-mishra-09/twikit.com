@@ -69,7 +69,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
   const [showImage, setShowImage] = useState(false);
   const [comment, setComment] = useState("");
   const [expanded, setExpanded] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
+
 
   // ... (previous imports)
 
@@ -88,9 +88,28 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
   const [deleteModal, setDeleteModal] = useState({ show: false, commentId: null });
   const longPressTimer = useRef(null);
   const captionLimit = 40; // Characters to show before truncating
-  const [isFollowed, setIsFollowed] = useState(false);
+  // Initialize state from props/context directly to avoid flicker
+  const [isFollowed, setIsFollowed] = useState(() => {
+    // If not logged in, default to false
+    if (!user || !value.owner) return false;
+    return user.followings?.includes(value.owner._id);
+  });
+
+  const [isSaved, setIsSaved] = useState(() => {
+    if (!user) return false;
+    return user.savedPosts?.includes(value._id);
+  });
+
   const [shareModal, setShareModal] = useState(false);
   const [vibeModal, setVibeModal] = useState(false);
+
+  // Keep state in sync if props change (e.g. user updates via context)
+  useEffect(() => {
+    if (user && value.owner) {
+      setIsFollowed(user.followings?.includes(value.owner._id));
+      setIsSaved(user.savedPosts?.includes(value._id));
+    }
+  }, [user, value.owner._id, value._id]);
 
   // New Comment State
   const [comments, setComments] = useState([]);
@@ -464,15 +483,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
     }
   }, [value.vibesDown, user?._id]);
 
-  useEffect(() => {
-    if (user && value.owner) {
-      setIsFollowed(user?.followings?.includes(value.owner._id));
-      setIsSaved(user?.savedPosts?.includes(value._id));
-    } else {
-      setIsFollowed(false);
-      setIsSaved(false);
-    }
-  }, [user, value.owner, value._id]);
+  // UseEffect for follow status removed as it is now handled by the state initialization and the specific sync effect above.
 
   // View Count Logic
   const [viewTracked, setViewTracked] = useState(false);
@@ -889,7 +900,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
 
   // ===================== POST RENDER =====================
   return (
-    <div className="bg-[var(--bg-primary)] w-full border-b border-[var(--border)] pb-4">
+    <div className="bg-[var(--bg-primary)] w-full max-w-full overflow-hidden border-b border-[var(--border)] pb-4">
       {/* ===== POST IMAGE & OVERLAY HEADER ===== */}
       <div className="relative w-full group">
         {/* Header Overlay */}
