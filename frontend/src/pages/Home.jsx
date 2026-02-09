@@ -81,7 +81,7 @@ const Home = () => {
     <div className="min-h-screen bg-[var(--bg-primary)] flex justify-center">
 
       {/* 2. Main Feed (Center) */}
-      <div className="w-full max-w-[630px] flex flex-col items-center md:ml-[244px] lg:mr-[320px]"> {/* Margins for sidebars */}
+      <div className="w-full max-w-[630px] flex flex-col items-center"> {/* Margins for sidebars handled by Layout */}
 
         {/* Mobile Header (Hide on md+) */}
         <div
