@@ -79,15 +79,30 @@ export const UserContextProvider = ({ children }) => {
   }, []);
 
   const followUser = useCallback(async (id) => {
+    // Optimistic Update
+    setUser((prev) => {
+      if (!prev) return prev;
+      const isFollowing = prev.followings.includes(id);
+      return {
+        ...prev,
+        followings: isFollowing
+          ? prev.followings.filter((f) => f !== id)
+          : [...prev.followings, id],
+      };
+    });
+
     try {
       const { data } = await axios.post("/api/user/follow/" + id);
       toast.success(data.message);
+      fetchUser(); // Ensure strict sync with backend
       return data.message;
     } catch (error) {
       toast.error(getErrorMessage(error));
+      // Revert on failure (fetchUser will correct it, but we can also manually revert if needed)
+      fetchUser();
       return null;
     }
-  }, []);
+  }, [fetchUser]);
 
   const updateProfilePic = useCallback(async (id, formdata, setFile) => {
     try {

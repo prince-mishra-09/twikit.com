@@ -92,17 +92,20 @@ const UserAccount = ({ user: loggedInUser }) => {
       setRequested(false);
       return;
     }
-    if (user?.followers?.includes(loggedInUser._id)) {
+
+    if (loggedInUser.followings?.includes(user?._id)) {
       setFollowed(true);
       setRequested(false);
     } else if (user?.followRequests?.includes(loggedInUser._id)) {
+      // This part still relies on the profile user data, which is fine for requests
+      // as usually you don't toggle requests repeatedly
       setRequested(true);
       setFollowed(false);
     } else {
       setFollowed(false);
       setRequested(false);
     }
-  }, [user, loggedInUser?._id]);
+  }, [user, loggedInUser]);
 
   // Real-time update for profile stats
   const { socket } = SocketData();
