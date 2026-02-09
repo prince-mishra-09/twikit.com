@@ -991,7 +991,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
             loading="lazy"
             decoding="async"
             onClick={() => setShowImage(true)}
-            className="w-full h-full object-contain cursor-pointer active:opacity-95 transition-opacity"
+            className="w-full h-full object-cover cursor-pointer active:opacity-95 transition-opacity"
           />
         </div>
       </div>
