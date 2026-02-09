@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { ChatData } from "../../context/ChatContext";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -7,6 +7,7 @@ import { UserData } from "../../context/UserContext";
 
 const MessageInput = ({ setMessages, selectedChat }) => {
   const [textMsg, setTextMsg] = useState("");
+  const inputRef = useRef(null);
   const { setChats } = ChatData();
   const { user } = UserData();
 
@@ -16,6 +17,7 @@ const MessageInput = ({ setMessages, selectedChat }) => {
 
     const messageText = textMsg;
     setTextMsg(""); // Clear input immediately
+    inputRef.current?.focus(); // Keep focus to prevent keyboard dismissal
 
     // 1. CREATE OPTIMISTIC MESSAGE
     const optimisticMessage = {
@@ -74,6 +76,7 @@ const MessageInput = ({ setMessages, selectedChat }) => {
     >
       {/* INPUT */}
       <input
+        ref={inputRef}
         type="text"
         placeholder="Message..."
         className="flex-1 px-4 py-2 rounded-full bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)]"

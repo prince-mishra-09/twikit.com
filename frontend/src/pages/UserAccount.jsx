@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import toast from "react-hot-toast";
 import { PostData } from "../context/PostContext";
 import PostCard from "../components/PostCard";
 import { FaArrowDownLong, FaArrowUp, FaEllipsisVertical } from "react-icons/fa6"; // Updated Import
@@ -11,7 +12,9 @@ import { UserData } from "../context/UserContext";
 import Modal from "../components/Modal";
 import { SocketData } from "../context/SocketContext";
 import { useNavigate } from "react-router-dom"; // Added for redirect
+
 import { StoriesData } from "../context/StoriesContext";
+import { ChatData } from "../context/ChatContext"; // Added import
 import StoryViewer from "../components/StoryViewer";
 import StoryAvatar from "../components/StoryAvatar";
 import ShareModal from "../components/ShareModal";
@@ -21,6 +24,7 @@ const UserAccount = ({ user: loggedInUser }) => {
   const { } = PostData();
   const { stories, fetchUserStories, fetchStories } = StoriesData();
   const { followUser, setShowLoginPrompt } = UserData();
+  const { createChat, setSelectedChat } = ChatData(); // Added
   const { onlineUsers } = SocketData();
   const params = useParams();
   const navigate = useNavigate();
@@ -182,6 +186,13 @@ const UserAccount = ({ user: loggedInUser }) => {
     }
   };
 
+  const messageHandler = async () => {
+    if (!loggedInUser) return setShowLoginPrompt(true);
+    const chat = await createChat(user._id);
+    setSelectedChat(chat);
+    navigate("/chat");
+  };
+
   const [show, setShow] = useState(false);
   const [show1, setShow1] = useState(false);
   const [followersData, setFollowersData] = useState([]);
@@ -269,9 +280,9 @@ const UserAccount = ({ user: loggedInUser }) => {
           <div className="flex flex-col">
             <p className="text-[var(--text-primary)] font-semibold text-lg flex items-center gap-2">
               {user.name}
-              <span className="text-[var(--text-secondary)] text-sm font-normal">
+              {/* <span className="text-[var(--text-secondary)] text-sm font-normal">
                 • {user.gender}
-              </span>
+              </span> */}
               {onlineUsers.includes(user._id) && (
                 <span className="text-green-400 text-xs">●</span>
               )}
@@ -353,23 +364,29 @@ const UserAccount = ({ user: loggedInUser }) => {
           </div>
         </div>
 
-        {/* FOLLOW BUTTON */}
+        {/* FOLLOW & MESSAGE BUTTONS */}
         {(!loggedInUser || user._id !== loggedInUser._id) && (
-          <button
-            onClick={() => {
-              if (!loggedInUser) {
-                // We need setShowLoginPrompt from context
-                // But for now, let's just use the prop if we can or get from hook
-                followHandler(); // This will eventually need the guard
-              } else {
-                followHandler();
-              }
-            }}
-            className={`mt-4 w-full py-2 rounded-lg ${followed ? "bg-red-500 text-white" : requested ? "bg-gray-600 text-white" : "bg-[var(--accent)] text-[var(--text-on-accent)]"
-              }`}
-          >
-            {followed ? "Unfollow" : requested ? "Requested" : "Follow"}
-          </button>
+          <div className="flex gap-2 mt-4 w-full">
+            <button
+              onClick={() => {
+                if (!loggedInUser) {
+                  followHandler();
+                } else {
+                  followHandler();
+                }
+              }}
+              className={`flex-1 py-2 rounded-lg transition-colors ${followed ? "bg-red-500/10 text-red-500 hover:bg-red-500/20" : requested ? "bg-gray-600 text-white" : "bg-[var(--accent)] text-[var(--text-on-accent)] hover:bg-[var(--accent)]/90"
+                }`}
+            >
+              {followed ? "Unfollow" : requested ? "Requested" : "Follow"}
+            </button>
+            <button
+              onClick={messageHandler}
+              className="flex-1 py-2 rounded-lg bg-[var(--card-bg)] border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors"
+            >
+              Message
+            </button>
+          </div>
         )}
       </div>
 
