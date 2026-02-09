@@ -85,7 +85,7 @@ const Home = () => {
 
         {/* Mobile Header (Hide on md+) */}
         <div
-          className={`md:hidden sticky top-0 z-20 w-full transition-all duration-300 bg-[var(--bg-primary)]/90 backdrop-blur-md pb-2 ${showComposer
+          className={`md:hidden sticky top-0 z-[1000] w-full transition-all duration-300 bg-[var(--bg-primary)]/90 backdrop-blur-md pb-2 ${showComposer
             ? "translate-y-0 opacity-100"
             : "-translate-y-40 opacity-0 pointer-events-none"
             }`}
