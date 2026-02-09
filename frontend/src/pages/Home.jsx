@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { IoChatbubbleEllipsesOutline, IoNotificationsOutline } from "react-icons/io5";
 import AddPost from "../components/AddPost";
@@ -17,7 +17,7 @@ const Home = () => {
   const { totalUnreadMessages } = ChatData();
 
   const [showComposer, setShowComposer] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const lastScrollY = useRef(0); // Use ref to avoid re-binding listener
 
   // Merge and sort posts and reels by date, then mix to avoid consecutive posts from same user
   const allContent = React.useMemo(() => {
@@ -58,23 +58,23 @@ const Home = () => {
       // Always show navbar when at the top
       if (current < 10) {
         setShowComposer(true);
-        setLastScrollY(current);
+        lastScrollY.current = current;
         return;
       }
 
       // Scrolling down -> hide navbar
       // Scrolling up -> show navbar
-      if (current > lastScrollY) {
+      if (current > lastScrollY.current) {
         setShowComposer(false);
-      } else if (current < lastScrollY) {
+      } else if (current < lastScrollY.current) {
         setShowComposer(true);
       }
-      setLastScrollY(current);
+      lastScrollY.current = current;
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
+  }, []); // Dependence array is empty now!
 
 
   return (

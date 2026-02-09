@@ -39,26 +39,44 @@ const UserAccount = ({ user: loggedInUser }) => {
   }, [params.id, loggedInUser, navigate]);
 
   const [user, setUser] = useState(null);
+  const [userPosts, setUserPosts] = useState([]);
+  const [userReels, setUserReels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [feedModal, setFeedModal] = useState(null); // Added state
 
-  async function fetchUser() {
+  async function fetchData() {
+    setLoading(true);
     try {
-      const { data } = await axios.get("/api/user/" + params.id);
-      setUser(data);
-      setLoading(false);
+      // Parallel fetch for speed
+      const userPromise = axios.get("/api/user/" + params.id);
+      const postsPromise = axios.get("/api/post/user/" + params.id);
+
+      const [userRes, postsRes] = await Promise.allSettled([userPromise, postsPromise]);
+
+      if (userRes.status === "fulfilled") {
+        setUser(userRes.value.data);
+      } else {
+        console.error("User fetch failed", userRes.reason);
+      }
+
+      if (postsRes.status === "fulfilled") {
+        setUserPosts(postsRes.value.data.posts);
+        setUserReels(postsRes.value.data.reels);
+      } else {
+        // 403 or other error
+        setUserPosts([]);
+        setUserReels([]);
+      }
     } catch (error) {
       console.log(error);
+    } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchUser();
+    fetchData();
   }, [params.id]);
-
-  const [userPosts, setUserPosts] = useState([]);
-  const [userReels, setUserReels] = useState([]);
 
   // Fetch User's Posts directly (Privacy Aware)
   // Fetch User's Posts directly (Privacy Aware)

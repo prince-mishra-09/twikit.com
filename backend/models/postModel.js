@@ -55,5 +55,7 @@ postSchema.index({ owner: 1, createdAt: -1 }); // User's posts sorted by date (G
 postSchema.index({ type: 1, createdAt: -1 }); // Posts/Reels sorted by date (Feed)
 postSchema.index({ createdAt: -1 }); // Feed sorting (Fallback)
 postSchema.index({ owner: 1, type: 1, createdAt: -1 }); // User's specific posts/reels sorted (Profile)
+postSchema.index({ vibesUp: 1 }); // Performance: Reverse lookup for likes
+postSchema.index({ vibesDown: 1 }); // Performance: Reverse lookup for dislikes
 
 export const Post = mongoose.model("Post", postSchema);

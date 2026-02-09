@@ -26,64 +26,58 @@ export const userProfile = async (req, res) => {
   const userId = req.params.id;
   const cacheKey = `user:${userId}`;
 
-  // 1. Try Cache
+  // Helper to validate access (Block/Private)
+  const validateAccess = (user, reqUser) => {
+    const isGuest = !reqUser;
+    if (!isGuest) {
+      // Check if I am blocked by them
+      if (user.blockedUsers && user.blockedUsers.includes(reqUser._id.toString())) {
+        return { error: "User Not Found", status: 404 };
+      }
+      // Check if I have blocked them
+      if (reqUser.blockedUsers && reqUser.blockedUsers.includes(user._id.toString())) {
+        return { error: "User Not Found", status: 404 };
+      }
+    }
+    if (isGuest && user.isPrivate) {
+      return { error: "Login required to view private profile", status: 401 };
+    }
+    return null;
+  };
+
   try {
+    // 1. Try Cache
     const cachedUser = await redis.get(cacheKey);
     if (cachedUser) {
       const user = JSON.parse(cachedUser);
-      const isGuest = !req.user;
-
-      // CHECK BLOCK STATUS (only for logged in users) - Logic duplicated for Cache
-      if (!isGuest) {
-        if (req.user.blockedUsers.includes(user._id)) {
-          return res.status(404).json({ message: "User Not Found" });
-        }
-        if (user.blockedUsers && user.blockedUsers.includes(req.user._id.toString())) {
-          return res.status(404).json({ message: "User Not Found" });
-        }
-      }
-
-      // Privacy Check
-      if (isGuest && user.isPrivate) {
-        return res.status(401).json({ message: "Login required to view private profile" });
-      }
-
+      const accessError = validateAccess(user, req.user);
+      if (accessError) return res.status(accessError.status).json({ message: accessError.error });
       return res.json(user);
     }
-  } catch (error) {
-    console.error("Redis Cache Error:", error);
-  }
 
-  // 2. Database Fallback
-  const user = await User.findById(userId).select("-password");
+    // 2. Database Fallback (Use lean() for speed)
+    // Select specific fields if possible, but for profile we need most of them.
+    // Excluding potentially heavy arrays if they grow too large, but 'followers' is needed for count.
+    // If 'followers' array is HUGE, we should only $size it, but frontend checks .includes().
+    // For now, .lean() removes mongoose overhead.
+    const user = await User.findById(userId).select("-password").lean();
 
-  if (!user) return res.status(404).json({ message: "User Not Found" });
+    if (!user) return res.status(404).json({ message: "User Not Found" });
 
-  const isGuest = !req.user;
+    // Since we use lean(), _id is object, convert to string for comparison if needed, 
+    // but validateAccess uses .toString() so it's fine.
 
-  // CHECK BLOCK STATUS
-  if (!isGuest) {
-    if (req.user.blockedUsers.includes(user._id)) {
-      return res.status(404).json({ message: "User Not Found" });
-    }
-    if (user.blockedUsers.includes(req.user._id)) {
-      return res.status(404).json({ message: "User Not Found" });
-    }
-  }
+    const accessError = validateAccess(user, req.user);
+    if (accessError) return res.status(accessError.status).json({ message: accessError.error });
 
-  // Privacy Check
-  if (isGuest && user.isPrivate) {
-    return res.status(401).json({ message: "Login required to view private profile" });
-  }
-
-  // 3. Set Cache (300 seconds = 5 minutes)
-  try {
+    // 3. Set Cache
     await redis.set(cacheKey, JSON.stringify(user), "EX", 300);
-  } catch (error) {
-    console.error("Redis Set Error:", error);
-  }
 
-  res.json(user);
+    res.json(user);
+  } catch (error) {
+    console.error("Profile Fetch Error:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
 };
 
 
