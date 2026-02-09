@@ -2,7 +2,8 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import Post from "../components/PostCard";
-import { Loading } from "../components/Loading";
+
+import { SkeletonPost } from "../components/Skeleton";
 
 const PostDetail = () => {
   const { id } = useParams();
@@ -36,7 +37,13 @@ const PostDetail = () => {
     fetchPosts();
   }, [id]);
 
-  if (loading) return <Loading />;
+  if (loading) return (
+    <div className="min-h-screen bg-[var(--bg-primary)] flex justify-center px-4 py-8">
+      <div className="w-full max-w-xl">
+        <SkeletonPost />
+      </div>
+    </div>
+  );
 
   if (posts.length === 0) {
     return (

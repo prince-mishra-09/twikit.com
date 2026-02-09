@@ -1,0 +1,134 @@
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { UserData } from "../context/UserContext";
+
+const RightBar = () => {
+    const { user, isAuth, searchUser, followUser } = UserData();
+    const [suggestions, setSuggestions] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchSuggestions = async () => {
+            if (!isAuth || !user) return;
+
+            console.log("RightBar: Fetching suggestions...");
+            // Fetch all/top users using search with empty query
+            const users = await searchUser("");
+            console.log("RightBar: Users fetched:", users.length);
+
+            // Filter: Exclude me, and people I already follow
+            const filtered = users.filter(u =>
+                u._id !== user._id &&
+                !user.followings?.includes(u._id)
+            ).slice(0, 5); // Take top 5
+
+            console.log("RightBar: Filtered suggestions:", filtered.length);
+            setSuggestions(filtered);
+            setLoading(false);
+        };
+
+        fetchSuggestions();
+    }, [user, isAuth, searchUser]);
+
+    if (!isAuth || !user) return null;
+
+    return (
+        <div className="hidden lg:block w-[320px] fixed right-0 top-0 h-screen py-8 pr-8 pl-4 z-50 overflow-y-auto custom-scrollbar">
+            {/* User Switcher */}
+            <div className="flex items-center justify-between mb-6">
+                <Link to={`/user/${user._id}`} className="flex items-center gap-3 group">
+                    <div className="w-11 h-11 rounded-full overflow-hidden border border-[var(--border)] group-hover:border-[var(--accent)] transition-colors bg-[var(--bg-secondary)]">
+                        {user.profilePic?.url ? (
+                            <img src={user.profilePic.url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-[var(--text-secondary)] font-bold text-lg">
+                                {user.name?.[0]}
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-sm font-bold text-[var(--text-primary)]">{user.username}</span>
+                        <span className="text-sm text-[var(--text-secondary)]">{user.name}</span>
+                    </div>
+                </Link>
+                {/* <button className="text-xs font-bold text-[var(--accent)] hover:text-white transition-colors">
+                    Switch
+                </button> */}
+            </div>
+
+            {/* Suggestions Header */}
+            <div className="flex justify-between items-center mb-4">
+                <span className="text-sm font-bold text-[var(--text-secondary)]">Suggested for you</span>
+                <Link to="/search" className="text-xs font-bold text-[var(--text-primary)] hover:opacity-70">See All</Link>
+            </div>
+
+            {/* Suggestions List */}
+            <div className="flex flex-col gap-4">
+                {loading ? (
+                    // Simple Skeleton
+                    [...Array(3)].map((_, i) => (
+                        <div key={i} className="flex items-center justify-between animate-pulse">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-[var(--bg-secondary)]"></div>
+                                <div className="flex flex-col gap-1">
+                                    <div className="h-2 w-20 bg-[var(--bg-secondary)] rounded"></div>
+                                    <div className="h-2 w-12 bg-[var(--bg-secondary)] rounded"></div>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                ) : suggestions.length > 0 ? (
+                    suggestions.map((s) => (
+                        <div key={s._id} className="flex items-center justify-between">
+                            <Link to={`/user/${s._id}`} className="flex items-center gap-3 group">
+                                <div className="w-8 h-8 rounded-full bg-[var(--bg-secondary)] overflow-hidden border border-[var(--border)] group-hover:border-[var(--text-primary)] transition-colors">
+                                    {s.profilePic?.url ? (
+                                        <img src={s.profilePic.url} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-[var(--text-secondary)] text-xs font-bold">
+                                            {s.name?.[0]}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-bold text-[var(--text-primary)] hover:underline truncate max-w-[120px]">{s.username}</span>
+                                    <span className="text-[10px] text-[var(--text-secondary)]">Suggested for you</span>
+                                </div>
+                            </Link>
+                            <button
+                                onClick={() => followUser(s._id)}
+                                className="text-xs font-bold text-[var(--accent)] hover:text-white transition-colors"
+                            >
+                                Follow
+                            </button>
+                        </div>
+                    ))
+                ) : (
+                    <div className="text-xs text-[var(--text-secondary)]">No new suggestions</div>
+                )}
+            </div>
+
+            {/* Footer Links - Fixed to bottom */}
+            <div className="fixed bottom-0 right-0 w-[320px] pr-8 pl-4 pb-4 bg-[var(--bg-primary)]">
+                <div className="flex flex-wrap gap-x-2 gap-y-1 text-xs text-[var(--text-secondary)]/50">
+                    <a href="https://www.twikit.online/" className="hover:underline">About</a>
+                    <span>•</span>
+                    <a href="https://www.twikit.online/" className="hover:underline">Help</a>
+                    <span>•</span>
+                    <a href="#" className="hover:underline">API</a>
+                    <span>•</span>
+                    <a href="#" className="hover:underline">Privacy</a>
+                    <span>•</span>
+                    <a href="#" className="hover:underline">Terms</a>
+                </div>
+
+                <div className="mt-2 text-xs text-[var(--text-secondary)]/50 uppercase">
+                    © 2026 Twikit from INDIA
+                </div>
+            </div>
+
+        </div>
+    );
+};
+
+export default RightBar;

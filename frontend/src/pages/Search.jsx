@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { LoadingAnimation } from "../components/Loading";
 import { FaSearch, FaCompass } from "react-icons/fa";
@@ -15,6 +15,11 @@ const Search = () => {
 
   // Global content for Explore Feed
   const { reels: globalReels, posts: globalPosts } = PostData();
+
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Derived state to separate Search Results
   const actualPosts = posts.filter(p => p.type === 'post');
@@ -59,160 +64,162 @@ const Search = () => {
   }, [globalReels, globalPosts]);
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] flex justify-center px-0 pt-2 pb-20">
-      <div className="w-full max-w-xl px-4">
-
-        {/* SEARCH BAR */}
-        <div className="sticky top-2 z-20 flex items-center gap-3 bg-[var(--card-bg)]/90 backdrop-blur-md border border-[var(--border)] rounded-xl px-4 py-3 mb-6 shadow-lg shadow-[var(--accent)]/10">
-          <FaSearch className="text-[var(--text-secondary)]" />
-          <input
-            type="text"
-            className="flex-1 bg-transparent outline-none text-[var(--text-primary)] placeholder-[var(--text-secondary)]"
-            placeholder="Search @username or name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && fetchUsers()}
-            autoFocus
-          />
+    <div className="min-h-screen bg-[var(--bg-primary)] pb-24 pt-2">
+      {/* SEARCH BAR */}
+      {/* SEARCH BAR */}
+      <div className="sticky top-0 z-20 bg-[var(--bg-primary)]/90 backdrop-blur-md border-b border-[var(--border)] px-4 py-3 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 flex items-center gap-3 bg-[var(--bg-secondary)] rounded-full px-4 py-2.5 border border-transparent focus-within:border-[var(--accent)] transition-all group">
+            <FaSearch className="text-[var(--text-secondary)] group-focus-within:text-[var(--accent)] transition-colors" />
+            <input
+              type="text"
+              className="flex-1 bg-transparent outline-none text-[var(--text-primary)] placeholder-[var(--text-secondary)] text-sm"
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && fetchUsers()}
+              autoFocus
+            />
+          </div>
           <button
             onClick={fetchUsers}
-            className="bg-[var(--accent)] hover:opacity-90 text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors"
+            className="bg-[var(--accent)] hover:opacity-90 active:scale-95 text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-lg shadow-[var(--accent)]/20"
           >
             Search
           </button>
         </div>
+      </div>
 
-        {/* RESULTS or EXPLORE */}
-        <div>
-          {loading ? (
-            <div className="flex justify-center mt-10">
-              <LoadingAnimation />
-            </div>
-          ) : (users.length > 0 || posts.length > 0) ? (
-            <div className="space-y-4">
-              {/* 1. Top 10 Users */}
-              {topUsers.map((u) => (
-                <Link
-                  key={u._id}
-                  to={`/user/${u._id}`}
-                  className="flex items-start gap-4 px-4 py-4 rounded-xl bg-[var(--card-bg)]/50 border border-[var(--border)] hover:bg-[var(--card-bg)] transition-all"
-                >
-                  <img
-                    src={u?.profilePic?.url || "/default-avatar.png"}
-                    alt="profile"
-                    className="w-12 h-12 rounded-full object-cover border border-[var(--border)] shrink-0"
-                  />
-                  <div className="flex flex-col flex-1 min-w-0">
-                    <p className="text-[var(--text-primary)] font-bold text-base truncate">{u.name}</p>
-                    <p className="text-[var(--text-secondary)] text-sm truncate">@{u.username}</p>
-                    {u.bio && (
-                      <p className="text-[var(--text-secondary)] text-xs mt-1.5 line-clamp-2 break-words leading-relaxed">
-                        {u.bio}
-                      </p>
-                    )}
-                  </div>
-                </Link>
-              ))}
-
-              {/* 2. REELS GRID (Search Results) */}
-              {actualReels.length > 0 && (
-                <div className="pt-4 pb-2">
-                  <h3 className="text-[var(--accent)] font-semibold text-sm mb-3 px-2 uppercase tracking-wider">Reels</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    {actualReels.map((reel) => (
-                      <SearchReelItem key={reel._id} reel={reel} />
-                    ))}
-                  </div>
+      {/* RESULTS or EXPLORE */}
+      <div className="px-1">
+        {loading ? (
+          <div className="flex justify-center mt-10">
+            <LoadingAnimation />
+          </div>
+        ) : (users.length > 0 || posts.length > 0) ? (
+          <div className="space-y-4">
+            {/* 1. Top 10 Users */}
+            {topUsers.map((u) => (
+              <Link
+                key={u._id}
+                to={`/user/${u._id}`}
+                className="flex items-start gap-4 px-4 py-4 rounded-xl bg-[var(--card-bg)]/50 border border-[var(--border)] hover:bg-[var(--card-bg)] transition-all"
+              >
+                <img
+                  src={u?.profilePic?.url || "/default-avatar.png"}
+                  alt="profile"
+                  className="w-12 h-12 rounded-full object-cover border border-[var(--border)] shrink-0"
+                />
+                <div className="flex flex-col flex-1 min-w-0">
+                  <p className="text-[var(--text-primary)] font-bold text-base truncate">{u.name}</p>
+                  <p className="text-[var(--text-secondary)] text-sm truncate">@{u.username}</p>
+                  {u.bio && (
+                    <p className="text-[var(--text-secondary)] text-xs mt-1.5 line-clamp-2 break-words leading-relaxed">
+                      {u.bio}
+                    </p>
+                  )}
                 </div>
-              )}
+              </Link>
+            ))}
 
-              {/* 3. POSTS LIST (Search Results) */}
-              {actualPosts.length > 0 && (
-                <div className="pt-4 pb-2">
-                  <h3 className="text-[var(--accent)] font-semibold text-sm mb-3 px-2 uppercase tracking-wider">Posts from results</h3>
-                  <div className="space-y-4">
-                    {actualPosts.map((post) => (
-                      <PostCard key={post._id} value={post} type="post" />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 4. Remaining Users */}
-              {remainingUsers.length > 0 && (
-                <div className="pt-2">
-                  {posts.length > 0 && <h3 className="text-[var(--text-secondary)] font-semibold text-sm mb-3 px-2 uppercase tracking-wider">More Profiles</h3>}
-                  {remainingUsers.map((u) => (
-                    <Link
-                      key={u._id}
-                      to={`/user/${u._id}`}
-                      className="flex items-start gap-4 px-4 py-4 rounded-xl bg-[var(--card-bg)]/50 border border-[var(--border)] hover:bg-[var(--card-bg)] transition-all mb-4"
-                    >
-                      <img
-                        src={u?.profilePic?.url || "/default-avatar.png"}
-                        alt="profile"
-                        className="w-12 h-12 rounded-full object-cover border border-[var(--border)] shrink-0"
-                      />
-                      <div className="flex flex-col flex-1 min-w-0">
-                        <p className="text-[var(--text-primary)] font-bold text-base truncate">{u.name}</p>
-                        <p className="text-[var(--text-secondary)] text-sm truncate">@{u.username}</p>
-                      </div>
-                    </Link>
+            {/* 2. REELS GRID (Search Results) */}
+            {actualReels.length > 0 && (
+              <div className="pt-4 pb-2">
+                <h3 className="text-[var(--accent)] font-semibold text-sm mb-3 px-2 uppercase tracking-wider">Reels</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {actualReels.map((reel) => (
+                    <SearchReelItem key={reel._id} reel={reel} />
                   ))}
                 </div>
-              )}
-            </div>
-          ) : hasSearched && search.trim() ? (
-            <div className="text-center mt-10">
-              <p className="text-[var(--text-secondary)] text-lg font-medium">No results found for "{search}"</p>
-              <p className="text-[var(--text-secondary)] text-sm mt-2">Try searching for a specific username or name.</p>
-            </div>
-          ) : (
-            // EXPLORE FEED (Empty State)
-            <div className="mt-4 animate-in fade-in duration-500">
-              <div className="flex items-center gap-2 mb-4 px-2">
-                <FaCompass className="text-[var(--accent)] text-lg" />
-                <h2 className="text-[var(--text-primary)] font-bold text-lg">Explore</h2>
               </div>
+            )}
 
-              <div className="columns-2 gap-3 space-y-3 pb-20">
-                {exploreContent.map((item) => {
-                  if (item.type === 'reel') {
-                    return (
-                      <div key={item._id} className="break-inside-avoid mb-3">
-                        <SearchReelItem reel={item} />
-                      </div>
-                    );
-                  } else {
-                    return (
-                      <div key={item._id} className="break-inside-avoid mb-3 rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--card-bg)]">
-                        {item.post?.url && (
-                          <Link to={`/post/${item._id}`}>
-                            <img src={item.post.url} alt="" className="w-full h-auto object-cover" />
-                          </Link>
-                        )}
-                        <div className="p-2">
-                          <div className="flex items-center gap-2 mb-1">
-                            <img src={item.owner?.profilePic?.url} className="w-4 h-4 rounded-full" />
-                            <span className="text-xs text-[var(--text-primary)] font-bold truncate">{item.owner?.name}</span>
-                          </div>
-                          {item.caption && <p className="text-[10px] text-[var(--text-secondary)] line-clamp-2">{item.caption}</p>}
-                        </div>
-                      </div>
-                    )
-                  }
-                })}
-              </div>
-
-              {exploreContent.length === 0 && (
-                <div className="flex flex-col items-center justify-center mt-20 opacity-50">
-                  <FaSearch className="text-6xl text-[var(--text-secondary)] mb-4" />
-                  <p className="text-[var(--text-secondary)]">Search for people, posts, and more</p>
+            {/* 3. POSTS LIST (Search Results) */}
+            {actualPosts.length > 0 && (
+              <div className="pt-4 pb-2">
+                <h3 className="text-[var(--accent)] font-semibold text-sm mb-3 px-2 uppercase tracking-wider">Posts from results</h3>
+                <div className="space-y-4">
+                  {actualPosts.map((post) => (
+                    <PostCard key={post._id} value={post} type="post" />
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
+
+            {/* 4. Remaining Users */}
+            {remainingUsers.length > 0 && (
+              <div className="pt-2">
+                {posts.length > 0 && <h3 className="text-[var(--text-secondary)] font-semibold text-sm mb-3 px-2 uppercase tracking-wider">More Profiles</h3>}
+                {remainingUsers.map((u) => (
+                  <Link
+                    key={u._id}
+                    to={`/user/${u._id}`}
+                    className="flex items-start gap-4 px-4 py-4 rounded-xl bg-[var(--card-bg)]/50 border border-[var(--border)] hover:bg-[var(--card-bg)] transition-all mb-4"
+                  >
+                    <img
+                      src={u?.profilePic?.url || "/default-avatar.png"}
+                      alt="profile"
+                      className="w-12 h-12 rounded-full object-cover border border-[var(--border)] shrink-0"
+                    />
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <p className="text-[var(--text-primary)] font-bold text-base truncate">{u.name}</p>
+                      <p className="text-[var(--text-secondary)] text-sm truncate">@{u.username}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : hasSearched && search.trim() ? (
+          <div className="text-center mt-10">
+            <p className="text-[var(--text-secondary)] text-lg font-medium">No results found for "{search}"</p>
+            <p className="text-[var(--text-secondary)] text-sm mt-2">Try searching for a specific username or name.</p>
+          </div>
+        ) : (
+          // EXPLORE FEED (Empty State)
+          <div className="mt-4 animate-in fade-in duration-500">
+            <div className="flex items-center gap-2 mb-4 px-2">
+              <FaCompass className="text-[var(--accent)] text-lg" />
+              <h2 className="text-[var(--text-primary)] font-bold text-lg">Explore</h2>
             </div>
-          )}
-        </div>
+
+            <div className="columns-2 gap-3 space-y-3 pb-28">
+              {exploreContent.map((item) => {
+                if (item.type === 'reel') {
+                  return (
+                    <div key={item._id} className="break-inside-avoid mb-3">
+                      <SearchReelItem reel={item} />
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div key={item._id} className="break-inside-avoid mb-3 rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--card-bg)]">
+                      {item.post?.url && (
+                        <Link to={`/post/${item._id}`}>
+                          <img src={item.post.url} alt="" className="w-full h-auto object-cover" />
+                        </Link>
+                      )}
+                      <div className="p-2">
+                        <div className="flex items-center gap-2 mb-1">
+                          <img src={item.owner?.profilePic?.url} className="w-4 h-4 rounded-full" />
+                          <span className="text-xs text-[var(--text-primary)] font-bold truncate">{item.owner?.name}</span>
+                        </div>
+                        {item.caption && <p className="text-[10px] text-[var(--text-secondary)] line-clamp-2">{item.caption}</p>}
+                      </div>
+                    </div>
+                  )
+                }
+              })}
+            </div>
+
+            {exploreContent.length === 0 && (
+              <div className="flex flex-col items-center justify-center mt-20 opacity-50">
+                <FaSearch className="text-6xl text-[var(--text-secondary)] mb-4" />
+                <p className="text-[var(--text-secondary)]">Search for people, posts, and more</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

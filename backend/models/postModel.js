@@ -23,7 +23,7 @@ const postSchema = new mongoose.Schema({
     default: Date.now,
   },
 
-  reals: [
+  vibesUp: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -31,7 +31,7 @@ const postSchema = new mongoose.Schema({
     },
   ],
 
-  reflections: [
+  vibesDown: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

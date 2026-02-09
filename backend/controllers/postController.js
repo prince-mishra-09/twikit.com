@@ -157,19 +157,19 @@ export const getAllPosts = TryCatch(async (req, res) => {
                 profilePic: 1,
                 isPrivate: 1
             },
-            reals: {
+            vibesUp: {
                 $filter: {
-                    input: "$reals",
+                    input: "$vibesUp",
                     as: "r",
                     cond: { $not: { $in: ["$$r", hiddenUserObjectIds] } }
                 }
             },
-            reflections: {
+            vibesDown: {
                 $cond: {
                     if: { $eq: ["$owner._id", userObjectId] },
                     then: {
                         $filter: {
-                            input: "$reflections",
+                            input: "$vibesDown",
                             as: "r",
                             cond: { $not: { $in: ["$$r", hiddenUserObjectIds] } }
                         }
@@ -240,24 +240,26 @@ export const getAllPosts = TryCatch(async (req, res) => {
 });
 
 export const handleFeedback = TryCatch(async (req, res) => {
-    const { feedbackType } = req.body; // "real" or "reflect"
+    const { feedbackType } = req.body; // "vibeUp" or "vibeDown"
 
-    if (!["real", "reflect"].includes(feedbackType)) {
-        return res.status(400).json({ message: "Invalid feedback type" });
+    if (!["vibeUp", "vibeDown"].includes(feedbackType)) {
+        return res.status(400).json({ message: "Invalid feedback type. Use 'vibeUp' or 'vibeDown'" });
     }
 
     const userId = req.user._id;
     const postId = req.params.id;
 
     // Mutually exclusive fields
-    const currentField = feedbackType === "real" ? "reals" : "reflections";
-    const otherField = feedbackType === "real" ? "reflections" : "reals";
+    const currentField = feedbackType === "vibeUp" ? "vibesUp" : "vibesDown";
+    const otherField = feedbackType === "vibeUp" ? "vibesDown" : "vibesUp";
 
     // 1. Check if feedback already exists in CURRENT field
     const existingPost = await Post.findById(postId);
     if (!existingPost) return res.status(404).json({ message: "No Post with this id" });
 
-    const isRemoving = existingPost[currentField].includes(userId);
+    // Handle migration case where fields might be missing if not yet migrated
+    const currentList = existingPost[currentField] || [];
+    const isRemoving = currentList.includes(userId);
 
     let updatedPost;
 
@@ -283,28 +285,21 @@ export const handleFeedback = TryCatch(async (req, res) => {
     const action = isRemoving ? "removed" : "added";
 
     // 🔥 REAL-TIME EMIT (PRIVACY SAFE)
-    // Only emit PUBLIC REAL update if it actually changed
-    if (feedbackType === "real" || (feedbackType === "reflect" && action === "added" && existingPost.reals.includes(userId))) {
-        io.to("post:" + updatedPost._id).emit("postRealUpdated", {
+    // Only emit VIBE UP update if it actually changed (Public)
+    if (feedbackType === "vibeUp" || (feedbackType === "vibeDown" && action === "added" && existingPost.vibesUp?.includes(userId))) {
+        io.to("post:" + updatedPost._id).emit("postVibeUpdated", {
             postId: updatedPost._id,
-            reals: updatedPost.reals,
-            realsCount: updatedPost.reals.length,
-            action: feedbackType === "real" ? action : "removed",
+            vibesUp: updatedPost.vibesUp,
+            vibesUpCount: updatedPost.vibesUp.length,
+            action: feedbackType === "vibeUp" ? action : "removed",
         });
     }
 
-    // Emit REFLECTION update ONLY to owner's private room
-    io.to("user:" + updatedPost.owner.toString()).emit("postReflectionUpdated", {
+    // Emit VIBE DOWN update ONLY to owner's private room
+    io.to("user:" + updatedPost.owner.toString()).emit("postVibeDownUpdated", {
         postId: updatedPost._id,
-        reflections: updatedPost.reflections,
-        reflectionsCount: updatedPost.reflections.length,
-        action: feedbackType === "reflect" ? action : (action === "added" ? "removed" : "none"),
-        userId: userId,
-    });
-
-    // Send immediate response
-    res.json({
-        message: isRemoving ? `${feedbackType} feedback removed` : `${feedbackType} feedback added`,
+        vibesDown: updatedPost.vibesDown,
+        message: isRemoving ? `${feedbackType} removed` : `${feedbackType} added`,
     });
 
     // NOTIFICATION LOGIC (Asynchronous / Non-blocking)
@@ -330,10 +325,16 @@ export const handleFeedback = TryCatch(async (req, res) => {
                 await notification.populate("postId", "post");
                 io.to("user:" + updatedPost.owner.toString()).emit("notification:new", notification);
 
-                if (feedbackType === "real") {
+                if (feedbackType === "vibeUp") {
+                    // updatedPost.owner is an ID (line 48 population is separate in other func, here strict findById update).
+                    // We need to fetch owner name for Title if we don't have it.
+                    // Actually, updatedPost.owner is ObjectId.
+                    const ownerUser = await User.findById(updatedPost.owner).select("name");
+                    const ownerName = ownerUser ? ownerUser.name : "Twikit";
+
                     await sendPushNotification(updatedPost.owner, {
-                        title: "New Real Feedback",
-                        body: `${req.user.name} thinks your post is Real`,
+                        title: `${ownerName} • Vibe Check`,
+                        body: `${req.user.name} vibed up your post! ✨`,
                         url: `/post/${updatedPost._id.toString()}`,
                     });
                 }
@@ -413,7 +414,7 @@ export const getRandomPosts = async (req, res) => {
         },
         {
             $project: {
-                reflections: 0,
+                vibesDown: 0,
                 "owner.password": 0,
             }
         }
@@ -479,10 +480,10 @@ export const getPost = TryCatch(async (req, res) => {
             }
         }
 
-        // Reflections Privacy
+        // VibesDown Privacy (Private to owner)
         const isOwner = !isGuest && post.owner._id.toString() === req.user._id.toString();
         if (!isOwner) {
-            post.reflections = [];
+            post.vibesDown = []; // Clean data before sending
         }
 
         // ... existing getPost ...

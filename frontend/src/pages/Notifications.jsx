@@ -76,10 +76,10 @@ const Notifications = () => {
 
     const getNotificationMessage = (type) => {
         switch (type) {
-            case "real":
-                return "thinks your post is Real";
-            case "reflect":
-                return "sent a reflection on your post";
+            case "vibeUp":
+                return "vibed up your post ✨";
+            case "vibeDown":
+                return "sent a private vibe down 📉";
             case "comment":
                 return "commented on your post";
             case "follow":
@@ -100,7 +100,7 @@ const Notifications = () => {
 
     return (
         <div className="min-h-screen bg-[var(--bg-primary)] flex justify-center text-[var(--text-primary)]">
-            <div className="w-full max-w-xl px-4 py-6 pb-24">
+            <div className="w-full max-w-[630px] px-4 py-6 pb-24">
                 <div className="flex items-center gap-3 mb-6">
                     <button
                         onClick={() => navigate("/")}

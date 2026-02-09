@@ -100,7 +100,7 @@ const userSchema = new mongoose.Schema({
 });
 
 // Indexes for performance optimization
-userSchema.index({ email: 1 }, { unique: true }); // Login/auth lookups
+userSchema.index({ email: 1 }); // Login/auth lookups (Not unique anymore, max 10 allowed via controller logic)
 userSchema.index({ username: 1 }, { unique: true, sparse: true }); // Profile lookups
 userSchema.index({ name: 1 }); // Search by name
 

@@ -235,11 +235,11 @@ class OTPEmailService {
               <div class="card">
                   <p style="margin-top: 0; color: #CBD5E1; font-size: 15px; margin-bottom: 24px;">Twikit was built for people who are tired of performing. Tired of pretending. Tired of measuring themselves with likes.</p>
                   
-                  <div class="feature-label label-real">✨ Real</div>
-                  <p class="feature-text">When someone genuinely connects with what you shared. It’s a signal of appreciation, not a performance metric.</p>
+                  <div class="feature-label label-real">✨ Vibe Up</div>
+                  <p class="feature-text">When someone genuinely vibes with what you shared. It’s a signal of appreciation, not a performance metric.</p>
                   
-                  <div class="feature-label label-reflect" style="margin-top: 8px;">💭 Less real</div>
-                  <p class="feature-text" style="margin-bottom: 0;">A private "Mirror" for reflection, visible only to you. It’s a quiet way to acknowledge content without public judgment.</p>
+                  <div class="feature-label label-reflect" style="margin-top: 8px;">💭 Vibe Down</div>
+                  <p class="feature-text" style="margin-bottom: 0;">A private signal that something felt off. Visible only to the author to help them reflect without public shame.</p>
               </div>
               
               <p class="hero-text">

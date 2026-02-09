@@ -226,6 +226,16 @@ export const UserContextProvider = ({ children }) => {
     }
   }, []);
 
+  const searchUser = useCallback(async (query) => {
+    try {
+      const { data } = await axios.get(`/api/user/search?search=${query}`);
+      return data.users;
+    } catch (error) {
+      // toast.error(getErrorMessage(error)); // Don't toast for search/suggestions
+      return [];
+    }
+  }, []);
+
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
@@ -235,8 +245,8 @@ export const UserContextProvider = ({ children }) => {
     logoutUser, registerUser, followUser, updateProfilePic,
     updateProfileInfo, savePost, hidePost, muteUser, unmuteUser,
     togglePrivacy, removeFollower, blockUser, unblockUser,
-    registerPush, showLoginPrompt, setShowLoginPrompt
-  }), [loginUser, isAuth, user, loading, logoutUser, registerUser, followUser, updateProfilePic, updateProfileInfo, savePost, hidePost, muteUser, unmuteUser, togglePrivacy, removeFollower, blockUser, unblockUser, registerPush, showLoginPrompt]);
+    registerPush, showLoginPrompt, setShowLoginPrompt, searchUser
+  }), [loginUser, isAuth, user, loading, logoutUser, registerUser, followUser, updateProfilePic, updateProfileInfo, savePost, hidePost, muteUser, unmuteUser, togglePrivacy, removeFollower, blockUser, unblockUser, registerPush, showLoginPrompt, searchUser]);
 
   return (
     <UserContext.Provider value={value}>

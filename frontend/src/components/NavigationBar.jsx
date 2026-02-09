@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AiOutlineHome, AiFillHome, AiOutlinePlus } from "react-icons/ai";
 import { BsCameraReelsFill, BsCameraReels } from "react-icons/bs";
-import { IoSearchCircleOutline, IoSearchCircle } from "react-icons/io5";
+import { IoSearch, IoSearchOutline } from "react-icons/io5";
 import { RiAccountCircleFill, RiAccountCircleLine } from "react-icons/ri";
 import CreatePostModal from "./CreatePostModal";
 import { UserData } from "../context/UserContext";
@@ -38,7 +38,9 @@ const NavigationBar = () => {
     <>
       {showCreateModal && <CreatePostModal setShow={setShowCreateModal} />}
 
-      <div className="fixed bottom-0 left-0 w-full z-40 bg-[var(--card-bg)]/95 backdrop-blur-xl">
+      {showCreateModal && <CreatePostModal setShow={setShowCreateModal} />}
+
+      <div className="md:hidden fixed bottom-0 left-0 w-full z-40 bg-[var(--bg-primary)]/90 backdrop-blur-md">
         <div className="flex justify-between items-center py-3 px-6 max-w-xl mx-auto">
 
           {/* Home */}
@@ -50,22 +52,22 @@ const NavigationBar = () => {
                 fetchPosts();
               }
             }}
-            className={`text-3xl transition-all duration-200 ${tab === "/" || tab === "/feed" ? activeStyle : inactiveStyle
+            className={`transition-all duration-200 ${tab === "/" || tab === "/feed" ? activeStyle : inactiveStyle
               }`}
           >
-            {tab === "/" || tab === "/feed" ? <AiFillHome /> : <AiOutlineHome />}
+            {tab === "/" || tab === "/feed" ? <AiFillHome className="w-7 h-7" /> : <AiOutlineHome className="w-7 h-7" />}
           </Link>
 
           {/* Search */}
           <Link
             to="/search"
-            className={`text-3xl transition-all duration-200 ${tab === "/search" ? activeStyle : inactiveStyle
+            className={`transition-all duration-200 ${tab === "/search" ? activeStyle : inactiveStyle
               }`}
           >
-            {tab === "/search" ? <IoSearchCircle className="text-3xl" /> : <IoSearchCircleOutline className="text-3xl" />}
+            {tab === "/search" ? <IoSearch className="w-7 h-7" /> : <IoSearchOutline className="w-7 h-7" />}
           </Link>
 
-          {/* ADD POST BUTTON (CENTER) */}
+          {/* ADD POST BUTTON */}
           <button
             onClick={() => {
               if (isAuth) {
@@ -74,27 +76,27 @@ const NavigationBar = () => {
                 setShowLoginPrompt(true);
               }
             }}
-            className="bg-[var(--accent)] text-[var(--bg-secondary)] p-3 rounded-xl shadow-lg shadow-[var(--accent)]/30 hover:opacity-90 hover:scale-105 transition-all -mt-8 border-4 border-[var(--bg-primary)]"
+            className="transition-all duration-200 text-[var(--text-primary)] hover:text-[var(--accent)] hover:scale-110"
           >
-            <AiOutlinePlus className="text-2xl font-bold" />
+            <AiOutlinePlus className="w-7 h-7" />
           </button>
 
           {/* Reels */}
           <Link
             to="/reels"
-            className={`text-3xl transition-all duration-200 ${tab === "/reels" ? activeStyle : inactiveStyle
+            className={`transition-all duration-200 ${tab === "/reels" ? activeStyle : inactiveStyle
               }`}
           >
-            {tab === "/reels" ? <BsCameraReelsFill /> : <BsCameraReels />}
+            {tab === "/reels" ? <BsCameraReelsFill className="w-7 h-7" /> : <BsCameraReels className="w-7 h-7" />}
           </Link>
 
           {/* Account */}
           <Link
             to="/account"
-            className={`text-3xl transition-all duration-200 ${tab === "/account" ? activeStyle : inactiveStyle
+            className={`transition-all duration-200 ${tab === "/account" ? activeStyle : inactiveStyle
               }`}
           >
-            {tab === "/account" ? <RiAccountCircleFill /> : <RiAccountCircleLine />}
+            {tab === "/account" ? <RiAccountCircleFill className="w-7 h-7" /> : <RiAccountCircleLine className="w-7 h-7" />}
           </Link>
         </div>
       </div>

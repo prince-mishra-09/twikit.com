@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { LoadingAnimation } from "./Loading";
 import { Link } from "react-router-dom";
 
-const RealModal = ({ isOpen, onClose, id }) => {
+const VibeModal = ({ isOpen, onClose, id }) => {
   if (!isOpen) return null;
 
   const [value, setValue] = useState(null);
@@ -24,7 +24,7 @@ const RealModal = ({ isOpen, onClose, id }) => {
     fetchPost();
   }, [id]);
 
-  const reals = value?.reals || [];
+  const vibesUp = value?.vibesUp || [];
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -32,7 +32,7 @@ const RealModal = ({ isOpen, onClose, id }) => {
 
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-white font-medium">✨ Real feedback by</h2>
+          <h2 className="text-white font-medium">✨ Vibed up by</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white text-xl"
@@ -47,9 +47,9 @@ const RealModal = ({ isOpen, onClose, id }) => {
             <LoadingAnimation />
           </div>
         ) : (
-          <div className="max-h-[300px] overflow-y-auto space-y-3">
-            {reals.length > 0 ? (
-              reals.map((e, i) => (
+          <div className="max-h-[300px] overflow-y-auto space-y-3 custom-scrollbar">
+            {vibesUp.length > 0 ? (
+              vibesUp.map((e, i) => (
                 <Link
                   key={i}
                   to={`/user/${e?._id}`}
@@ -68,7 +68,7 @@ const RealModal = ({ isOpen, onClose, id }) => {
               ))
             ) : (
               <p className="text-gray-400 text-sm text-center py-6">
-                No real feedback yet
+                No vibes yet
               </p>
             )}
           </div>
@@ -78,4 +78,4 @@ const RealModal = ({ isOpen, onClose, id }) => {
   );
 };
 
-export default RealModal;
+export default VibeModal;

@@ -17,55 +17,53 @@ import { getOptimizedImg } from "../utils/cloudinary";
 
 const CommentItem = React.lazy(() => import("./CommentItem"));
 const ShareModal = React.lazy(() => import("./ShareModal"));
-const RealModal = React.lazy(() => import("./RealModal"));
+const VibeModal = React.lazy(() => import("./VibeModal"));
 
 
 
 // --- Custom Icons ---
-const RealIcon = ({ active }) => (
+// --- Custom Icons ---
+const VibeUpIcon = ({ active }) => (
   <svg
     width="18"
     height="18"
     viewBox="0 0 24 24"
-    fill={active ? "var(--accent)" : "none"}
+    fill="none"
     stroke={active ? "var(--accent)" : "currentColor"}
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
-    className={`transition-colors duration-200`}
+    className={`transition-colors duration-200 ${active ? "fill-[var(--accent)]" : ""}`}
   >
-    <path d="M12 2L14.7 9.3H22L16.1 13.4L18.4 20.7L12 16.6L5.6 20.7L7.9 13.4L2 9.3H9.3L12 2Z" />
+    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
   </svg>
 );
 
-const ReflectIcon = ({ active }) => (
+const VibeDownIcon = ({ active }) => (
   <svg
     width="18"
     height="18"
     viewBox="0 0 24 24"
     fill="none"
     stroke={active ? "var(--accent-secondary)" : "currentColor"}
-    strokeWidth={active ? "2.5" : "2"}
+    strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
-    className={`transition-all duration-200 ${active ? "opacity-100" : "opacity-80"}`}
+    className={`transition-all duration-200 ${active ? "fill-[var(--accent-secondary)] opacity-100" : "opacity-80"}`}
   >
-    <circle cx="12" cy="12" r="9" />
-    <path d="M16 8L12 12" />
-    <path d="M11 11L8 14" opacity="0.5" />
-    <path d="M14 7L13 8" opacity="0.3" />
+    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.31 2H17" />
   </svg>
 );
 
-const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFeed }) => {
+const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFeed, onClick }) => {
   const { user, isAuth, setShowLoginPrompt, followUser, savePost, hidePost, muteUser, blockUser } = UserData();
   const { sendFeedback, addComment, deletePost, deleteComment } = PostData();
   const navigate = useNavigate();
 
-  const [isReal, setIsReal] = useState(false);
-  const [realCount, setRealCount] = useState(value.reals?.length || 0);
-  const [isReflect, setIsReflect] = useState(false);
-  const [reflectCount, setReflectCount] = useState(value.reflections?.length || 0);
+  const [isVibeUp, setIsVibeUp] = useState(value.vibesUp?.includes(user?._id) || false);
+  const [vibeUpCount, setVibeUpCount] = useState(value.vibesUp?.length || 0);
+  const [isVibeDown, setIsVibeDown] = useState(value.vibesDown?.includes(user?._id) || false);
+  const [vibeDownCount, setVibeDownCount] = useState(value.vibesDown?.length || 0);
   const isOwner = user && value.owner?._id === user._id;
   const [show, setShow] = useState(false);
   const [showImage, setShowImage] = useState(false);
@@ -92,7 +90,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
   const captionLimit = 40; // Characters to show before truncating
   const [isFollowed, setIsFollowed] = useState(false);
   const [shareModal, setShareModal] = useState(false);
-  const [realModal, setRealModal] = useState(false);
+  const [vibeModal, setVibeModal] = useState(false);
 
   // New Comment State
   const [comments, setComments] = useState([]);
@@ -119,6 +117,14 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
       fetchComments();
     }
   }, [show, value._id]);
+
+  // Sync state with props (Important for Feed Refresh / Socket Updates)
+  useEffect(() => {
+    setIsVibeUp(value.vibesUp?.includes(user?._id) || false);
+    setVibeUpCount(value.vibesUp?.length || 0);
+    setIsVibeDown(value.vibesDown?.includes(user?._id) || false);
+    setVibeDownCount(value.vibesDown?.length || 0);
+  }, [value, user?._id]);
 
   // --- Handlers for Optimistic Updates ---
 
@@ -298,7 +304,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
           }}
         />
 
-        <RealModal isOpen={realModal} onClose={() => setRealModal(false)} id={value._id} />
+        <VibeModal isOpen={vibeModal} onClose={() => setVibeModal(false)} id={value._id} />
       </Suspense>
     </>
   );
@@ -443,20 +449,20 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
 
   // Separate effects to prevent race conditions/overwrites during partial updates
   useEffect(() => {
-    // Only update Real state when reals array changes
-    if (value.reals) {
-      setIsReal(value.reals.includes(user?._id));
-      setRealCount(value.reals.length);
+    // Only update VibeUp state when vibesUp array changes
+    if (value.vibesUp) {
+      setIsVibeUp(value.vibesUp.includes(user?._id));
+      setVibeUpCount(value.vibesUp.length);
     }
-  }, [value.reals, user?._id]);
+  }, [value.vibesUp, user?._id]);
 
   useEffect(() => {
-    // Only update Reflect state when reflections array changes
-    if (value.reflections) {
-      setIsReflect(value.reflections.includes(user?._id));
-      setReflectCount(value.reflections.length);
+    // Only update VibeDown state when vibesDown array changes
+    if (value.vibesDown) {
+      setIsVibeDown(value.vibesDown.includes(user?._id));
+      setVibeDownCount(value.vibesDown.length);
     }
-  }, [value.reflections, user?._id]);
+  }, [value.vibesDown, user?._id]);
 
   useEffect(() => {
     if (user && value.owner) {
@@ -513,25 +519,25 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
       return;
     }
     // Optimistic UI update with Mutual Exclusivity
-    if (feedbackType === "real") {
-      const newState = !isReal;
-      setIsReal(newState);
-      setRealCount(newState ? realCount + 1 : realCount - 1);
+    if (feedbackType === "vibeUp") {
+      const newState = !isVibeUp;
+      setIsVibeUp(newState);
+      setVibeUpCount(newState ? vibeUpCount + 1 : vibeUpCount - 1);
 
-      // Mutually Exclusive: If adding Real, remove Reflect
-      if (newState && isReflect) {
-        setIsReflect(false);
-        setReflectCount(reflectCount - 1);
+      // Mutually Exclusive: If adding VibeUp, remove VibeDown
+      if (newState && isVibeDown) {
+        setIsVibeDown(false);
+        setVibeDownCount(vibeDownCount - 1);
       }
     } else {
-      const newState = !isReflect;
-      setIsReflect(newState);
-      setReflectCount(newState ? reflectCount + 1 : reflectCount - 1);
+      const newState = !isVibeDown;
+      setIsVibeDown(newState);
+      setVibeDownCount(newState ? vibeDownCount + 1 : vibeDownCount - 1);
 
-      // Mutually Exclusive: If adding Reflect, remove Real
-      if (newState && isReal) {
-        setIsReal(false);
-        setRealCount(realCount - 1);
+      // Mutually Exclusive: If adding VibeDown, remove VibeUp
+      if (newState && isVibeUp) {
+        setIsVibeUp(false);
+        setVibeUpCount(vibeUpCount - 1);
       }
     }
 
@@ -540,15 +546,15 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
       console.error("Feedback error, reverting:", error);
       toast.error("Failed to update. Please try again.");
       // Revert to original state from props if error occurs
-      setIsReal(value.reals?.includes(user?._id));
-      setRealCount(value.reals?.length || 0);
-      setIsReflect(value.reflections?.includes(user?._id));
-      setReflectCount(value.reflections?.length || 0);
+      setIsVibeUp(value.vibesUp?.includes(user?._id));
+      setVibeUpCount(value.vibesUp?.length || 0);
+      setIsVibeDown(value.vibesDown?.includes(user?._id));
+      setVibeDownCount(value.vibesDown?.length || 0);
     });
   };
 
   const handleDoubleClick = () => {
-    if (!isReal) feedbackHandler("real");
+    if (!isVibeUp) feedbackHandler("vibeUp");
   };
 
 
@@ -614,16 +620,47 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
   // GRID MODE (For Profile/Search)
   if (type === "reel" && isGrid) {
     return (
-      <div className="w-full h-full relative cursor-pointer">
+      <div className="w-full h-full relative cursor-pointer bg-black flex items-center justify-center group" onClick={onClick}>
         <video
           src={value.post.url}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
           muted
         />
-        {/* Simple View Count Overlay */}
-        <div className="absolute bottom-2 left-2 flex items-center gap-1 text-white text-xs drop-shadow-md">
+        {/* Simple View Count Overlay - Bottom Right */}
+        <div className="absolute bottom-2 right-2 flex items-center gap-1 text-white text-xs drop-shadow-md font-medium bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">
           <IoEyeOutline /> {value.views || 0}
         </div>
+      </div>
+    );
+  }
+
+  // GRID MODE (For Profile/Search - Standard Posts)
+  if (type !== "reel" && isGrid) {
+    return (
+      <div className="w-full h-full relative cursor-pointer group aspect-square bg-[var(--bg-secondary)]" onClick={onClick}>
+        <img
+          src={getOptimizedImg(value.post.url, 400)}
+          alt=""
+          className="w-full h-full object-cover"
+        />
+        {/* Hover Overlay */}
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 text-white font-bold">
+          <div className="flex items-center gap-1">
+            <VibeUpIcon active={true} />
+            <span>{value.vibesUp?.length || 0}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <BsChatFill />
+            <span>{value.commentsCount || 0}</span>
+          </div>
+        </div>
+        {value.images && value.images.length > 1 && (
+          <div className="absolute top-2 right-2 text-white drop-shadow-md">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 8.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v8.25A2.25 2.25 0 006 16.5h2.25m8.25-8.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-7.5A2.25 2.25 0 018.25 18v-1.5m8.25-8.25h-6a2.25 2.25 0 00-2.25 2.25v6" />
+            </svg>
+          </div>
+        )}
       </div>
     );
   }
@@ -631,7 +668,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
   // FULL MODE (For Feed/Reels Player)
   if (type === "reel") {
     return (
-      <div className="w-full h-full relative group">
+      <div className={`w-full h-full relative group ${isFeed ? "aspect-[9/16]" : ""}`}>
         {/* PAUSE OVERLAY */}
         {!isPlaying && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20 pointer-events-none">
@@ -651,11 +688,11 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
             if (isPlaying) { videoRef.current.pause(); setIsPlaying(false); }
             else { videoRef.current.play(); setIsPlaying(true); }
           }
-        }} onDoubleClick={handleDoubleClick} className="w-full h-full cursor-pointer">
+        }} onDoubleClick={handleDoubleClick} className="w-full h-full cursor-pointer bg-black flex items-center justify-center">
           <video
             ref={videoRef}
             src={value.post.url}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
             loop
             playsInline
             muted={false}
@@ -693,39 +730,39 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
             </div>
 
             <button
-              onClick={() => feedbackHandler("real")}
+              onClick={() => feedbackHandler("vibeUp")}
               className="group flex flex-col items-center gap-1.5 transition-transform active:scale-90"
             >
-              <div className={`p-2 rounded-full transition-colors ${isReal ? "bg-[var(--accent)]/10" : "bg-white/5"}`}>
-                <RealIcon active={isReal} />
+              <div className={`p-2 rounded-full transition-colors ${isVibeUp ? "bg-[var(--accent)]/10" : "bg-white/5"}`}>
+                <VibeUpIcon active={isVibeUp} />
               </div>
-              <span className={`text-[11px] font-bold tracking-tight ${isReal ? "text-[var(--accent)]" : "text-gray-400"}`}>
-                Real
+              <span className={`text-[11px] font-bold tracking-tight ${isVibeUp ? "text-[var(--accent)]" : "text-gray-400"}`}>
+                Vibe Up
               </span>
             </button>
             <span
-              onClick={() => setRealModal(true)}
+              onClick={() => setVibeModal(true)}
               className="text-white text-[10px] font-medium drop-shadow-md cursor-pointer hover:underline opacity-80"
             >
-              {realCount}
+              {vibeUpCount}
             </span>
           </div>
 
           <div className="flex flex-col items-center gap-1">
             <button
-              onClick={() => feedbackHandler("reflect")}
+              onClick={() => feedbackHandler("vibeDown")}
               className="group flex flex-col items-center gap-1.5 transition-transform active:scale-90"
             >
-              <div className={`p-2 rounded-full transition-colors ${isReflect ? "bg-white/10" : "bg-white/5"}`}>
-                <ReflectIcon active={isReflect} />
+              <div className={`p-2 rounded-full transition-colors ${isVibeDown ? "bg-white/10" : "bg-white/5"}`}>
+                <VibeDownIcon active={isVibeDown} />
               </div>
-              <span className={`text-[11px] font-bold tracking-tight ${isReflect ? "text-gray-300 opacity-100" : "text-gray-400"}`}>
-                Less real
+              <span className={`text-[11px] font-bold tracking-tight ${isVibeDown ? "text-gray-300 opacity-100" : "text-gray-400"}`}>
+                Vibe Down
               </span>
             </button>
             {isOwner && (
               <span className="text-gray-500 text-[9px] font-medium drop-shadow-md uppercase tracking-tighter opacity-70">
-                {reflectCount} private
+                {vibeDownCount} private
               </span>
             )}
           </div>
@@ -941,7 +978,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
         </div>
 
         {/* The Image */}
-        <div className="w-full aspect-[3/4] bg-[var(--bg-secondary)] relative overflow-hidden">
+        <div className="w-full aspect-[3/4] bg-black relative overflow-hidden flex items-center justify-center">
           <img
             src={getOptimizedImg(value.post.url, 800)}
             srcSet={`
@@ -954,7 +991,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
             loading="lazy"
             decoding="async"
             onClick={() => setShowImage(true)}
-            className="w-full h-full object-cover cursor-pointer active:opacity-95 transition-opacity"
+            className="w-full h-full object-contain cursor-pointer active:opacity-95 transition-opacity"
           />
         </div>
       </div>
@@ -985,75 +1022,76 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
 
       {/* ===== ACTIONS & CAPTION ===== */}
       <div className="px-3 pt-3">
-        {/* Action Row: Reals &#x26; Comments inline */}
-        <div className="flex items-center gap-6 mb-3">
-          <button
-            onClick={() => feedbackHandler("real")}
-            className="flex items-center gap-2 group transition-transform active:scale-95 translate-y-[-1px]"
-          >
-            <div className={`transition-colors ${isReal ? "text-[var(--accent)]" : "text-[var(--text-primary)]"}`}>
-              <RealIcon active={isReal} />
-            </div>
-            <span
-              className={`text-sm font-bold tracking-tight ${isReal ? "text-[var(--accent)]" : "text-[var(--text-primary)]"}`}
-            >
-              Real
-            </span>
-            <span
-              onClick={(e) => { e.stopPropagation(); setRealModal(true); }}
-              className={`text-sm font-medium ml-0.5 ${isReal ? "text-[var(--accent)]" : "text-[var(--text-primary)]"} hover:underline`}
-            >
-              {realCount}
-            </span>
-          </button>
+        {/* Action Row: Reals & Comments inline - Optimized for Mobile */}
+        <div className="flex items-center justify-between sm:justify-start sm:gap-6 mb-3">
 
-          <button
-            onClick={() => feedbackHandler("reflect")}
-            className="flex items-center gap-2 group transition-transform active:scale-95 translate-y-[-1px]"
-          >
-            <div className={`transition-colors ${isReflect ? "text-[var(--accent-secondary)]" : "text-[var(--text-primary)]"}`}>
-              <ReflectIcon active={isReflect} />
-            </div>
-            <span
-              className={`text-sm font-bold tracking-tight ${isReflect ? "text-[var(--accent-secondary)]" : "text-[var(--text-primary)]"}`}
-            >
-              Less real
-            </span>
-            {isOwner && (
-              <span className="text-[10px] text-[var(--text-primary)] font-medium italic translate-y-[1px]">
-                {reflectCount}p
-              </span>
-            )}
-          </button>
-
-          {/* Comment Group */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4 sm:gap-6">
             <button
-              onClick={() => setShow(!show)}
-              className="text-2xl transition-transform active:scale-75"
+              onClick={() => feedbackHandler("vibeUp")}
+              className="flex items-center gap-1.5 sm:gap-2 group transition-transform active:scale-95 translate-y-[-1px]"
             >
-              <BsChatFill className="text-[var(--text-primary)]" />
+              <div className={`transition-colors ${isVibeUp ? "text-[var(--accent)]" : "text-[var(--text-primary)]"}`}>
+                <VibeUpIcon active={isVibeUp} />
+              </div>
+              <span
+                className={`text-xs sm:text-sm font-bold tracking-tight whitespace-nowrap ${isVibeUp ? "text-[var(--accent)]" : "text-[var(--text-primary)]"}`}
+              >
+                Vibe Up
+              </span>
+              <span
+                onClick={(e) => { e.stopPropagation(); setVibeModal(true); }}
+                className={`text-xs sm:text-sm font-medium ml-0.5 ${isVibeUp ? "text-[var(--accent)]" : "text-[var(--text-primary)]"} hover:underline`}
+              >
+                {vibeUpCount}
+              </span>
             </button>
-            <span className="text-[var(--text-primary)] font-semibold text-sm">{value.commentsCount || 0}</span>
+
+            <button
+              onClick={() => feedbackHandler("vibeDown")}
+              className="flex items-center gap-1.5 sm:gap-2 group transition-transform active:scale-95 translate-y-[-1px]"
+            >
+              <div className={`transition-colors ${isVibeDown ? "text-[var(--accent-secondary)]" : "text-[var(--text-primary)]"}`}>
+                <VibeDownIcon active={isVibeDown} />
+              </div>
+              <span
+                className={`text-xs sm:text-sm font-bold tracking-tight whitespace-nowrap ${isVibeDown ? "text-[var(--accent-secondary)]" : "text-[var(--text-primary)]"}`}
+              >
+                Vibe Down
+              </span>
+              {isOwner && (
+                <span className="text-[10px] text-[var(--text-primary)] font-medium italic translate-y-[1px]">
+                  {vibeDownCount}p
+                </span>
+              )}
+            </button>
           </div>
 
-          {/* Share Group */}
-          <div className="flex items-center gap-2">
+          {/* Right Side Actions (Comment, Share, Save) */}
+          <div className="flex items-center gap-4 sm:gap-6">
+            {/* Comment Group */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <button
+                onClick={() => setShow(!show)}
+                className="text-xl sm:text-2xl transition-transform active:scale-75"
+              >
+                <BsChatFill className="text-[var(--text-primary)]" />
+              </button>
+              <span className="text-[var(--text-primary)] font-semibold text-xs sm:text-sm">{value.commentsCount || 0}</span>
+            </div>
+
+            {/* Share Group */}
             <button
               onClick={() => setShareModal(true)}
-              className="text-2xl transition-transform active:scale-75"
+              className="text-xl sm:text-2xl transition-transform active:scale-75 text-[var(--text-primary)]"
             >
-              <IoPaperPlaneOutline className="text-[var(--text-primary)]" />
+              <IoPaperPlaneOutline />
             </button>
-          </div>
 
-          {/* Bookmark Group */}
-          <div className="flex items-center gap-2 ml-auto">
             <button
               onClick={saveHandler}
-              className="text-2xl transition-transform active:scale-75"
+              className="text-xl sm:text-2xl transition-transform active:scale-75 text-[var(--text-primary)]"
             >
-              {isSaved ? <BsBookmarkFill className="text-[var(--text-primary)]" /> : <BsBookmark className="text-[var(--text-primary)]" />}
+              {isSaved ? <BsBookmarkFill /> : <BsBookmark />}
             </button>
           </div>
         </div>
@@ -1067,27 +1105,30 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
             <span className="text-[var(--text-secondary)]">
               {expanded ? value.caption : (value.caption.slice(0, captionLimit) + (value.caption.length > captionLimit ? "..." : ""))}
             </span>
-            {value.caption.length > captionLimit && (
-              <button onClick={() => setExpanded(!expanded)} className="text-[var(--text-secondary)] text-xs ml-1 hover:text-[var(--text-primary)]">
-                {expanded ? "less" : "more"}
-              </button>
-            )}
-          </div>
+            {
+              value.caption.length > captionLimit && (
+                <button onClick={() => setExpanded(!expanded)} className="text-[var(--text-secondary)] text-xs ml-1 hover:text-[var(--text-primary)]">
+                  {expanded ? "less" : "more"}
+                </button>
+              )
+            }
+          </div >
         )}
 
         {/* View Comments Link */}
-        {value.commentsCount > 0 && (
-          <button
-            onClick={() => setShow(!show)}
-            className="text-[var(--text-secondary)] text-xs font-medium"
-          >
-            View all {value.commentsCount} comments
-          </button>
-        )}
+        {
+          value.commentsCount > 0 && (
+            <button
+              onClick={() => setShow(!show)}
+              className="text-[var(--text-secondary)] text-xs font-medium"
+            >
+              View all {value.commentsCount} comments
+            </button>
+          )
+        }
+        {renderCommonUI()}
       </div>
-
-      {renderCommonUI()}
-    </div>
+    </div >
   );
 };
 
@@ -1096,8 +1137,8 @@ export default React.memo(PostCard, (prevProps, nextProps) => {
   // Only re-render if post ID or feedback changed
   return (
     prevProps.value._id === nextProps.value._id &&
-    prevProps.value.reals?.length === nextProps.value.reals?.length &&
-    prevProps.value.reflections?.length === nextProps.value.reflections?.length &&
+    prevProps.value.vibesUp?.length === nextProps.value.vibesUp?.length &&
+    prevProps.value.vibesDown?.length === nextProps.value.vibesDown?.length &&
     prevProps.value.commentsCount === nextProps.value.commentsCount && // Added commentsCount check
     prevProps.isActive === nextProps.isActive &&
     prevProps.commentId === nextProps.commentId &&

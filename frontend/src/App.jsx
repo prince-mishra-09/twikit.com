@@ -1,7 +1,6 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { UserData } from "./context/UserContext";
-import { Loading } from "./components/Loading";
 import { SocketData } from "./context/SocketContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { StoriesProvider } from "./context/StoriesContext";
@@ -11,6 +10,8 @@ import ScrollToTop from "./components/ScrollToTop";
 import Layout from "./components/Layout";
 import NotFound from "./components/NotFound";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { SkeletonPost } from "./components/Skeleton";
+import RouteAwareSkeleton, { SkeletonFullPage } from "./components/Loading";
 
 // Lazy Imports
 const Home = lazy(() => import("./pages/Home"));
@@ -57,23 +58,25 @@ function App() {
     <>
       <Toaster position="top-center" />
       <ErrorBoundary>
-        {loading ? <Loading /> : <BrowserRouter>
+        {loading ? (
+          <SkeletonFullPage />
+        ) : <BrowserRouter>
           <ScrollToTop />
           <NotificationProvider><StoriesProvider>
             <LoginPromptModal />
             <Layout>
-              <Suspense fallback={<Loading />}>
+              <Suspense fallback={<RouteAwareSkeleton />}>
                 <Routes>
                   <Route path="/landing" element={isAuth ? <Home /> : <TwikitLanding />} />
                   <Route path="/" element={isAuth ? <Home /> : <TwikitLanding />} />
                   <Route path="/feed" element={<Home />} />
                   <Route path="/reels" element={<Reels />} />
                   <Route path="/user/:id" element={<UserAccount user={user} />} />
-                  <Route path="/account" element={isAuth ? <Account user={user} /> : <Login />} />
+                  <Route path="/account" element={isAuth ? <Account user={user} /> : <Navigate to="/login" />} />
                   <Route path="/register" element={!isAuth ? <Register /> : <Home />} />
                   <Route path="/search" element={<Search />} />
-                  <Route path="/chat" element={isAuth ? <ChatPage user={user} /> : <Login />} />
-                  <Route path="/notifications" element={isAuth ? <Notifications /> : <Login />} />
+                  <Route path="/chat" element={isAuth ? <ChatPage user={user} /> : <Navigate to="/login" />} />
+                  <Route path="/notifications" element={isAuth ? <Notifications /> : <Navigate to="/login" />} />
                   <Route path="/login" element={!isAuth ? <Login /> : <Home />} />
                   <Route path="*" element={<NotFound />} />
                   <Route path="/post/:id" element={<PostDetail />} />

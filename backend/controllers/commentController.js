@@ -74,8 +74,30 @@ export const createComment = TryCatch(async (req, res) => {
             ? `${req.user.name} replied to your comment`
             : `${req.user.name} commented on your post`;
 
+        // Fetch receiver details to include in title (if not already populated/available, though usually it is an ID)
+        // receiverId in comment logic is either post.owner (which is an ID or doc) or parent.user
+        // We need to ensure we have the Name. 
+        // In createComment, post.owner is ID if not populated. post is fetched at line 12.
+        // We need to populate it or fetch user. 
+        // Actually, sendPushNotification takes an ID as first arg.
+        // We can pass the name if we fetch it.
+
+        let receiverName = "Twikit";
+        if (type === "comment_reply") {
+            // receiverId is parent.user (ID). We need to fetch name?
+            // Or we can just say "Your Account" if we can't easily get it?
+            // But the user wants "Jis account ... uska ho".
+            const receiverUser = await User.findById(receiverId).select("name");
+            receiverName = receiverUser ? receiverUser.name : "Twikit";
+        } else {
+            // receiverId is post.owner (ID).
+            // Post is fetched at line 12 without populate.
+            const receiverUser = await User.findById(receiverId).select("name");
+            receiverName = receiverUser ? receiverUser.name : "Twikit";
+        }
+
         await sendPushNotification(receiverId, {
-            title: "New Interaction",
+            title: `${receiverName} • New Comment`,
             body: bodyText,
             url: `/post/${postId}?commentId=${newComment._id}`,
         });

@@ -42,12 +42,11 @@ const registerUser = tryCatch(async (req, res) => {
         });
     }
 
-    // Check if email already exists
-    let user = await User.findOne({ email });
-
-    if (user) {
+    // Check if email has reached max 10 users
+    const emailUserCount = await User.countDocuments({ email });
+    if (emailUserCount >= 10) {
         return res.status(400).json({
-            message: "User already exists",
+            message: "Maximum 10 accounts allowed per email address.",
         });
     }
 
@@ -73,7 +72,7 @@ const registerUser = tryCatch(async (req, res) => {
 
     const myCloud = await cloudinary.v2.uploader.upload(fileUrl.content)
 
-    user = await User.create({
+    const user = await User.create({
         name,
         email,
         password: hashPassword,
@@ -108,27 +107,58 @@ export default registerUser
 
 
 export const loginUser = tryCatch(async (req, res) => {
-    const { password } = req.body
-    const email = req.body.email?.toLowerCase();
+    const { password, email: identifier } = req.body; // 'email' field now acts as identifier (email or username)
+    // Front-end sends 'email' key even if it's username, or we can update frontend.
+    // Assuming frontend continues to send 'email' key for the login identifier.
 
-    const user = await User.findOne({ email })
+    const idStr = identifier?.toLowerCase();
 
-    if (!user) return res.status(404).json({
-        message: "wrong credential",
-    })
+    // Strategy:
+    // 1. Try to find by username first (Exact match)
+    // 2. If not found, find ALL users by email.
+    // 3. Check password against matches.
 
-    const comparePassword = await bcrypt.compare(password, user.password)
+    let potentialUsers = [];
 
-    if (!comparePassword) {
-        return res.status(400).json({
-            message: "invalid"
+    // 1. Check Username
+    const userByUsername = await User.findOne({ username: idStr });
+    if (userByUsername) {
+        potentialUsers.push(userByUsername);
+    } else {
+        // 2. Check Email (Find ALL)
+        const usersByEmail = await User.find({ email: idStr });
+        if (usersByEmail.length > 0) {
+            potentialUsers = usersByEmail;
+        }
+    }
+
+    if (potentialUsers.length === 0) {
+        return res.status(404).json({
+            message: "User not found",
         })
     }
 
-    generateToken(user._id, res);
+    // 3. Check Passwords
+    let validUser = null;
+
+    for (const user of potentialUsers) {
+        const comparePassword = await bcrypt.compare(password, user.password);
+        if (comparePassword) {
+            validUser = user;
+            break; // Login the first valid one found
+        }
+    }
+
+    if (!validUser) {
+        return res.status(400).json({
+            message: "Invalid credentials"
+        })
+    }
+
+    generateToken(validUser._id, res);
     res.json({
         message: "user loggedin",
-        user,
+        user: validUser,
     })
 })
 
@@ -155,11 +185,11 @@ export const sendOTP = tryCatch(async (req, res) => {
         });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    // Check if email has reached max 10 users
+    const emailUserCount = await User.countDocuments({ email });
+    if (emailUserCount >= 10) {
         return res.status(400).json({
-            message: "Email already registered"
+            message: "Maximum 10 accounts allowed per email address."
         });
     }
 

@@ -174,19 +174,13 @@ export const PostContextProvider = ({ children }) => {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("postRealUpdated", (data) => {
+    socket.on("postVibeUpdated", (data) => {
       const updateFn = (prev) =>
         prev.map((p) =>
           p._id === data.postId
             ? {
               ...p,
-              reals: data.reals,
-              // If real was added, and it's mutually exclusive, we should ideally 
-              // remove user from reflections too if we have that data. 
-              // But the backend only emits reals here. 
-              // For perfection, we'd need to emit both if both changed.
-              // However, the backend logic handles this on the Next turn or within the same turn.
-              // If the user is the owner, they get a separate reflection update.
+              vibesUp: data.vibesUp,
             }
             : p
         );
@@ -195,12 +189,12 @@ export const PostContextProvider = ({ children }) => {
       setReels(updateFn);
     });
 
-    socket.on("postReflectionUpdated", (data) => {
+    socket.on("postVibeDownUpdated", (data) => {
       // This is ONLY received by the owner
       const updateFn = (prev) =>
         prev.map((p) =>
           p._id === data.postId
-            ? { ...p, reflections: data.reflections }
+            ? { ...p, vibesDown: data.vibesDown }
             : p
         );
 
@@ -239,8 +233,8 @@ export const PostContextProvider = ({ children }) => {
     });
 
     return () => {
-      socket.off("postRealUpdated");
-      socket.off("postReflectionUpdated");
+      socket.off("postVibeUpdated");
+      socket.off("postVibeDownUpdated");
       socket.off("postCommentUpdated");
       socket.off("post:ready");
       socket.off("post:failed");

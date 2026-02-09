@@ -1,89 +1,119 @@
+
 import Redis from "ioredis";
 import { RedisMemoryServer } from "redis-memory-server";
 
-let redis;
-let redisServer;
+let redisClient;
+let memoryServer;
+let isInitializing = true;
 
-const connectRedis = async () => {
+// 1. Create a Proxy to handle the dynamic checking/swapping of the client
+const redisProxy = new Proxy({}, {
+    get: function (target, prop) {
+        // If we have a client, forward the access
+        if (redisClient) {
+            // If the property is a function, bind it to the client
+            if (typeof redisClient[prop] === 'function') {
+                return redisClient[prop].bind(redisClient);
+            }
+            return redisClient[prop];
+        }
+
+        // If no client yet, return a safe dummy function to prevent crashes
+        // Most Redis calls are async functions (get, set, del), so we return an async function.
+        if (isInitializing) {
+            return async () => {
+                console.warn(`Redis '${String(prop)}' command skipped: Client initializing...`);
+                return null;
+            };
+        }
+
+        return undefined;
+    }
+});
+
+const initializeRedis = async () => {
     try {
-        // 1. Try connecting to standard Redis (e.g., localhost:6379)
-        // 1. Try connecting to standard Redis (e.g., localhost:6379)
         let redisHost = process.env.REDIS_HOST || "127.0.0.1";
 
-        // FIX: Strip protocol if user accidentally pasted the HTTP endpoint (e.g. from Upstash REST API)
+        // Sanitize host
         if (redisHost.startsWith("http://") || redisHost.startsWith("https://")) {
-            console.warn("⚠️ Warning: REDIS_HOST contains unsupported protocol (http/https). Stripping it to use TCP.");
             redisHost = redisHost.replace(/^https?:\/\//, "");
         }
 
-        redis = new Redis({
+        const options = {
             host: redisHost,
             port: process.env.REDIS_PORT || 6379,
             password: process.env.REDIS_PASSWORD || undefined,
             retryStrategy: (times) => {
-                // In Production, retry forever. In Dev, fail fast to switch to Memory Server.
-                if (process.env.NODE_ENV !== "production" && times > 2) return null;
-                const delay = Math.min(times * 50, 2000);
-                return delay;
+                // In Development, fail fast to switch to Memory Server
+                if (process.env.NODE_ENV !== "production" && times > 2) {
+                    return null; // Stop retrying, trigger 'end'/'error'
+                }
+                return Math.min(times * 50, 2000);
             },
-            maxRetriesPerRequest: 1, // Fail fast for initial connection
+            maxRetriesPerRequest: 1
+        };
+
+        // Attempt initial connection
+        const candidateClient = new Redis(options);
+
+        // Temporarily set as client to attempt connection
+        // (If it fails immediately, error handler will swap it)
+        redisClient = candidateClient;
+
+        candidateClient.on("connect", () => {
+            console.log("Redis Connected Successfully 🚀");
+            isInitializing = false;
         });
 
-        redis.on("error", async (err) => {
-            if (err.code === "ECONNREFUSED" && process.env.NODE_ENV !== "production") {
-                // 2. Fallback: Start In-Memory Server if local Redis is missing
-                if (!redisServer) {
-                    console.log("⚠️ Local Redis not found. Starting In-Memory Redis Server...");
-                    redisServer = new RedisMemoryServer();
-                    const host = await redisServer.getHost();
-                    const port = await redisServer.getPort();
+        candidateClient.on("error", async (err) => {
+            console.error("Redis Connection Error:", err.message);
 
-                    // Re-initialize client to connect to in-memory server
-                    redis = new Redis({ host, port });
-                    redis.on("connect", () => console.log(`✅ Connected to In-Memory Redis (${host}:${port})`));
+            if ((err.code === "ECONNREFUSED" || err.code === "ENOTFOUND") && process.env.NODE_ENV !== "production") {
+                // If we are already setting up memory server, ignore
+                if (memoryServer) return;
+
+                console.log("⚠️ Local Redis not found. Starting In-Memory Redis Server...");
+
+                try {
+                    redisClient = null; // Temporarily clear faulty client
+                    isInitializing = true;
+
+                    memoryServer = new RedisMemoryServer();
+                    const host = await memoryServer.getHost();
+                    const port = await memoryServer.getPort();
+
+                    console.log(`✅ In-Memory Server Started at ${host}:${port}`);
+
+                    // Create new client for memory server
+                    const memoryClient = new Redis({ host, port });
+
+                    memoryClient.on("connect", () => {
+                        console.log(`✅ Connected to In-Memory Redis (${host}:${port})`);
+                        redisClient = memoryClient; // Swap the active client
+                        isInitializing = false;
+                    });
+
+                    memoryClient.on("error", (memErr) => {
+                        console.error("In-Memory Redis Client Error:", memErr);
+                    });
+
+                } catch (memError) {
+                    console.error("Failed to start In-Memory Redis:", memError);
+                    isInitializing = false;
                 }
             } else {
-                console.error("Redis Error:", err);
+                // Non-fallback error
+                isInitializing = false;
             }
-        });
-
-        redis.on("connect", () => {
-            console.log("Redis Connected Successfully 🚀");
         });
 
     } catch (error) {
         console.error("Redis Setup Error:", error);
+        isInitializing = false;
     }
 };
 
-// Initialize
-connectRedis();
+initializeRedis();
 
-// Export a proxy to ensure we always use the active instance (since re-assignment might happen)
-const redisProxy = new Proxy({}, {
-    get: function (target, prop) {
-        if (!redis) return undefined;
-        return redis[prop];
-    }
-});
-
-export default redis; // Exporting the proxy is tricky with ioredis structure, safer to export the instance or wrapper.
-
-// Simpler Export: Just export the instance.
-// Note: ES6 modules export live bindings, so 'redis' will point to the new instance if updated?
-// No, 'export default' exports the value. We need a wrapper or just rely on the first instance handling errors gracefully?
-// Actually, 'ioredis' client creates a connection. If we change 'redis' variable, imports won't see it.
-// SOLUTION: We must stick to one 'redis' instance or export a getter.
-
-// REVISED APPROACH for simplicity and robustness:
-// We cannot easily hot-swap the exported 'redis' instance in ES6 modules.
-// Instead, we should check for Redis BEFORE creating the client, OR use a wrapper class.
-// BUT, 'redis-memory-server' is async. 'ioredis' constructor is sync.
-//
-// BETTER STRATEGY:
-// Export a singleton that internally handles the connection, or just start memory server FIRST if dev?
-
-// Let's try starting Memory Server FIRST if we suspect no redis, or just always try to connect?
-// User wants "Enable it".
-// Let's rewrite this file to be an async initializer or export a wrapper.
-
+export default redisProxy;

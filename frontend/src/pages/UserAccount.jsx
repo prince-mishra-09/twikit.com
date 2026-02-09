@@ -4,7 +4,8 @@ import { PostData } from "../context/PostContext";
 import PostCard from "../components/PostCard";
 import { FaArrowDownLong, FaArrowUp, FaEllipsisVertical } from "react-icons/fa6"; // Updated Import
 import axios from "axios";
-import { Loading } from "../components/Loading";
+
+import { SkeletonProfile } from "../components/Skeleton";
 import { UserData } from "../context/UserContext";
 import Modal from "../components/Modal";
 import { SocketData } from "../context/SocketContext";
@@ -240,7 +241,7 @@ const UserAccount = ({ user: loggedInUser }) => {
 
   const activeStory = userStoryGroup || localStory;
 
-  if (loading) return <Loading />;
+  if (loading) return <SkeletonProfile />;
 
   if (!user) return (
     <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 text-center">
@@ -260,7 +261,7 @@ const UserAccount = ({ user: loggedInUser }) => {
       )}
 
       {/* PROFILE CARD */}
-      <div className="w-full max-w-2xl bg-[var(--bg-primary)] border-b border-[var(--border)] px-4 pb-6 pt-4">
+      <div className="w-full max-w-[630px] bg-[var(--bg-primary)] border-b border-[var(--border)] px-4 pb-6 pt-4">
 
         {/* NAME + GENDER (TOP LEFT, LIKE INSTAGRAM) */}
         <div className="flex justify-between items-start mb-3">
@@ -390,7 +391,7 @@ const UserAccount = ({ user: loggedInUser }) => {
 
       {/* POSTS */}
       {type === "post" && (
-        <div className="w-full max-w-2xl space-y-4">
+        <div className="w-full max-w-[630px] space-y-4">
           {myPosts?.length ? (
             myPosts.map((e) => (
               <PostCard type="post" value={e} key={e._id} />
@@ -404,7 +405,7 @@ const UserAccount = ({ user: loggedInUser }) => {
       {/* REELS */}
       {type === "reel" &&
         (myReels?.length ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl mx-auto pb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-[630px] mx-auto pb-4">
             {myReels.map((reel, i) => (
               <div key={reel._id} className="relative aspect-[9/16] bg-[var(--bg-secondary)] rounded-lg overflow-hidden">
                 <PostCard type="reel" value={reel} isGrid={true} />

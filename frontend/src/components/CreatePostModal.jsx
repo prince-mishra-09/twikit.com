@@ -19,6 +19,14 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
     const [showConfirmDiscard, setShowConfirmDiscard] = useState(false);
     const [error, setError] = useState("");
 
+    // Lock Body Scroll
+    React.useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = 'auto';
+        };
+    }, []);
+
     const changeFileHandler = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -106,24 +114,25 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                     }}
                 />
             ) : (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-md bg-[#111827] border border-white/10 rounded-2xl shadow-2xl overflow-hidden relative">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-primary)] p-4">
+                    <div className="w-full max-w-[630px] bg-[#111827] border border-white/10 rounded-2xl shadow-2xl overflow-hidden relative flex flex-col max-h-[90vh]">
 
                         {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-white/10">
+                        <div className="flex items-center justify-between p-4 border-b border-white/10 shrink-0">
                             <h2 className="text-white font-semibold text-lg">Create New</h2>
                             <button
                                 onClick={handleClose}
-                                className="text-gray-400 hover:text-white transition p-1"
+                                className="text-gray-400 hover:text-white transition p-1 hover:bg-white/10 rounded-full"
                             >
                                 <AiOutlineClose size={24} />
                             </button>
                         </div>
 
-                        {/* content */}
-                        <div className="p-4">
+                        {/* Scrollable Content */}
+                        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+
                             {/* Type Switcher */}
-                            <div className="flex bg-[#0B0F14] rounded-lg p-1 mb-4 border border-white/5">
+                            <div className="flex bg-[#0B0F14] rounded-lg p-1 mb-4 border border-white/5 shrink-0">
                                 <button
                                     onClick={() => { setType("post"); setFile(""); setFilePrev(""); }}
                                     className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${type === "post" ? "bg-[#1f2937] text-white shadow" : "text-gray-400 hover:text-gray-200"}`}
@@ -148,7 +157,7 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                 {/* File Input Area */}
                                 <div
                                     onClick={() => fileInputRef.current.click()}
-                                    className="cursor-pointer rounded-xl border-2 border-dashed border-white/10 bg-[#0B0F14] text-gray-400 flex items-center justify-center min-h-[200px] hover:border-indigo-500/50 hover:bg-[#0B0F14]/50 transition group"
+                                    className="cursor-pointer rounded-xl border-2 border-dashed border-white/10 bg-[#0B0F14] text-gray-400 flex items-center justify-center min-h-[250px] hover:border-indigo-500/50 hover:bg-[#0B0F14]/50 transition group overflow-hidden"
                                 >
                                     {filePrev ? (
                                         <div className="relative w-full h-[300px] bg-black rounded-lg overflow-hidden flex items-center justify-center">
@@ -165,6 +174,10 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                                     className="max-h-full max-w-full"
                                                 />
                                             )}
+                                            {/* Change Image Overlay */}
+                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                                <span className="text-white font-medium bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm">Click to change</span>
+                                            </div>
                                         </div>
                                     ) : (
                                         <div className="flex flex-col items-center gap-2 group-hover:scale-105 transition">
@@ -184,16 +197,16 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                     className="hidden"
                                     accept={type === "post" ? "image/*" : type === "reel" ? "video/*" : "image/*,video/*"}
                                     onChange={changeFileHandler}
-                                    required
+                                    required={!file}
                                 />
 
                                 {/* Caption */}
-                                <input
-                                    type="text"
+                                <textarea
+                                    rows={3}
                                     placeholder={`Write a caption for your ${type}...`}
                                     value={caption}
                                     onChange={(e) => setCaption(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 transition"
+                                    className="w-full px-4 py-3 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 transition resize-none custom-scrollbar"
                                 />
 
                                 {/* Error Message */}
@@ -213,17 +226,15 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
 
                                 {/* Submit */}
                                 <button
-                                    disabled={addLoading || error}
+                                    disabled={addLoading || error || !file}
                                     className="w-full py-3 rounded-xl text-white font-medium bg-indigo-600/90 hover:bg-indigo-600 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-indigo-600/10"
                                 >
-                                    {/* Just show "Share" - progress will be on Home screen */}
                                     Share
                                 </button>
-                                {/* Progress bar removed from here as it will be shown on Home screen */}
-
                             </form>
                         </div>
                     </div>
+
                     {/* Discard Confirmation Modal */}
                     {showConfirmDiscard && (
                         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">

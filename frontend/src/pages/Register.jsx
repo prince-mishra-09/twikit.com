@@ -171,6 +171,9 @@ const Register = () => {
     if (name.trim().length < 3) {
       return setError("Name must be at least 3 characters long");
     }
+    if (name.trim().length > 20) {
+      return setError("Name must be under 20 characters");
+    }
 
     // Password validation
     if (password.length < 6) {
@@ -393,6 +396,7 @@ const Register = () => {
               onChange={(e) => setName(e.target.value)}
               className="w-full px-4 py-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition"
               required
+              maxLength={20}
             />
 
             <div className="relative">

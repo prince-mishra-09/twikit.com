@@ -1,8 +1,10 @@
 import React, { useRef, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { PostData } from "../context/PostContext";
 import PostCard from "../components/PostCard";
 
 const Reels = () => {
+  const navigate = useNavigate();
   const { reels, loading } = PostData();
   const [currentReelId, setCurrentReelId] = useState(null);
   const [displayReels, setDisplayReels] = useState([]);
@@ -52,33 +54,42 @@ const Reels = () => {
   }, [displayReels]); // Observe on displayReels change
 
   return (
-    <div className="h-[100dvh] w-full bg-[var(--bg-primary)] overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar relative">
-      {/* Back Button */}
-      <a href="/" className="absolute top-4 left-4 z-50 p-2 bg-[var(--bg-primary)]/40 backdrop-blur-md rounded-full text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--bg-secondary)] transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+    <div className="h-[100dvh] w-full bg-black overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar relative flex justify-center">
+      {/* Back Button - Absolute for easy exit */}
+      <button
+        onClick={() => navigate(-1)}
+        className="absolute top-6 left-6 z-50 p-3 bg-white/10 backdrop-blur-md rounded-full text-white border border-white/20 hover:bg-white/20 transition-all group"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6 group-hover:-translate-x-1 transition-transform">
           <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
         </svg>
-      </a>
+      </button>
 
       {loading ? (
         <div className="h-full w-full flex items-center justify-center">
-          <div className="animate-pulse bg-[var(--bg-secondary)]/50 w-full h-full" />
+          <div className="w-10 h-10 border-4 border-white/20 border-t-[var(--accent)] rounded-full animate-spin" />
         </div>
       ) : displayReels && displayReels.length > 0 ? (
-        displayReels.map((reel) => (
-          <div
-            key={reel._id}
-            id={reel._id}
-            className="reel-container h-[100dvh] w-full snap-start snap-always flex justify-center items-center relative"
-          >
-            <div className="w-full h-full md:max-w-md relative flex items-center bg-[var(--bg-primary)]">
-              <PostCard value={reel} type="reel" isActive={currentReelId === reel._id} />
+        <div className="w-full h-full max-w-md md:max-w-lg lg:max-w-xl relative">
+          {displayReels.map((reel) => (
+            <div
+              key={reel._id}
+              id={reel._id}
+              className="reel-container h-[100dvh] w-full snap-start snap-always flex justify-center items-center py-4"
+            >
+              <div className="w-full h-full relative flex items-center justify-center bg-black rounded-lg overflow-hidden shadow-2xl shadow-black/50">
+                {/* Pass isReelPage prop if needed for specific styling in PostCard */}
+                <PostCard value={reel} type="reel" isActive={currentReelId === reel._id} />
+              </div>
             </div>
-          </div>
-        ))
+          ))}
+        </div>
       ) : (
         <div className="h-screen flex items-center justify-center text-[var(--text-secondary)]">
-          No reels yet
+          <div className="text-center">
+            <h3 className="text-xl font-bold mb-2">No reels yet</h3>
+            <p className="opacity-70">Check back later for new vibes.</p>
+          </div>
         </div>
       )}
     </div>

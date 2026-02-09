@@ -161,8 +161,9 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
       io.to("user:" + user._id.toString()).emit("notification:new", notification);
 
       // SEND PUSH NOTIFICATION
+      // User is already fetched at line 94
       await sendPushNotification(user._id, {
-        title: "New Follow Request",
+        title: `${user.name} • Follow Request`,
         body: `${loggedInUser.name} wants to follow you`,
         url: `/notifications`,
       });
@@ -188,7 +189,7 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
 
     // SEND PUSH NOTIFICATION
     await sendPushNotification(user._id, {
-      title: "New Follower",
+      title: `${user.name} • New Follower`,
       body: `${loggedInUser.name} started following you`,
       url: `/notifications`,
     });
@@ -311,7 +312,22 @@ export const searchUsers = tryCatch(async (req, res) => {
   const isGuest = !req.user;
 
   if (!search && !req.query.restrictToFollowersOf) {
-    return res.json({ users: [], posts: [] });
+    // If no search query, return RANDOM users as suggestions (who are not followed)
+    const matchStage = {};
+
+    if (!isGuest) {
+      const excludedIds = [req.user._id, ...req.user.followings, ...req.user.blockedUsers];
+      matchStage._id = { $nin: excludedIds }; // Exclude me, following, and blocked
+    }
+
+    const users = await User.aggregate([
+      { $match: matchStage },
+      { $sample: { size: 5 } }, // Get 5 random users
+      { $project: { name: 1, username: 1, profilePic: 1, bio: 1, isPrivate: 1 } }
+    ]);
+
+    // Also fetch some recent posts for "Explore" if needed, or just return users
+    return res.json({ users, posts: [] });
   }
 
   const regex = new RegExp(search, "i");
@@ -488,8 +504,11 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
   io.to(sender._id.toString()).emit("notification:new", notification);
 
   // SEND PUSH NOTIFICATION
+  // Sender is the one who sent request (now follower). Reciever is loggedInUser (Me).
+  // We notify SENDER that *I* accepted. So title should be SENDER's name (Target for notification).
+
   await sendPushNotification(sender._id, {
-    title: "Request Accepted",
+    title: `${sender.name} • Request Accepted`,
     body: `${loggedInUser.name} accepted your follow request`,
     url: `/notifications`,
   });

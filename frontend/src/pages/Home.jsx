@@ -19,73 +19,97 @@ const Home = () => {
   const [showComposer, setShowComposer] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
-  // Merge and sort posts and reels by date
-  const allContent = [...(posts || []), ...(reels || [])].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  // Merge and sort posts and reels by date, then mix to avoid consecutive posts from same user
+  const allContent = React.useMemo(() => {
+    let combined = [...(posts || []), ...(reels || [])].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+
+    // Mixing Algorithm: Prevent same user from appearing consecutively
+    // We try to swap a conflicting post with the next available post from a different user
+    for (let i = 1; i < combined.length; i++) {
+      const prev = combined[i - 1];
+      const current = combined[i];
+
+      if (prev.owner._id === current.owner._id) {
+        // Conflict found. Look ahead for a replacement.
+        let swapIndex = -1;
+        for (let j = i + 1; j < combined.length; j++) {
+          if (combined[j].owner._id !== current.owner._id) {
+            swapIndex = j;
+            break;
+          }
+        }
+
+        if (swapIndex !== -1) {
+          // Swap
+          [combined[i], combined[swapIndex]] = [combined[swapIndex], combined[i]];
+        }
+      }
+    }
+
+    return combined;
+  }, [posts, reels]);
 
   useEffect(() => {
     const handleScroll = () => {
-      const mainContent = document.getElementById("main-content");
-      if (!mainContent) return;
-      const current = mainContent.scrollTop;
+      const current = window.scrollY;
 
-      // small threshold to avoid flicker
-      if (Math.abs(current - lastScrollY) < 10) return;
-
-      if (current > lastScrollY) {
-        // scrolling down -> show composer
-        setShowComposer(false);
-      } else {
-        // scrolling up -> hide composer
+      // Always show navbar when at the top
+      if (current < 10) {
         setShowComposer(true);
+        setLastScrollY(current);
+        return;
       }
 
+      // Scrolling down -> hide navbar
+      // Scrolling up -> show navbar
+      if (current > lastScrollY) {
+        setShowComposer(false);
+      } else if (current < lastScrollY) {
+        setShowComposer(true);
+      }
       setLastScrollY(current);
     };
 
-    const mainContent = document.getElementById("main-content");
-    if (mainContent) {
-      mainContent.addEventListener("scroll", handleScroll, { passive: true });
-    } else {
-      window.addEventListener("scroll", handleScroll, { passive: true });
-    }
-
-    return () => {
-      if (mainContent) {
-        mainContent.removeEventListener("scroll", handleScroll);
-      } else {
-        window.removeEventListener("scroll", handleScroll);
-      }
-    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
 
-
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] flex justify-center md:px-4">
-      {/* Fixed Top Upload Progress Removed */}
-      {/* Feed container */}
-      <div className="w-full max-w-2xl pb-20">
+    <div className="min-h-screen bg-[var(--bg-primary)] flex justify-center">
 
-        {/* Header + Composer */}
+      {/* 2. Main Feed (Center) */}
+      <div className="w-full max-w-[630px] flex flex-col items-center md:ml-[244px] lg:mr-[320px]"> {/* Margins for sidebars */}
+
+        {/* Mobile Header (Hide on md+) */}
         <div
-          className={`sticky top-0 z-20 transition-all duration-300 bg-[var(--bg-primary)]/90 backdrop-blur-md pb-2 ${showComposer
+          className={`md:hidden sticky top-0 z-20 w-full transition-all duration-300 bg-[var(--bg-primary)]/90 backdrop-blur-md pb-2 ${showComposer
             ? "translate-y-0 opacity-100"
             : "-translate-y-40 opacity-0 pointer-events-none"
             }`}
         >
           {/* Top Header */}
           <div className="flex justify-between items-center py-2 px-3">
-            <h1 className="text-xl font-bold bg-[var(--text-primary)]/10 px-4 py-1.5 rounded-full backdrop-blur-md border border-[var(--border)] shadow-lg shadow-[var(--accent)]/10 text-[var(--text-primary)] tracking-wide">
-              Twikit
-            </h1>
+            <Link to="/" className="flex items-center gap-2">
+              <img
+                src="/images/viby-removed-bg.png"
+                alt="Twikit Logo"
+                className="h-8 w-auto"
+              />
+              <span className="text-xl font-bold text-[var(--text-primary)] tracking-wide">
+                viby
+              </span>
+            </Link>
             <div className="flex items-center gap-3">
               {isAuth && (
                 <>
                   <Link
                     to="/notifications"
-                    className="relative bg-[var(--text-primary)]/10 p-2.5 rounded-full backdrop-blur-md border border-[var(--border)] hover:bg-[var(--text-primary)]/20 transition-all duration-300 text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/10 group"
+                    className="relative bg-[var(--text-primary)]/10 p-2 text-[var(--text-primary)] rounded-full hover:bg-[var(--text-primary)]/20 transition-all"
                   >
-                    <IoNotificationsOutline className="text-xl group-hover:rotate-12 transition-transform" />
+                    <IoNotificationsOutline className="text-xl" />
                     {unreadCount > 0 && (
                       <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[var(--bg-primary)]">
                         {unreadCount > 9 ? "9+" : unreadCount}
@@ -94,9 +118,9 @@ const Home = () => {
                   </Link>
                   <Link
                     to="/chat"
-                    className="relative bg-[var(--text-primary)]/10 p-2.5 rounded-full backdrop-blur-md border border-[var(--border)] hover:bg-[var(--text-primary)]/20 transition-all duration-300 text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/10 group"
+                    className="relative bg-[var(--text-primary)]/10 p-2 text-[var(--text-primary)] rounded-full hover:bg-[var(--text-primary)]/20 transition-all"
                   >
-                    <IoChatbubbleEllipsesOutline className="text-xl group-hover:scale-110 transition-transform" />
+                    <IoChatbubbleEllipsesOutline className="text-xl" />
                     {totalUnreadMessages > 0 && (
                       <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[var(--bg-primary)]">
                         {totalUnreadMessages > 9 ? "9+" : totalUnreadMessages}
@@ -117,11 +141,14 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Posts */}
-        <div className="mt-2">
-          <StoryRow />
+        {/* Feed Content */}
+        <div className="w-full pb-20 md:pb-0 md:pt-8 px-0 md:px-0">
 
-          {/* Global Upload Progress */}
+          {/* Stories */}
+          <div className="mb-4 md:mb-8">
+            <StoryRow />
+          </div>
+
           {/* Global Upload Progress */}
           {addLoading && uploadProgress > 0 && (
             <div className="w-full px-0 md:px-0 mb-4 mt-2 relative z-50 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -140,9 +167,12 @@ const Home = () => {
             </div>
           ) : allContent && allContent.length > 0 ? (
             <>
-              <div className="space-y-4">
+              <div className="space-y-4 flex flex-col items-center">
+                {/* Center PostCards */}
                 {allContent.map((item) => (
-                  <PostCard key={item._id} value={item} type={item.type} isFeed={true} />
+                  <div key={item._id} className="w-full md:w-[470px]"> {/* Limit width on desktop */}
+                    <PostCard key={item._id} value={item} type={item.type} isFeed={true} />
+                  </div>
                 ))}
               </div>
 
@@ -152,9 +182,9 @@ const Home = () => {
                   <button
                     onClick={fetchNextPage}
                     disabled={loadingMore}
-                    className="px-6 py-3 bg-[var(--accent)] text-white font-semibold rounded-full hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="px-6 py-2 m-4 bg-[var(--card-bg)] text-[var(--text-primary)] text-sm font-semibold rounded-full hover:bg-[var(--border)] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
-                    {loadingMore ? "Loading..." : "Load More Posts"}
+                    {loadingMore ? "Loading..." : "Load More"}
                   </button>
                 </div>
               )}
@@ -174,8 +204,9 @@ const Home = () => {
             </div>
           )}
         </div>
-      </div >
-    </div >
+      </div>
+
+    </div>
   );
 };
 

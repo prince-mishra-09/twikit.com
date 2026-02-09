@@ -4,11 +4,11 @@ import { UserData } from "../context/UserContext";
 import { PostData } from "../context/PostContext";
 import PostCard from "../components/PostCard";
 import { FaArrowDownLong, FaArrowUp, FaArrowLeft } from "react-icons/fa6";
-import { IoMenu } from "react-icons/io5";
+import { IoMenu, IoClose } from "react-icons/io5";
 import Modal from "../components/Modal";
 import axios from "axios";
-import { Loading } from "../components/Loading";
-import { SkeletonProfile } from "../components/Skeleton";
+
+import { SkeletonProfile, SkeletonPost } from "../components/Skeleton";
 import { CiEdit } from "react-icons/ci";
 import toast from "react-hot-toast";
 import { FiEdit2 } from "react-icons/fi";
@@ -39,6 +39,7 @@ const Account = ({ user }) => {
 
   const [type, setType] = useState("post");
   const [activeReelId, setActiveReelId] = useState(null);
+  const [feedModal, setFeedModal] = useState(null); // { posts: [], index: 0 }
 
   useEffect(() => {
     if (type !== "reel") return;
@@ -182,7 +183,7 @@ const Account = ({ user }) => {
       {/* ================= FULL WIDTH HEADER ================= */}
       {/* ================= FULL WIDTH HEADER ================= */}
       <div className="sticky top-0 z-40 w-full bg-[var(--bg-primary)]/95 backdrop-blur-md border-b border-[var(--border)] shadow-sm">
-        <div className="max-w-2xl mx-auto flex justify-between items-center py-3 px-4">
+        <div className="max-w-[630px] mx-auto flex justify-between items-center py-3 px-4">
           <div>
             <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-wide">{user.name}</h2>
             <p className="text-[var(--text-secondary)] text-sm">@{user.username}</p>
@@ -298,7 +299,7 @@ const Account = ({ user }) => {
 
       {/* ================= PROFILE CARD ================= */}
       {/* Reduced padding-top and removed padding-bottom to bring content closer */}
-      <div className="w-full max-w-2xl px-4 pt-4 relative z-30">
+      <div className="w-full max-w-[630px] px-4 pt-4 relative z-30">
 
         {/* Top Row: Picture + Stats */}
         <div className="flex flex-row items-center gap-4 w-full">
@@ -393,7 +394,7 @@ const Account = ({ user }) => {
       }
 
       {/* Toggle */}
-      <div className="flex w-full max-w-xl border-b border-[var(--border)] mt-2">
+      <div className="flex w-full max-w-[630px] border-b border-[var(--border)] mt-2">
         <button
           onClick={() => setType("post")}
           className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${type === "post" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
@@ -412,7 +413,7 @@ const Account = ({ user }) => {
           onClick={() => setType("saved")}
           className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${type === "saved" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
         >
-          Saved
+          Vault
           {type === "saved" && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--accent)] rounded-t-full" />}
         </button>
       </div>
@@ -420,12 +421,32 @@ const Account = ({ user }) => {
       {/* Content */}
       {
         type === "post" && (
-          <div className="w-full max-w-xl space-y-4">
-            {myPosts?.length
-              ? myPosts.map((e) => (
-                <PostCard type="post" value={e} key={e._id} />
-              ))
-              : <p className="text-gray-500 text-center py-4">No posts yet</p>}
+          <div className="w-full max-w-[630px]">
+            {myPosts?.length ? (
+              <>
+                {/* Mobile List View */}
+                <div className="space-y-4 md:hidden">
+                  {myPosts.map((e) => (
+                    <PostCard type="post" value={e} key={e._id} />
+                  ))}
+                </div>
+
+                {/* Desktop Grid View */}
+                <div className="hidden md:grid grid-cols-3 gap-1">
+                  {myPosts.map((e, i) => (
+                    <PostCard
+                      type="post"
+                      value={e}
+                      key={e._id}
+                      isGrid={true}
+                      onClick={() => setFeedModal({ posts: myPosts, index: i })}
+                    />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="text-gray-500 text-center py-4">No posts yet</p>
+            )}
           </div>
         )
       }
@@ -433,10 +454,16 @@ const Account = ({ user }) => {
       {
         type === "reel" &&
         (myReels?.length ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl mx-auto pb-4">
-            {myReels.map((reel) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-[630px] mx-auto pb-4">
+            {myReels.map((reel, i) => (
               <div key={reel._id} id={reel._id} className="account-reel flex justify-center w-full aspect-[9/16] bg-[var(--bg-secondary)] rounded-lg overflow-hidden relative group">
-                <PostCard type="reel" value={reel} isActive={activeReelId === reel._id} isGrid={true} />
+                <PostCard
+                  type="reel"
+                  value={reel}
+                  isActive={activeReelId === reel._id}
+                  isGrid={true}
+                  onClick={() => setFeedModal({ posts: myReels, index: i })}
+                />
               </div>
             ))}
           </div>
@@ -444,8 +471,15 @@ const Account = ({ user }) => {
       }
 
 
-      {type === "saved" && <SavedPosts />}
+      {type === "saved" && <SavedPosts onPostClick={(posts, index) => setFeedModal({ posts, index })} />}
       {showEdit && <EditProfile user={user} onBack={() => setShowEdit(false)} />}
+      {feedModal && (
+        <FeedModal
+          posts={feedModal.posts}
+          initialIndex={feedModal.index}
+          onClose={() => setFeedModal(null)}
+        />
+      )}
       {showEdit && <EditProfile user={user} onBack={() => setShowEdit(false)} />}
 
       {/* Story Viewer Overlay */}
@@ -639,10 +673,9 @@ const EditProfile = ({ user, onBack }) => {
   )
 }
 
-const SavedPosts = () => {
+const SavedPosts = ({ onPostClick }) => {
   const [savedPosts, setSavedPosts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [activePostId, setActivePostId] = useState(null);
 
   useEffect(() => {
     async function fetchSaved() {
@@ -660,15 +693,37 @@ const SavedPosts = () => {
   }, []);
 
   return (
-    <div className="w-full max-w-xl space-y-4 pb-20">
+    <div className="w-full max-w-[630px] pb-20">
       {loading ? (
-        <Loading />
+        <div className="space-y-4">
+          <SkeletonPost />
+          <SkeletonPost />
+          <SkeletonPost />
+        </div>
       ) : savedPosts && savedPosts.length > 0 ? (
-        savedPosts.map((e) => (
-          <div key={e._id} className="saved-post-container">
-            <PostCard type={e.type} value={e} />
+        <>
+          {/* Mobile List View */}
+          <div className="space-y-4 md:hidden">
+            {savedPosts.map((e) => (
+              <div key={e._id} className="saved-post-container">
+                <PostCard type={e.type} value={e} />
+              </div>
+            ))}
           </div>
-        ))
+
+          {/* Desktop Grid View */}
+          <div className="hidden md:grid grid-cols-3 gap-1">
+            {savedPosts.map((e, i) => (
+              <PostCard
+                key={e._id}
+                type={e.type || "post"}
+                value={e}
+                isGrid={true}
+                onClick={() => onPostClick && onPostClick(savedPosts, i)}
+              />
+            ))}
+          </div>
+        </>
       ) : (
         <p className="text-[var(--text-secondary)] text-center py-4">No saved posts yet</p>
       )}
@@ -711,4 +766,47 @@ const BioDisplay = ({ bio }) => {
   );
 };
 
+
+// Feed Modal - shows posts in a feed view starting from a specific index
+const FeedModal = ({ posts, initialIndex, onClose }) => {
+  const modalRef = useRef(null);
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+  useEffect(() => {
+    // Scroll to the initial post on mount
+    if (modalRef.current) {
+      const element = document.getElementById(`feed-post-${initialIndex}`);
+      if (element) {
+        element.scrollIntoView({ behavior: "auto" });
+      }
+    }
+  }, []); // Run once on mount
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md overflow-y-auto custom-scrollbar flex justify-center">
+      <button
+        onClick={onClose}
+        className="fixed top-4 right-4 text-white/70 hover:text-white text-3xl z-[70] p-2 bg-black/20 rounded-full backdrop-blur-sm transition-colors"
+      >
+        <IoClose />
+      </button>
+
+      <div className="w-full max-w-md md:max-w-lg py-10 min-h-screen" ref={modalRef}>
+        {posts.map((post, index) => (
+          <div
+            key={post._id}
+            id={`feed-post-${index}`}
+            className={`mb-6 last:mb-20 ${post.type === 'reel' ? 'aspect-[9/16] w-full max-w-[350px] mx-auto' : ''}`}
+          >
+            <PostCard type={post.type || "post"} value={post} />
+          </div>
+        ))}
+        <div className="h-20 text-center text-white/50 text-sm">End of list</div>
+      </div>
+    </div>
+  );
+};
+
+
 export default Account;
+

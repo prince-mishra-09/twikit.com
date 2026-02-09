@@ -124,10 +124,10 @@ const Login = () => {
         {/* Form */}
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <input
-            type="email"
+            type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email address"
+            placeholder="Email or Username"
             className="w-full px-4 py-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition"
             required
           />
