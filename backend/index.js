@@ -113,8 +113,10 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/feed", feedRoutes);
 app.use("/api/story", storyRoutes);
+app.use("/api/story", storyRoutes);
 app.use("/api/comment", commentRoutes);
-
+import testRoutes from "./routes/testRoutes.js";
+app.use("/api", testRoutes);
 // Monitoring metrics endpoint (protected - briefly checks key or similar if needed)
 app.get("/api/metrics", (req, res) => {
   // Secure check using Authorization Header

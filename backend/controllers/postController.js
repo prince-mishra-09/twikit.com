@@ -371,24 +371,22 @@ export const handleFeedback = TryCatch(async (req, res) => {
     })();
 });
 
-// Simple in-memory cache for view deduplication (should be Redis for production)
-const viewCache = new Set();
-
 export const addPostView = TryCatch(async (req, res) => {
     const postId = req.params.id;
     const identifier = req.user ? req.user._id.toString() : req.ip;
-    const viewKey = `${postId}:${identifier}`;
+    const viewKey = `post_view:${postId}:${identifier}`;
 
-    if (viewCache.has(viewKey)) {
+    // Redis: Check if already viewed (fast distributed check)
+    // using set(key, val, 'EX', ttl, 'NX') -> returns 'OK' if set, null if already exists
+    // Upstash/IORedis compatible
+    const isNewView = await redis.set(viewKey, "1", "EX", 600, "NX");
+
+    if (!isNewView) {
         return res.json({ message: "View already counted" });
     }
 
-    // Increment view count directly - accessible to guests too
+    // Increment view count directly
     await Post.findByIdAndUpdate(postId, { $inc: { views: 1 } });
-
-    // Track view (clearing cache periodically or using TTL would be better)
-    viewCache.add(viewKey);
-    setTimeout(() => viewCache.delete(viewKey), 10 * 60 * 1000); // 10 min cooldown
 
     res.json({
         message: "View added",
