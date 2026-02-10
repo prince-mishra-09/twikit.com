@@ -42,10 +42,10 @@ class MonitoringService {
     }
 
     // Run a single monitoring check
-    runCheck() {
+    async runCheck() {
         try {
-            // Collect all metrics
-            const metrics = this.metricsCollector.getAllMetrics();
+            // Collect all metrics (now async for Redis ping)
+            const metrics = await this.metricsCollector.getAllMetrics();
 
             // Log current status
             this.logMetrics(metrics);
@@ -66,6 +66,7 @@ class MonitoringService {
         console.log(`  Memory: ${metrics.memory.current}MB/${metrics.memory.max}MB (${metrics.memory.percentage.toFixed(1)}%)`);
         console.log(`  API p95: ${metrics.apiPerformance.p95}ms (avg: ${metrics.apiPerformance.avg}ms, count: ${metrics.apiPerformance.count})`);
         console.log(`  Error Rate: ${metrics.errorRate.rate}% (${metrics.errorRate.errors}/${metrics.errorRate.requests})`);
+        console.log(`  Redis: ${metrics.redisHealth.connected ? '✅ Connected' : '❌ Disconnected'} (${metrics.redisHealth.latency}ms - ${metrics.redisHealth.status})`);
     }
 
     // Stop monitoring
@@ -79,8 +80,8 @@ class MonitoringService {
     }
 
     // Get current metrics (for API endpoint)
-    getCurrentMetrics() {
-        return this.metricsCollector.getAllMetrics();
+    async getCurrentMetrics() {
+        return await this.metricsCollector.getAllMetrics();
     }
 
     // Get metrics collector (for middleware)

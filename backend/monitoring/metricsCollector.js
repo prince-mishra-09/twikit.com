@@ -1,5 +1,6 @@
 // Metrics Collector - Gathers all system metrics
 import mongoose from 'mongoose';
+import redis from '../utils/redis.js';
 
 class MetricsCollector {
     constructor(io) {
@@ -128,14 +129,39 @@ class MetricsCollector {
         }
     }
 
+    // 6. Redis Health Check
+    async getRedisHealth() {
+        try {
+            const start = Date.now();
+            // Simple ping to check connectivity
+            await redis.ping();
+            const latency = Date.now() - start;
+
+            return {
+                connected: true,
+                latency: latency,
+                status: latency < 100 ? 'healthy' : latency < 300 ? 'slow' : 'critical'
+            };
+        } catch (error) {
+            console.error('Error checking Redis health:', error.message);
+            return {
+                connected: false,
+                latency: 0,
+                status: 'disconnected',
+                error: error.message
+            };
+        }
+    }
+
     // Get all metrics at once
-    getAllMetrics() {
+    async getAllMetrics() {
         return {
             mongoPool: this.getMongoPoolUsage(),
             socketConnections: this.getSocketConnections(),
             memory: this.getMemoryUsage(),
             apiPerformance: this.getApiPerformance(),
-            errorRate: this.getErrorRate()
+            errorRate: this.getErrorRate(),
+            redisHealth: await this.getRedisHealth()
         };
     }
 }

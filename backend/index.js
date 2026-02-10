@@ -138,13 +138,13 @@ app.use("/api/comment", commentRoutes);
 import testRoutes from "./routes/testRoutes.js";
 app.use("/api", testRoutes);
 // Monitoring metrics endpoint (protected - briefly checks key or similar if needed)
-app.get("/api/metrics", (req, res) => {
+app.get("/api/metrics", async (req, res) => {
   // Secure check using Authorization Header
   const authHeader = req.headers.authorization;
   if (!authHeader || authHeader !== `Bearer ${process.env.JWT_SECRET}`) {
     return res.status(403).json({ message: "Forbidden" });
   }
-  const metrics = monitoringService.getCurrentMetrics();
+  const metrics = await monitoringService.getCurrentMetrics();
   res.json(metrics);
 });
 

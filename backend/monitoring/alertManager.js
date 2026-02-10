@@ -8,7 +8,8 @@ class AlertManager {
             socketConnections: { alerted: false, lastAlertTime: 0, consecutiveBreaches: 0 },
             memory: { alerted: false, lastAlertTime: 0, consecutiveBreaches: 0 },
             apiPerformance: { alerted: false, lastAlertTime: 0, consecutiveBreaches: 0 },
-            errorRate: { alerted: false, lastAlertTime: 0, consecutiveBreaches: 0 }
+            errorRate: { alerted: false, lastAlertTime: 0, consecutiveBreaches: 0 },
+            redisHealth: { alerted: false, lastAlertTime: 0, consecutiveBreaches: 0 }
         };
 
         this.cooldownMs = (parseInt(process.env.ALERT_COOLDOWN_MINUTES) || 30) * 60 * 1000;
@@ -187,6 +188,61 @@ class AlertManager {
         }
     }
 
+    // Check Redis Health
+    checkRedisHealth(metrics) {
+        const metricName = 'redisHealth';
+
+        // Alert if Redis is disconnected
+        if (!metrics.connected) {
+            if (this.canAlert(metricName)) {
+                this.sendAlert(metricName, {
+                    name: 'Redis Connection',
+                    current: 'Disconnected',
+                    threshold: 'Connected',
+                    percentage: '0%',
+                    actions: [
+                        'Check Upstash Redis dashboard for service status',
+                        'Verify UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in .env',
+                        'Check network connectivity',
+                        'Review Redis connection logs',
+                        `Error: ${metrics.error || 'Unknown'}`
+                    ]
+                });
+
+                this.alertState[metricName].alerted = true;
+                this.alertState[metricName].lastAlertTime = Date.now();
+            }
+        }
+        // Alert if Redis latency is critical (>300ms)
+        else if (metrics.status === 'critical') {
+            if (this.canAlert(metricName)) {
+                this.sendAlert(metricName, {
+                    name: 'Redis Latency',
+                    current: `${metrics.latency}ms`,
+                    threshold: '100ms (healthy)',
+                    percentage: `${((metrics.latency / 100) * 100).toFixed(1)}%`,
+                    actions: [
+                        'Check Upstash dashboard for service degradation',
+                        'Verify if approaching free tier limits (10K commands/day)',
+                        'Consider upgrading Upstash plan if consistently slow',
+                        'Check network latency to Upstash region',
+                        `Current status: ${metrics.status}`
+                    ]
+                });
+
+                this.alertState[metricName].alerted = true;
+                this.alertState[metricName].lastAlertTime = Date.now();
+            }
+        }
+        // Reset alert if Redis is healthy again
+        else if (metrics.connected && metrics.status === 'healthy') {
+            if (this.alertState[metricName].alerted) {
+                this.alertState[metricName].alerted = false;
+                console.log(`✅ ${metricName} recovered to normal levels`);
+            }
+        }
+    }
+
     // Send alert email
     async sendAlert(metricName, data) {
         try {
@@ -204,6 +260,7 @@ class AlertManager {
         this.checkMemory(allMetrics.memory);
         this.checkApiPerformance(allMetrics.apiPerformance);
         this.checkErrorRate(allMetrics.errorRate);
+        this.checkRedisHealth(allMetrics.redisHealth);
     }
 }
 
