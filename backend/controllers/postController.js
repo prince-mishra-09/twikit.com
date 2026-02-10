@@ -555,14 +555,20 @@ export const getUserPosts = TryCatch(async (req, res) => {
         return res.status(403).json({ message: "This account is private. Follow to see posts." });
     }
 
-    // 3. Fetch Posts
-    const posts = await Post.find({ owner: userId, type: "post" })
+    // 3. Fetch Posts (Optimized: Parallel + Limit)
+    const postsPromise = Post.find({ owner: userId, type: "post" })
         .sort({ createdAt: -1 })
-        .populate("owner", "name username profilePic isPrivate");
+        .limit(50)
+        .populate("owner", "name username profilePic isPrivate")
+        .lean();
 
-    const reels = await Post.find({ owner: userId, type: "reel" })
+    const reelsPromise = Post.find({ owner: userId, type: "reel" })
         .sort({ createdAt: -1 })
-        .populate("owner", "name username profilePic isPrivate");
+        .limit(50)
+        .populate("owner", "name username profilePic isPrivate")
+        .lean();
+
+    const [posts, reels] = await Promise.all([postsPromise, reelsPromise]);
 
     res.json({ posts, reels });
 });
