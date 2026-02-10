@@ -46,29 +46,40 @@ const UserAccount = ({ user: loggedInUser }) => {
 
   async function fetchData() {
     setLoading(true);
+    console.log(`[Profile Debug] Fetching data for user ID: ${params.id}`);
+    const startTime = Date.now();
+
     try {
-      // Parallel fetch for speed
+      // Parallel fetch for speed (User + Posts only)
+      console.log("[Profile Debug] Starting parallel fetch (User + Posts)...");
       const userPromise = axios.get("/api/user/" + params.id);
-      const postsPromise = axios.get("/api/post/user/" + params.id);
+      const postsPromise = axios.get("/api/post/user/" + params.id + "?type=post");
 
       const [userRes, postsRes] = await Promise.allSettled([userPromise, postsPromise]);
 
+      const endTime = Date.now();
+      console.log(`[Profile Debug] Parallel fetch completed in ${endTime - startTime}ms`);
+
       if (userRes.status === "fulfilled") {
+        console.log("[Profile Debug] User fetch SUCCESS", userRes.value.data);
         setUser(userRes.value.data);
       } else {
-        console.error("User fetch failed", userRes.reason);
+        console.error("[Profile Debug] User fetch FAILED", userRes.reason);
+        if (userRes.reason.response) {
+          console.error("[Profile Debug] Backend Response Status:", userRes.reason.response.status);
+          console.error("[Profile Debug] Backend Response Data:", userRes.reason.response.data);
+        }
       }
 
       if (postsRes.status === "fulfilled") {
+        console.log(`[Profile Debug] Posts fetch SUCCESS. Count: ${postsRes.value.data.posts?.length}`);
         setUserPosts(postsRes.value.data.posts);
-        setUserReels(postsRes.value.data.reels);
       } else {
-        // 403 or other error
+        console.error("[Profile Debug] Posts fetch FAILED", postsRes.reason);
         setUserPosts([]);
-        setUserReels([]);
       }
     } catch (error) {
-      console.log(error);
+      console.error("[Profile Debug] Critical Error in fetchData:", error);
     } finally {
       setLoading(false);
     }
@@ -80,17 +91,30 @@ const UserAccount = ({ user: loggedInUser }) => {
 
   // Fetch User's Posts directly (Privacy Aware)
   // Fetch User's Posts directly (Privacy Aware)
+  // Fetch User's Posts directly (Privacy Aware)
   async function fetchUserPosts(id) {
     const targetId = id || user?._id;
     if (!targetId) return;
     try {
-      const { data } = await axios.get("/api/post/user/" + targetId);
+      const { data } = await axios.get("/api/post/user/" + targetId + "?type=post");
       setUserPosts(data.posts);
+      // If we are already on reels tab, we might want to refresh reels too?
+      // For now, let's just refresh posts as that's the primary view.
+      // If we want to refresh everything on Follow, we can do that too.
+      if (type === 'reel') fetchUserReels(targetId);
+    } catch (error) {
+      setUserPosts([]);
+    }
+  }
+
+  async function fetchUserReels(id) {
+    const targetId = id || user?._id || params.id;
+    if (!targetId) return;
+    try {
+      const { data } = await axios.get("/api/post/user/" + targetId + "?type=reel");
       setUserReels(data.reels);
     } catch (error) {
-      // If 403/401 (Private), simply clear the list
-      setUserPosts([]);
-      setUserReels([]);
+      console.log(error);
     }
   }
 
@@ -103,6 +127,14 @@ const UserAccount = ({ user: loggedInUser }) => {
   const myPosts = userPosts;
   const myReels = userReels;
   const [type, setType] = useState("post");
+
+  // Fetch Reels when tab changes
+  useEffect(() => {
+    if (type === "reel" && userReels.length === 0) {
+      fetchUserReels();
+    }
+  }, [type]);
+
   const [index, setIndex] = useState(0);
 
   const prevReel = () => index !== 0 && setIndex(index - 1);

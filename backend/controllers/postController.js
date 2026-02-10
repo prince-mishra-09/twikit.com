@@ -7,7 +7,11 @@ import cloudinary from "cloudinary";
 import { io } from "../socket/socket.js";
 import { Notification } from "../models/Notification.js";
 import { sendPushNotification } from "./notificationController.js";
+import redis from "../utils/redis.js";
 
+// ==============================================================================
+// 1. CREATE POST (Robust Background Handling)
+// ==============================================================================
 export const newPost = TryCatch(async (req, res) => {
     const { caption } = req.body;
     const ownerId = req.user._id;
@@ -22,7 +26,7 @@ export const newPost = TryCatch(async (req, res) => {
         return res.status(400).json({ message: "No file provided" });
     }
 
-    // 1. Send Immediate Response (Optimistic)
+    // 1. Send Immediate Response
     res.status(202).json({
         message: "Post upload started",
         status: "processing",
