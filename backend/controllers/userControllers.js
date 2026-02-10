@@ -55,7 +55,8 @@ export const userProfile = async (req, res) => {
 
     if (cachedUser) {
       console.log(`[UserProfile:${requestId}] Cache HIT`);
-      const user = JSON.parse(cachedUser);
+      // Upstash auto-parses JSON, IORedis returns string
+      const user = typeof cachedUser === 'string' ? JSON.parse(cachedUser) : cachedUser;
       const accessError = validateAccess(user, req.user);
       if (accessError) {
         console.warn(`[UserProfile:${requestId}] Access Denied (Cache): ${accessError.error}`);

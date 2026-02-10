@@ -10,6 +10,30 @@ let isInitializing = true;
 const redisProxy = new Proxy({}, {
     get: function (target, prop) {
         if (redisClient) {
+            // COMPATIBILITY LAYER: Intercept 'set' to handle argument differences
+            if (prop === 'set') {
+                return async (...args) => {
+                    // Reliable Upstash Detection: Use same env var as initialization
+                    const isUpstash = !!process.env.UPSTASH_REDIS_REST_URL;
+
+                    // Logic: If using Upstash AND args match (key, val, "EX", ttl) -> Convert to object syntax
+                    if (isUpstash && args.length >= 4 && typeof args[2] === 'string' && args[2].toUpperCase() === 'EX') {
+                        const [key, value, _mode, ttl] = args;
+                        const options = { ex: ttl };
+
+                        // Check for NX flag
+                        if (args.length >= 5 && typeof args[4] === 'string' && args[4].toUpperCase() === 'NX') {
+                            options.nx = true;
+                        }
+
+                        return redisClient.set(key, value, options);
+                    }
+
+                    // Fallback to original call (for IORedis)
+                    return redisClient.set(...args);
+                };
+            }
+
             // Bind functions to the client instance
             if (typeof redisClient[prop] === 'function') {
                 return redisClient[prop].bind(redisClient);
@@ -41,6 +65,10 @@ const redisProxy = new Proxy({}, {
 
 const initializeRedis = async () => {
     try {
+        console.log("Checking Redis Config...");
+        console.log("UPSTASH_URL:", process.env.UPSTASH_REDIS_REST_URL ? "Set" : "Missing");
+        console.log("UPSTASH_TOKEN:", process.env.UPSTASH_REDIS_REST_TOKEN ? "Set" : "Missing");
+
         // STRATEGY 1: Check for Upstash REST (HTTP)
         if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
             console.log("Found Upstash Credentials. Initializing HTTP Client...");
@@ -131,7 +159,6 @@ const initializeRedis = async () => {
     }
 };
 
-initializeRedis();
-
+export { initializeRedis };
 export default redisProxy;
 // End of file

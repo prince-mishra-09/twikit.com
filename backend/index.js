@@ -1,4 +1,25 @@
 import dotenv from "dotenv";
+import path from "path";
+import fs from "fs";
+
+const envPath = path.resolve(process.cwd(), ".env");
+console.log("Current Working Directory:", process.cwd());
+console.log("Looking for .env at:", envPath);
+
+if (fs.existsSync(envPath)) {
+  console.log("✅ .env file found!");
+  const result = dotenv.config({ path: envPath });
+  if (result.error) {
+    console.error("❌ Error loading .env:", result.error);
+  } else {
+    console.log("✅ .env loaded successfully");
+  }
+} else {
+  console.error("❌ .env file NOT found at this path!");
+  // Fallback to default
+  dotenv.config();
+}
+
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import cloudinary from "cloudinary";
@@ -8,6 +29,7 @@ import { rateLimit } from "express-rate-limit";
 import mongoSanitize from "express-mongo-sanitize";
 import { app, server, io } from "./socket/socket.js";
 import { connectDB } from "./database/db.js";
+import { initializeRedis } from "./utils/redis.js"; // Import init function
 
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
@@ -22,8 +44,6 @@ import { migrateUsernames } from "./utils/migration.js";
 // Import monitoring system
 import MonitoringService from "./monitoring/index.js";
 import metricsMiddleware from "./middleware/metricsMiddleware.js";
-
-dotenv.config();
 
 // trust proxy - required for secure cookies behind reverse proxies (Render, Vercel, etc.)
 app.set("trust proxy", 1);
@@ -164,6 +184,7 @@ server.listen(port, async () => {
   }
 
   await connectDB();
+  await initializeRedis(); // Explicitly init Redis after env vars are ready
   await migrateUsernames();
 
   // Start monitoring system after server starts
