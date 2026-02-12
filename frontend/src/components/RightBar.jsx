@@ -5,31 +5,51 @@ import { isSameId, includesId } from "../utils/idUtils";
 
 const RightBar = () => {
     const { user, isAuth, searchUser, followUser } = UserData();
+    const [hasFetched, setHasFetched] = useState(false);
     const [suggestions, setSuggestions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+
+    // Track window resize to update isDesktop
+    useEffect(() => {
+        const handleResize = () => {
+            setIsDesktop(window.innerWidth >= 1024);
+        };
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
 
     useEffect(() => {
         const fetchSuggestions = async () => {
-            if (!isAuth || !user) return;
+            // Only fetch if:
+            // 1. Authenticated
+            // 2. Desktop view
+            // 3. Haven't fetched yet in this session
+            if (!isAuth || !user || !isDesktop || hasFetched) return;
 
-            console.log("RightBar: Fetching suggestions...");
-            // Fetch all/top users using search with empty query
-            const users = await searchUser("");
-            console.log("RightBar: Users fetched:", users.length);
+            console.log("RightBar: Fetching suggestions (Desktop Only, Once per session)...");
+            try {
+                // Fetch all/top users using search with empty query
+                const users = await searchUser("");
 
-            // Filter: Exclude me, and people I already follow
-            const filtered = users.filter(u =>
-                !isSameId(u._id, user._id) &&
-                !includesId(user.followings, u._id)
-            ).slice(0, 5); // Take top 5
+                // Filter: Exclude me, and people I already follow
+                const filtered = users.filter(u =>
+                    !isSameId(u._id, user._id) &&
+                    !includesId(user.followings, u._id)
+                ).slice(0, 10); // Take top 10
 
-            console.log("RightBar: Filtered suggestions:", filtered.length);
-            setSuggestions(filtered);
-            setLoading(false);
+                setSuggestions(filtered);
+                setHasFetched(true);
+            } catch (error) {
+                console.error("RightBar Error:", error);
+            } finally {
+                setLoading(false);
+            }
         };
 
         fetchSuggestions();
-    }, [user, isAuth, searchUser]);
+    }, [user?._id, isAuth, isDesktop, hasFetched, searchUser]); // Depend on user._id instead of whole object to avoid refetch on follow count change
+
 
     if (!isAuth || !user) return null;
 

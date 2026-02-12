@@ -6,6 +6,8 @@ import { PostData } from "../context/PostContext";
 import PostCard from "../components/PostCard";
 import { FaArrowDownLong, FaArrowUp, FaArrowLeft } from "react-icons/fa6";
 import { IoMenu, IoClose } from "react-icons/io5";
+import { BsGrid3X3, BsShare, BsPalette, BsBookmark } from "react-icons/bs";
+import ReelsIcon from "../components/ReelsIcon";
 import Modal from "../components/Modal";
 import axios from "axios";
 
@@ -20,17 +22,18 @@ import CreatePostModal from "../components/CreatePostModal";
 import StoryAvatar from "../components/StoryAvatar";
 import { AiOutlinePlus } from "react-icons/ai";
 import ShareModal from "../components/ShareModal";
-import { BsShare, BsPalette } from "react-icons/bs";
 import ThemeModal from "../components/ThemeModal";
 import { getOptimizedImg } from "../utils/cloudinary";
 import { RiRecordCircleFill } from "react-icons/ri";
 import { IoEye, IoEyeOff } from "react-icons/io5";
+import { useTheme } from "../context/ThemeContext";
 
 const Account = ({ user }) => {
   const navigate = useNavigate();
   const { logoutUser, updateProfilePic, updateProfileName, unmuteUser, togglePrivacy, removeFollower, unblockUser, user: loggedInUser, followUser, toggleOnlineStatus, toggleLastSeen } = UserData();
   const { posts, reels, loading } = PostData();
   const { stories } = StoriesData();
+  const { cycleTheme } = useTheme();
 
   // Story Logic
   const myStoryGroup = stories.find(s => isSameId(s.user?._id, user._id));
@@ -42,7 +45,26 @@ const Account = ({ user }) => {
 
   const [type, setType] = useState("post");
   const [activeReelId, setActiveReelId] = useState(null);
-  const [feedModal, setFeedModal] = useState(null); // { posts: [], index: 0 }
+  const [feedModal, setFeedModal] = useState(null); // { type: 'post' | 'reel' | 'saved', index: 0 }
+
+  const [savedPosts, setSavedPosts] = useState([]);
+  const [loadingSaved, setLoadingSaved] = useState(false);
+
+  const fetchSaved = async () => {
+    setLoadingSaved(true);
+    try {
+      const { data } = await axios.get("/api/user/saved");
+      setSavedPosts(data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoadingSaved(false);
+    }
+  };
+
+  useEffect(() => {
+    if (type === "saved") fetchSaved();
+  }, [type]);
 
   useEffect(() => {
     if (type !== "reel") return;
@@ -192,7 +214,14 @@ const Account = ({ user }) => {
             <p className="text-[var(--text-secondary)] text-sm">@{user.username}</p>
           </div>
 
-          <div className="relative">
+          <div className="flex items-center gap-1 relative">
+            <button
+              onClick={cycleTheme}
+              className="text-[var(--text-primary)] text-xl p-2 hover:bg-[var(--bg-primary)]/50 rounded-full transition-colors shrink-0"
+              title="Change Theme"
+            >
+              <BsPalette />
+            </button>
             <button
               onClick={() => setShowSettings(!showSettings)}
               className="text-[var(--text-primary)] text-2xl p-2 hover:bg-[var(--bg-primary)]/50 rounded-full transition-colors shrink-0"
@@ -399,6 +428,22 @@ const Account = ({ user }) => {
             </a>
           )}
         </div>
+
+        {/* PROFILE ACTIONS */}
+        <div className="flex gap-2 mt-5">
+          <button
+            onClick={() => setShowEdit(true)}
+            className="flex-1 py-1.5 rounded-lg bg-[var(--bg-secondary)] text-[var(--text-secondary)] opacity-80 text-sm font-semibold hover:bg-[var(--bg-secondary)]/80 hover:text-[var(--text-primary)] hover:opacity-100 transition-colors"
+          >
+            Edit Profile
+          </button>
+          <button
+            onClick={() => setShareModal(true)}
+            className="flex-1 py-1.5 rounded-lg bg-[var(--bg-secondary)] text-[var(--text-secondary)] opacity-80 text-sm font-semibold hover:bg-[var(--bg-secondary)]/80 hover:text-[var(--text-primary)] hover:opacity-100 transition-colors"
+          >
+            Share Profile
+          </button>
+        </div>
       </div>
       {/* ================= END PROFILE CARD ================= */}
 
@@ -435,23 +480,26 @@ const Account = ({ user }) => {
       <div className="flex w-full max-w-[630px] border-b border-[var(--border)] mt-2">
         <button
           onClick={() => setType("post")}
-          className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${type === "post" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
+          className={`flex-1 flex justify-center py-3 text-xl transition-colors relative ${type === "post" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
+          title="Posts"
         >
-          Posts
+          <BsGrid3X3 />
           {type === "post" && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--accent)] rounded-t-full" />}
         </button>
         <button
           onClick={() => setType("reel")}
-          className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${type === "reel" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
+          className={`flex-1 flex justify-center py-3 text-xl transition-colors relative ${type === "reel" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
+          title="Reels"
         >
-          Reels
+          <ReelsIcon size={20} />
           {type === "reel" && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--accent)] rounded-t-full" />}
         </button>
         <button
           onClick={() => setType("saved")}
-          className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${type === "saved" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
+          className={`flex-1 flex justify-center py-3 text-xl transition-colors relative ${type === "saved" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
+          title="Saved"
         >
-          Vault
+          <BsBookmark />
           {type === "saved" && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--accent)] rounded-t-full" />}
         </button>
       </div>
@@ -468,7 +516,7 @@ const Account = ({ user }) => {
                     value={e}
                     key={e._id}
                     isGrid={true}
-                    onClick={() => setFeedModal({ posts: myPosts, index: i })}
+                    onClick={() => setFeedModal({ type: 'post', index: i })}
                   />
                 ))}
               </div>
@@ -490,7 +538,7 @@ const Account = ({ user }) => {
                   value={reel}
                   isActive={activeReelId === reel._id}
                   isGrid={true}
-                  onClick={() => setFeedModal({ posts: myReels, index: i })}
+                  onClick={() => setFeedModal({ type: 'reel', index: i })}
                 />
               </div>
             ))}
@@ -499,11 +547,11 @@ const Account = ({ user }) => {
       }
 
 
-      {type === "saved" && <SavedPosts onPostClick={(posts, index) => setFeedModal({ posts, index })} />}
+      {type === "saved" && <SavedPosts savedPosts={savedPosts} loading={loadingSaved} onPostClick={(index) => setFeedModal({ type: 'saved', index })} />}
       {showEdit && <EditProfile user={user} onBack={() => setShowEdit(false)} />}
       {feedModal && (
         <FeedModal
-          posts={feedModal.posts}
+          posts={feedModal.type === 'post' ? myPosts : feedModal.type === 'reel' ? myReels : savedPosts}
           initialIndex={feedModal.index}
           onClose={() => setFeedModal(null)}
         />
@@ -701,24 +749,7 @@ const EditProfile = ({ user, onBack }) => {
   )
 }
 
-const SavedPosts = ({ onPostClick }) => {
-  const [savedPosts, setSavedPosts] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    async function fetchSaved() {
-      setLoading(true);
-      try {
-        const { data } = await axios.get("/api/user/saved");
-        setSavedPosts(data);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchSaved();
-  }, []);
+const SavedPosts = ({ savedPosts, loading, onPostClick }) => {
 
   return (
     <div className="w-full max-w-[630px] pb-20">
@@ -736,7 +767,7 @@ const SavedPosts = ({ onPostClick }) => {
               type={e.type || "post"}
               value={e}
               isGrid={true}
-              onClick={() => onPostClick && onPostClick(savedPosts, i)}
+              onClick={() => onPostClick && onPostClick(i)}
             />
           ))}
         </div>

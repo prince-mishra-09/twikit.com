@@ -35,7 +35,7 @@ function App() {
   const { socket } = SocketData();
 
   // Maintenance Mode (Toggle this to true to enable)
-  const isMaintenanceMode = true; // Set to true when needed
+  const isMaintenanceMode = false; // Set to true when needed
 
   // Only allow bypass if user is already logged in as admin
   const isBypass = user?.email === "admin@prince";
@@ -98,7 +98,40 @@ function App() {
 
   return (
     <>
-      <Toaster position="top-center" />
+      <Toaster
+        position="bottom-center"
+        containerStyle={{
+          bottom: 80,
+        }}
+        gutter={24}
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: 'rgba(13, 13, 13, 0.6)',
+            color: '#fff',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '99px',
+            padding: '8px 16px',
+            fontSize: '14px',
+            fontWeight: '500',
+            maxWidth: '90vw',
+          },
+          success: {
+            iconTheme: {
+              primary: '#00FFD1',
+              secondary: '#000',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#FF2E63',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
       <ErrorBoundary>
         {loading ? (
           <SkeletonFullPage />

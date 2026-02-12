@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AiOutlineHome, AiFillHome, AiOutlinePlus } from "react-icons/ai";
-import { BsCameraReelsFill, BsCameraReels } from "react-icons/bs";
+import ReelsIcon from "./ReelsIcon";
 import { IoSearch, IoSearchOutline } from "react-icons/io5";
 import { RiAccountCircleFill, RiAccountCircleLine } from "react-icons/ri";
 import CreatePostModal from "./CreatePostModal";
@@ -97,7 +97,7 @@ const NavigationBar = () => {
             className={`transition-all duration-200 ${tab === "/reels" ? activeStyle : inactiveStyle
               }`}
           >
-            {tab === "/reels" ? <BsCameraReelsFill className="w-7 h-7" /> : <BsCameraReels className="w-7 h-7" />}
+            <ReelsIcon size={28} />
           </Link>
 
           {/* Account */}

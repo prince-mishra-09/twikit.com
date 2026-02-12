@@ -3,6 +3,7 @@ import { PostData } from "../context/PostContext";
 import { StoriesData } from "../context/StoriesContext"; // Import StoriesData
 import { LoadingAnimation } from "./Loading";
 import { AiOutlineClose } from "react-icons/ai";
+import ReelsIcon from "./ReelsIcon";
 import StoryEditor from "./StoryEditor";
 
 const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initialTab
@@ -202,7 +203,7 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                     ) : (
                                         <div className="flex flex-col items-center gap-2 group-hover:scale-105 transition">
                                             <span className="text-4xl text-[var(--text-primary)] opacity-80">
-                                                {type === "post" ? "📷" : type === "reel" ? "🎥" : "⏱️"}
+                                                {type === "post" ? "📷" : type === "reel" ? <ReelsIcon size={40} /> : "⏱️"}
                                             </span>
                                             <span className="text-sm font-medium text-[var(--text-secondary)]">
                                                 Click to upload {type}

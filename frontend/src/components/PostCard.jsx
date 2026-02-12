@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { createPortal } from "react-dom";
 import { toast } from "react-hot-toast";
-import { BsChatFill, BsThreeDotsVertical, BsBookmark, BsBookmarkFill } from "react-icons/bs";
+import { BsChatFill, BsThreeDotsVertical, BsBookmark, BsBookmarkFill, BsPencil } from "react-icons/bs";
 import { IoPaperPlaneOutline, IoEyeOutline, IoClose } from "react-icons/io5";
 
 import { UserData } from "../context/UserContext";
@@ -20,6 +20,8 @@ import { isSameId, includesId } from "../utils/idUtils";
 const CommentItem = React.lazy(() => import("./CommentItem"));
 const ShareModal = React.lazy(() => import("./ShareModal"));
 const VibeModal = React.lazy(() => import("./VibeModal"));
+const ConfirmationModal = React.lazy(() => import("./ConfirmationModal"));
+const EditPostModal = React.lazy(() => import("./EditPostModal"));
 
 
 
@@ -97,6 +99,10 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
 
   const [shareModal, setShareModal] = useState(false);
   const [vibeModal, setVibeModal] = useState(false);
+  const [showPostDeleteConfirm, setShowPostDeleteConfirm] = useState(false);
+  const [showOwnerMenu, setShowOwnerMenu] = useState(false);
+  const [showEditPage, setShowEditPage] = useState(false);
+  const { updatePost } = PostData();
 
   // Keep state in sync if props change (e.g. user updates via context)
   useEffect(() => {
@@ -443,7 +449,8 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
 
 
 
-  const deleteHandler = () => deletePost(value._id);
+  // Delete confirm modal state is handled via inline setters now
+
 
   const followHandler = async () => {
     if (!isAuth) {
@@ -1000,12 +1007,38 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
           {/* Delete / Follow / Menu Button Overlay */}
           <div className="pointer-events-auto flex items-center gap-2">
             {user && value.owner._id === user._id ? (
-              <button
-                onClick={deleteHandler}
-                className="bg-black/40 backdrop-blur-md p-2 rounded-full text-white/80 hover:text-red-500 hover:bg-black/60 transition-all"
-              >
-                <MdDelete className="text-lg" />
-              </button>
+              <div className="relative">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowOwnerMenu(!showOwnerMenu); }}
+                  className="p-2 rounded-full text-[var(--text-primary)] hover:text-[var(--accent)] hover:scale-110 transition-all drop-shadow-lg"
+                >
+                  <BsThreeDotsVertical className="text-sm" />
+                </button>
+                {showOwnerMenu && (
+                  <div className="absolute right-0 top-full mt-2 w-40 bg-[#1F2937]/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[100] animate-in slide-in-from-top-2 fade-in duration-200">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowEditPage(true);
+                        setShowOwnerMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm text-[var(--accent)] hover:bg-[var(--bg-secondary)] flex items-center gap-2 border-b border-[var(--border)] font-medium transition-colors"
+                    >
+                      Edit Post
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowPostDeleteConfirm(true);
+                        setShowOwnerMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-[var(--bg-secondary)] flex items-center gap-2 font-medium transition-colors"
+                    >
+                      Delete Post
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="flex items-center gap-2">
                 <button
@@ -1021,7 +1054,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
                 <div className="relative">
                   <button
                     onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
-                    className="bg-black/40 backdrop-blur-md p-2 rounded-full text-white/80 hover:text-white hover:bg-black/60 transition-all"
+                    className="p-2 rounded-full text-[var(--text-primary)] hover:text-[var(--accent)] hover:scale-110 transition-all drop-shadow-lg"
                   >
                     <BsThreeDotsVertical className="text-sm" />
                   </button>
@@ -1217,6 +1250,24 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
           shareModal={shareModal} setShareModal={setShareModal} type={type} vibeModal={vibeModal} setVibeModal={setVibeModal}
           deleteModal={deleteModal} setDeleteModal={setDeleteModal}
         />
+
+        <Suspense fallback={null}>
+          <ConfirmationModal
+            isOpen={showPostDeleteConfirm}
+            onClose={() => setShowPostDeleteConfirm(false)}
+            onConfirm={() => deletePost(value._id)}
+            title="Delete Post?"
+            message="Are you sure you want to delete this post? This action cannot be undone."
+            confirmText="Delete"
+            type="danger"
+          />
+          <EditPostModal
+            isOpen={showEditPage}
+            onClose={() => setShowEditPage(false)}
+            post={value}
+            onUpdate={updatePost}
+          />
+        </Suspense>
       </div>
     </div >
   );

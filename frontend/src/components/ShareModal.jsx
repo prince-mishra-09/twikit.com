@@ -82,12 +82,12 @@ const ShareModal = ({ isOpen, onClose, content }) => {
 
     return createPortal(
         <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="bg-[#111827] w-full max-w-md rounded-2xl border border-white/10 overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
+            <div className="bg-[var(--card-bg)] w-full max-w-md rounded-2xl border border-[var(--border)] overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
 
                 {/* HEADER */}
-                <div className="flex items-center justify-between p-4 border-b border-white/10">
-                    <h3 className="text-white font-semibold">Share</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-white">
+                <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
+                    <h3 className="text-[var(--text-primary)] font-semibold">Share</h3>
+                    <button onClick={onClose} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
                         <FaTimes />
                     </button>
                 </div>
@@ -95,25 +95,25 @@ const ShareModal = ({ isOpen, onClose, content }) => {
                 {/* SEARCH & PREVIEW */}
                 <div className="p-4 space-y-4 flex-none">
                     {/* Content Preview */}
-                    <div className="bg-[#1F2937]/50 p-3 rounded-xl flex items-center gap-3 border border-white/5">
+                    <div className="bg-[var(--bg-secondary)]/50 p-3 rounded-xl flex items-center gap-3 border border-[var(--border)]/50">
                         {content.type === "reel" ? (
                             <video src={content.preview.image} className="w-10 h-10 rounded-lg object-cover bg-black" muted />
                         ) : (
                             content.preview.image && <img src={content.preview.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
                         )}
                         <div className="flex-1 min-w-0">
-                            <p className="text-white text-sm font-medium truncate">{content.preview.title || "Content"}</p>
-                            <p className="text-gray-400 text-xs">@{content.preview.username}</p>
+                            <p className="text-[var(--text-primary)] text-sm font-medium truncate">{content.preview.title || "Content"}</p>
+                            <p className="text-[var(--text-secondary)] text-xs">@{content.preview.username}</p>
                         </div>
                     </div>
 
                     {/* Search Input */}
                     <div className="relative">
-                        <FaSearch className="absolute left-3 top-3 text-gray-500" />
+                        <FaSearch className="absolute left-3 top-3 text-[var(--text-secondary)]" />
                         <input
                             type="text"
                             placeholder="Search user..."
-                            className="w-full bg-[#0B0F14] text-white rounded-xl pl-9 pr-4 py-2.5 border border-white/10 focus:border-indigo-500 outline-none placeholder-gray-500"
+                            className="w-full bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-xl pl-9 pr-4 py-2.5 border border-[var(--border)] focus:border-[var(--accent)] outline-none placeholder-[var(--text-secondary)]/50"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                         />
@@ -138,7 +138,7 @@ const ShareModal = ({ isOpen, onClose, content }) => {
                                     selected={selectedUsers.some(sel => sel._id === u._id)}
                                     onSelect={() => toggleUser(u)}
                                 />
-                            )) : <p className="col-span-4 text-center text-gray-500 text-sm py-4">No users found</p>
+                            )) : <p className="col-span-4 text-center text-[var(--text-secondary)] text-sm py-4">No users found</p>
                         ) : (
                             <>
                                 {chats.map(chat => {
@@ -156,21 +156,21 @@ const ShareModal = ({ isOpen, onClose, content }) => {
                             </>
                         )}
                     </div>
-                    {!query && chats.length === 0 && <p className="text-center text-gray-500 text-sm py-4">No recent chats</p>}
+                    {!query && chats.length === 0 && <p className="text-center text-[var(--text-secondary)] text-sm py-4">No recent chats</p>}
                 </div>
 
                 {/* FOOTER - SEND */}
                 {selectedUsers.length > 0 && (
-                    <div className="p-4 border-t border-white/10 bg-[#1F2937]/30 backdrop-blur-md">
+                    <div className="p-4 border-t border-[var(--border)] bg-[var(--bg-secondary)]/30 backdrop-blur-md">
                         <div className="flex flex-col gap-3">
                             {/* Selected Avatars (Optional: small indicators) */}
                             <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
                                 {selectedUsers.map(u => (
                                     <div key={u._id} className="relative shrink-0">
-                                        <img src={u.profilePic?.url} className="w-8 h-8 rounded-full border border-white/20" alt="" />
+                                        <img src={u.profilePic?.url} className="w-8 h-8 rounded-full border border-[var(--border)] aspect-square object-cover" alt="" />
                                         <button
                                             onClick={() => toggleUser(u)}
-                                            className="absolute -top-1 -right-1 bg-gray-800 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] border border-white/20"
+                                            className="absolute -top-1 -right-1 bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-full w-4 h-4 flex items-center justify-center text-[10px] border border-[var(--border)]"
                                         >
                                             ✕
                                         </button>
@@ -178,20 +178,20 @@ const ShareModal = ({ isOpen, onClose, content }) => {
                                 ))}
                             </div>
 
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 w-full">
                                 <input
                                     type="text"
-                                    placeholder="Write a message..."
-                                    className="flex-1 bg-[#0B0F14] text-white px-4 py-2 rounded-xl border border-white/10 outline-none"
+                                    placeholder="Message..."
+                                    className="flex-1 min-w-0 bg-[var(--bg-primary)] text-[var(--text-primary)] px-3 py-2 rounded-xl border border-[var(--border)] outline-none text-sm"
                                     value={message}
                                     onChange={e => setMessage(e.target.value)}
                                 />
                                 <button
                                     onClick={handleSend}
                                     disabled={loading}
-                                    className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 rounded-xl font-medium transition-colors flex items-center justify-center disabled:opacity-50 whitespace-nowrap"
+                                    className="bg-[var(--accent)] hover:opacity-90 text-[var(--text-on-accent)] px-4 rounded-xl font-bold transition-colors flex items-center justify-center disabled:opacity-50 whitespace-nowrap shrink-0 text-sm"
                                 >
-                                    {loading ? "..." : `Send (${selectedUsers.length})`}
+                                    {loading ? "..." : `Send${selectedUsers.length > 0 ? ` (${selectedUsers.length})` : ""}`}
                                 </button>
                             </div>
                         </div>
@@ -209,12 +209,12 @@ const UserItem = ({ user, selected, onSelect }) => (
         className={`flex flex-col items-center gap-2 p-2 rounded-xl cursor-pointer transition-all active:scale-95 group relative`}
     >
         {/* Avatar Ring */}
-        <div className={`p-1 rounded-full border-2 transition-colors ${selected ? "border-indigo-500" : "border-transparent group-hover:border-white/20"}`}>
-            <div className="relative">
-                <img src={user.profilePic?.url || "/default-avatar.png"} alt="" className="w-14 h-14 rounded-full object-cover aspect-square shrink-0" />
+        <div className={`p-1 rounded-full border-2 transition-colors ${selected ? "border-[var(--accent)]" : "border-transparent group-hover:border-[var(--border)]"}`}>
+            <div className="relative aspect-square w-14 h-14">
+                <img src={user.profilePic?.url || "/default-avatar.png"} alt="" className="w-full h-full rounded-full object-cover aspect-square shrink-0" />
                 {selected && (
-                    <div className="absolute bottom-0 right-0 bg-indigo-500 w-5 h-5 rounded-full border-2 border-[#111827] flex items-center justify-center">
-                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="absolute bottom-0 right-0 bg-[var(--accent)] w-5 h-5 rounded-full border-2 border-[var(--card-bg)] flex items-center justify-center">
+                        <svg className="w-3 h-3 text-[var(--text-on-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
                     </div>
@@ -223,7 +223,7 @@ const UserItem = ({ user, selected, onSelect }) => (
         </div>
 
         {/* Username */}
-        <p className="text-xs text-gray-300 truncate max-w-full text-center">
+        <p className="text-xs text-[var(--text-secondary)] truncate max-w-full text-center group-hover:text-[var(--text-primary)] transition-colors">
             {user.username || user.name.split(' ')[0]}
         </p>
     </div>

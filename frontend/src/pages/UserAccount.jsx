@@ -8,27 +8,28 @@ import { FaArrowDownLong, FaArrowUp, FaEllipsisVertical } from "react-icons/fa6"
 import { IoClose } from "react-icons/io5"; // Added import
 import axios from "axios";
 
-import { SkeletonProfile } from "../components/Skeleton";
+import { SkeletonPost } from "../components/Skeleton";
 import { UserData } from "../context/UserContext";
 import Modal from "../components/Modal";
 import { SocketData } from "../context/SocketContext";
 import { useNavigate } from "react-router-dom"; // Added for redirect
-
+import { BsGrid3X3, BsShare, BsPalette } from "react-icons/bs";
+import ReelsIcon from "../components/ReelsIcon";
 import { StoriesData } from "../context/StoriesContext";
 import { ChatData } from "../context/ChatContext"; // Added import
 import StoryViewer from "../components/StoryViewer";
 import StoryAvatar from "../components/StoryAvatar";
 import ShareModal from "../components/ShareModal";
-import { BsShare } from "react-icons/bs";
+import { useTheme } from "../context/ThemeContext";
 
 const UserAccount = ({ user: loggedInUser }) => {
   const { } = PostData();
   const { stories, fetchUserStories, fetchStories } = StoriesData();
   const { followUser, setShowLoginPrompt } = UserData();
   const { createChat, setSelectedChat } = ChatData(); // Added
-  const { onlineUsers } = SocketData();
   const params = useParams();
   const navigate = useNavigate();
+  const { cycleTheme } = useTheme();
 
 
 
@@ -332,7 +333,14 @@ const UserAccount = ({ user: loggedInUser }) => {
 
           {/* MENU BUTTON - Hide if own profile */}
           {user._id !== loggedInUser?._id && (
-            <div className="relative z-10">
+            <div className="flex items-center gap-1 relative z-10">
+              <button
+                onClick={cycleTheme}
+                className="text-[var(--text-primary)] text-xl p-2 hover:bg-[var(--bg-primary)]/50 rounded-full transition-colors shrink-0"
+                title="Change Theme"
+              >
+                <BsPalette />
+              </button>
               <button onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }} className="text-[var(--text-primary)] p-2 rounded-full hover:bg-[var(--bg-primary)]/10">
                 <FaEllipsisVertical />
               </button>
@@ -422,9 +430,16 @@ const UserAccount = ({ user: loggedInUser }) => {
             </button>
             <button
               onClick={messageHandler}
-              className="flex-1 py-2 rounded-lg bg-[var(--card-bg)] border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors"
+              className="flex-1 py-2 rounded-lg bg-[var(--card-bg)] border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors font-medium text-sm"
             >
               Message
+            </button>
+            <button
+              onClick={() => setShareModal(true)}
+              className="px-4 py-2 rounded-lg bg-[var(--card-bg)] border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors"
+              title="Share Profile"
+            >
+              <BsShare />
             </button>
           </div>
         )}
@@ -435,16 +450,18 @@ const UserAccount = ({ user: loggedInUser }) => {
       <div className="flex w-full max-w-[630px] border-b border-[var(--border)] mt-2">
         <button
           onClick={() => setType("post")}
-          className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${type === "post" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
+          className={`flex-1 flex justify-center py-3 text-xl transition-colors relative ${type === "post" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
+          title="Posts"
         >
-          Posts
+          <BsGrid3X3 />
           {type === "post" && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--accent)] rounded-t-full" />}
         </button>
         <button
           onClick={() => setType("reel")}
-          className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${type === "reel" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
+          className={`flex-1 flex justify-center py-3 text-xl transition-colors relative ${type === "reel" ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
+          title="Reels"
         >
-          Reels
+          <ReelsIcon size={20} />
           {type === "reel" && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--accent)] rounded-t-full" />}
         </button>
       </div>
@@ -460,7 +477,7 @@ const UserAccount = ({ user: loggedInUser }) => {
                   value={e}
                   key={e._id}
                   isGrid={true}
-                  onClick={() => setFeedModal({ posts: myPosts, index: i })}
+                  onClick={() => setFeedModal({ type: 'post', index: i })}
                 />
               ))}
             </div>
@@ -480,7 +497,7 @@ const UserAccount = ({ user: loggedInUser }) => {
                   type="reel"
                   value={reel}
                   isGrid={true}
-                  onClick={() => setFeedModal({ posts: myReels, index: i })}
+                  onClick={() => setFeedModal({ type: 'reel', index: i })}
                 />
               </div>
             ))}
@@ -500,7 +517,7 @@ const UserAccount = ({ user: loggedInUser }) => {
       {/* Feed Modal */}
       {feedModal && (
         <FeedModal
-          posts={feedModal.posts}
+          posts={feedModal.type === 'reel' ? myReels : myPosts}
           initialIndex={feedModal.index}
           onClose={() => setFeedModal(null)}
         />

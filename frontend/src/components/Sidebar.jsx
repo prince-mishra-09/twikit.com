@@ -3,20 +3,23 @@ import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AiFillHome, AiOutlineHome, AiOutlinePlusSquare, AiFillPlusSquare } from "react-icons/ai";
 import { IoSearch, IoSearchOutline, IoChatbubbleEllipses, IoChatbubbleEllipsesOutline, IoNotifications, IoNotificationsOutline, IoLogOutOutline } from "react-icons/io5";
-import { BsCameraReels, BsCameraReelsFill } from "react-icons/bs";
 import { RiAccountCircleFill, RiAccountCircleLine, RiRecordCircleFill } from "react-icons/ri";
+import ReelsIcon from "./ReelsIcon";
 import { FaBars } from "react-icons/fa"; // Import FaBars
 import { UserData } from "../context/UserContext";
 import CreatePostModal from "./CreatePostModal";
 import { ChatData } from "../context/ChatContext";
 import { NotificationData } from "../context/NotificationContext";
+import { useTheme } from "../context/ThemeContext";
 
 import AuraXIcon from "./AuraXIcon"; // Import the new icon
+import { BsPalette } from "react-icons/bs";
 
 const Sidebar = ({ isCollapsed, toggleSidebar }) => { // Accept props
     const { user, isAuth, logoutUser, setShowLoginPrompt, toggleOnlineStatus } = UserData();
     const { unreadCount } = NotificationData();
     const { totalUnreadMessages } = ChatData();
+    const { cycleTheme } = useTheme();
     const location = useLocation();
     const navigate = useNavigate();
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -47,8 +50,8 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => { // Accept props
         {
             name: "Reels",
             path: "/reels",
-            icon: BsCameraReels,
-            activeIcon: BsCameraReelsFill,
+            icon: (props) => <ReelsIcon {...props} />,
+            activeIcon: (props) => <ReelsIcon {...props} />,
         },
         // {
         //     name: "Aura X",
@@ -165,6 +168,19 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => { // Accept props
                         </div>
                     ))}
                 </div>
+
+                {/* Theme Toggle Button */}
+                <button
+                    onClick={cycleTheme}
+                    title={isCollapsed ? "Change Theme" : "Cycle Theme"}
+                    className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-[var(--text-primary)]/10 text-[var(--text-primary)] mb-2 ${isCollapsed ? "justify-center gap-0" : "gap-4"
+                        }`}
+                >
+                    <div className="relative group-hover:rotate-12 transition-transform duration-200">
+                        <BsPalette className="text-2xl" />
+                    </div>
+                    {!isCollapsed && <span className="text-base font-normal whitespace-nowrap">Change Theme</span>}
+                </button>
 
                 {/* Logout - Only show if Auth */}
                 {isAuth && (

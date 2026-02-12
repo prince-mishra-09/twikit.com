@@ -88,6 +88,7 @@ const MessageInput = ({ setMessages, selectedChat }) => {
       <button
         type="submit"
         disabled={!textMsg.trim()}
+        onMouseDown={(e) => e.preventDefault()} // Keep focus on input
         className="bg-[var(--accent)] hover:opacity-90 disabled:opacity-50 text-[var(--text-on-accent)] p-3 rounded-full transition"
       >
         <BsSendFill />

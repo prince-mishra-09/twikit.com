@@ -9,12 +9,15 @@ import { NotificationData } from "../context/NotificationContext";
 import { ChatData } from "../context/ChatContext";
 import { SkeletonPost } from "../components/Skeleton";
 import { UserData } from "../context/UserContext";
+import { useTheme } from "../context/ThemeContext";
+import { BsPalette } from "react-icons/bs";
 
 const Home = () => {
   const { isAuth } = UserData();
   const { posts, reels, loading, fetchNextPage, loadingMore, pagination, addLoading, uploadProgress } = PostData();
   const { unreadCount } = NotificationData();
   const { totalUnreadMessages } = ChatData();
+  const { cycleTheme } = useTheme();
 
   const [showComposer, setShowComposer] = useState(true);
   const lastScrollY = useRef(0); // Use ref to avoid re-binding listener
@@ -103,6 +106,13 @@ const Home = () => {
               </span>
             </Link>
             <div className="flex items-center gap-3">
+              <button
+                onClick={cycleTheme}
+                className="bg-[var(--text-primary)]/10 p-2 text-[var(--text-primary)] rounded-full hover:bg-[var(--text-primary)]/20 transition-all"
+                title="Change Theme"
+              >
+                <BsPalette className="text-xl" />
+              </button>
               {isAuth && (
                 <>
                   <Link
@@ -211,4 +221,3 @@ const Home = () => {
 };
 
 export default Home;
-

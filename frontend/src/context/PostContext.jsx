@@ -142,6 +142,20 @@ export const PostContextProvider = ({ children }) => {
     }
   }, [fetchPosts]);
 
+  const updatePost = useCallback(async (id, caption) => {
+    try {
+      const { data } = await axios.put("/api/post/caption/" + id, { caption });
+      toast.success(data.message);
+
+      // Optimistic Update
+      const updateFn = (prev) => prev.map((p) => (p._id === id ? { ...p, caption } : p));
+      setPosts(updateFn);
+      setReels(updateFn);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong");
+    }
+  }, []);
+
   const deleteComment = useCallback(async (id, commentId) => {
     try {
       const { data } = await axios.delete(`/api/comment/${commentId}`);
@@ -259,8 +273,9 @@ export const PostContextProvider = ({ children }) => {
     fetchNextPage,
     loadingMore,
     pagination,
-    uploadProgress
-  }), [reels, posts, addPost, sendFeedback, addComment, loading, addLoading, fetchPosts, deletePost, deleteComment, fetchNextPage, loadingMore, pagination, uploadProgress]);
+    uploadProgress,
+    updatePost
+  }), [reels, posts, addPost, sendFeedback, addComment, loading, addLoading, fetchPosts, deletePost, deleteComment, fetchNextPage, loadingMore, pagination, uploadProgress, updatePost]);
 
   return (
     <PostContext.Provider value={value}>

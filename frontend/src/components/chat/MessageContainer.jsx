@@ -230,7 +230,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
           </div>
 
           {/* INPUT */}
-          <div className="flex-none border-t border-[var(--border)] bg-[var(--card-bg)]/80 backdrop-blur-md z-10 p-2 pb-4 md:pb-2">
+          <div className="flex-none border-t border-[var(--border)] bg-[var(--card-bg)]/80 backdrop-blur-md z-10 p-2 pb-2 md:pb-2">
             {otherUser?.isPrivate && !user?.followings?.includes(otherUser._id) ? (
               <div className="flex justify-center items-center py-4 bg-[var(--bg-secondary)]/30 rounded-lg mx-2 my-1 border border-[var(--border)]">
                 <p className="text-[var(--text-secondary)] text-sm">

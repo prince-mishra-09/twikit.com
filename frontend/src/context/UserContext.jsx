@@ -320,7 +320,6 @@ export const UserContextProvider = ({ children }) => {
   return (
     <UserContext.Provider value={value}>
       {children}
-      <Toaster />
     </UserContext.Provider>
   );
 };

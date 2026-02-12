@@ -622,18 +622,12 @@ export const removeFollower = tryCatch(async (req, res) => {
   if (!followerToRemove) return res.status(404).json({ message: "User not found" });
 
   // Remove from my followers
-  if (user.followers.includes(followerToRemove._id)) {
-    const index = user.followers.indexOf(followerToRemove._id);
-    user.followers.splice(index, 1);
-    await user.save();
-  }
+  user.followers = user.followers.filter(id => id.toString() !== followerToRemove._id.toString());
+  await user.save();
 
   // Remove me from their followings
-  if (followerToRemove.followings.includes(user._id)) {
-    const index = followerToRemove.followings.indexOf(user._id);
-    followerToRemove.followings.splice(index, 1);
-    await followerToRemove.save();
-  }
+  followerToRemove.followings = followerToRemove.followings.filter(id => id.toString() !== user._id.toString());
+  await followerToRemove.save();
 
   res.json({ message: "Follower Removed" });
 
