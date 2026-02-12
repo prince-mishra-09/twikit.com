@@ -86,6 +86,19 @@ const userSchema = new mongoose.Schema({
       ref: "User",
     }
   ],
+  lastAuraIdentity: {
+    auraName: String,
+    auraColor: String,
+  },
+  auraAvatar: {
+    type: String,
+    default: '👻' // Default ghost emoji
+  },
+  auraAvatarType: {
+    type: String,
+    enum: ['emoji', 'custom'],
+    default: 'emoji'
+  },
   pushSubscriptions: [
     {
       endpoint: String,

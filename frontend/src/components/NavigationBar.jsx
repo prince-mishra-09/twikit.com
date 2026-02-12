@@ -7,16 +7,17 @@ import { RiAccountCircleFill, RiAccountCircleLine } from "react-icons/ri";
 import CreatePostModal from "./CreatePostModal";
 import { UserData } from "../context/UserContext";
 import { PostData } from "../context/PostContext";
-
+import AuraXIcon from "./AuraXIcon";
 
 const NavigationBar = () => {
-  const { isAuth, setShowLoginPrompt } = UserData();
+  const { user, isAuth, setShowLoginPrompt } = UserData();
   const { fetchPosts } = PostData();
   const location = useLocation();
   const [tab, setTab] = useState(location.pathname);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-
+  // Get theme directly from localStorage (safe in client-side)
+  const theme = localStorage.getItem('aurax-theme') || 'paper';
 
   useEffect(() => {
     setTab(location.pathname);
@@ -25,12 +26,12 @@ const NavigationBar = () => {
   const activeStyle = "text-[var(--accent)] scale-110";
   const inactiveStyle = "text-[var(--text-primary)] opacity-100 hover:text-[var(--accent)] transition";
 
-  // Hide Navbar on Reels and Chat pages
-  // Hide Navbar on Reels, Chat, Landing, and Auth pages
+  // Hide Navbar on Reels, Chat, AuraX, Landing, and Auth pages
   const isLandingPage = (location.pathname === "/" && !isAuth) || location.pathname === "/landing";
   const isAuthPage = location.pathname === "/login" || location.pathname === "/register";
+  const isAuraX = location.pathname === "/aurax";
 
-  if (location.pathname === "/reels" || location.pathname === "/chat" || isLandingPage || isAuthPage) {
+  if (location.pathname === "/reels" || location.pathname === "/chat" || isAuraX || isLandingPage || isAuthPage) {
     return null;
   }
 
@@ -81,6 +82,15 @@ const NavigationBar = () => {
             <AiOutlinePlus className="w-7 h-7" />
           </button>
 
+          {/* Aura X
+          <Link
+            to="/aurax"
+            className={`transition-all duration-200 ${tab === "/aurax" ? activeStyle : inactiveStyle
+              }`}
+          >
+            {theme === 'paper' ? <AuraXIcon size={28} /> : <span className="text-2xl">👻</span>}
+          </Link> */}
+
           {/* Reels */}
           <Link
             to="/reels"
@@ -96,7 +106,28 @@ const NavigationBar = () => {
             className={`transition-all duration-200 ${tab === "/account" ? activeStyle : inactiveStyle
               }`}
           >
-            {tab === "/account" ? <RiAccountCircleFill className="w-7 h-7" /> : <RiAccountCircleLine className="w-7 h-7" />}
+            {tab === "/account" ? (
+              isAuth && user?.profilePic?.url ? (
+                <div className="relative flex items-center justify-center">
+                  <img
+                    src={user.profilePic.url}
+                    alt="Profile"
+                    className={`w-7 h-7 rounded-full object-cover border-2 ${tab === "/account" ? "border-[var(--accent)]" : "border-transparent"
+                      }`}
+                  />
+                </div>
+              ) : (
+                <RiAccountCircleFill className="w-7 h-7" />
+              )
+            ) : isAuth && user?.profilePic?.url ? (
+              <img
+                src={user.profilePic.url}
+                alt="Profile"
+                className="w-7 h-7 rounded-full object-cover border-2 border-transparent"
+              />
+            ) : (
+              <RiAccountCircleLine className="w-7 h-7" />
+            )}
           </Link>
         </div>
       </div>

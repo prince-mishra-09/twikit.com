@@ -55,8 +55,13 @@ const MessageContainer = ({ selectedChat, setChats }) => {
 
   useEffect(() => {
     socket.on("newMessage", (message) => {
+      console.log("Socket: New Message Received", message);
+      console.log("Socket: Current Chat ID", selectedChat._id);
+
       if (selectedChat._id === message.chatId) {
         setMessages((prev) => [...prev, message]);
+      } else {
+        console.log("Socket: Chat ID Mismatch", selectedChat._id, message.chatId);
       }
     });
 

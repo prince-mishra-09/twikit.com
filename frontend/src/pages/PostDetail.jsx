@@ -4,6 +4,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import Post from "../components/PostCard";
 
 import { SkeletonPost } from "../components/Skeleton";
+import { SocketData } from "../context/SocketContext";
 
 const PostDetail = () => {
   const { id } = useParams();
@@ -35,7 +36,20 @@ const PostDetail = () => {
       }
     }
     fetchPosts();
+    fetchPosts();
   }, [id]);
+
+  // Socket Logic
+  const { socket } = SocketData();
+
+  useEffect(() => {
+    if (socket && id) {
+      socket.emit("join-post", id);
+      return () => {
+        socket.emit("leave-post", id);
+      };
+    }
+  }, [socket, id]);
 
   if (loading) return (
     <div className="min-h-screen bg-[var(--bg-primary)] flex justify-center px-4 py-8">

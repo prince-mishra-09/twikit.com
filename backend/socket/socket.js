@@ -74,15 +74,14 @@ io.on("connection", (socket) => {
       socket.leave("post:" + postId);
     });
 
-    // Presence broadcast removed for privacy, can be implemented per-follower if needed
+    io.emit("getOnlineUser", Object.keys(userSocketMap));
   }
 
-  // socket.emit("getOnlineUser", Object.keys(userSocketMap)); // Removed global leak
+  io.emit("getOnlineUser", Object.keys(userSocketMap));
 
   socket.on("disconnect", async () => {
     delete userSocketMap[userId];
-
-    // Presence broadcast removed for privacy
+    io.emit("getOnlineUser", Object.keys(userSocketMap));
 
     // Update lastSeen
     try {

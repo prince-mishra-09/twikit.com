@@ -1,24 +1,16 @@
 import express from "express";
-import redis from "../utils/redis.js";
+import { archiveExpiredAuras } from "../services/auraCleanupService.js";
 
 const router = express.Router();
 
-router.get("/test-redis", async (req, res) => {
+router.get("/force-cleanup", async (req, res) => {
     try {
-        const count = await redis.incr("test_counter");
-        const value = await redis.get("test_counter");
-        res.json({
-            message: "Redis Test Successful",
-            count,
-            value,
-            clientType: process.env.UPSTASH_REDIS_REST_URL ? "Upstash HTTP" : "Standard TCP"
-        });
+        console.log("Manual cleanup triggered via API...");
+        await archiveExpiredAuras();
+        res.json({ message: "Cleanup triggered. Check terminal logs." });
     } catch (error) {
-        console.error("Redis Test Error:", error);
-        res.status(500).json({
-            message: "Redis Test Failed",
-            error: error.message
-        });
+        console.error("Manual cleanup failed:", error);
+        res.status(500).json({ error: error.message });
     }
 });
 

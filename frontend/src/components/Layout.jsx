@@ -10,6 +10,7 @@ const Layout = ({ children }) => {
     const location = useLocation();
     const isReels = location.pathname === "/reels";
     const isChat = location.pathname === "/chat";
+    const isAuraX = location.pathname === "/aurax"; // Aura X immersive mode
 
     // Auth pages where we hide sidebars
     const isAuthPage = location.pathname === "/login" || location.pathname === "/landing" || location.pathname === "/register";
@@ -19,16 +20,39 @@ const Layout = ({ children }) => {
     const isLanding = location.pathname === "/" && !isAuth;
 
     // Check if we should show the desktop sidebars
-    const showSidebars = !isReels && !isChat && !isAuthPage && !isLanding;
+    const showLeftSidebar = !isAuthPage && !isLanding && !isAuraX; // Hide left sidebar on AuraX too
+    const showRightSidebar = !isReels && !isChat && !isAuraX && !isAuthPage && !isLanding;
+
+    // Sidebar Collapse Logic
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
+
+    // Auto-collapse on Chat page
+    React.useEffect(() => {
+        if (isChat) {
+            setIsSidebarCollapsed(true);
+        } else {
+            setIsSidebarCollapsed(false);
+        }
+    }, [isChat]);
+
+    const toggleSidebar = () => setIsSidebarCollapsed(!isSidebarCollapsed);
 
     return (
         <div className="flex bg-[var(--bg-primary)] h-[100dvh]">
 
             {/* Left Sidebar - Desktop Only & Conditionally Rendered */}
-            {showSidebars && <Sidebar />}
+            {showLeftSidebar && (
+                <Sidebar
+                    isCollapsed={isSidebarCollapsed}
+                    toggleSidebar={toggleSidebar}
+                />
+            )}
 
             {/* Main Content Area */}
-            <div className={`flex-1 flex flex-col h-full relative ${showSidebars ? 'md:ml-[244px]' : ''}`}>
+            <div className={`flex-1 flex flex-col h-full relative transition-all duration-300 ${showLeftSidebar
+                    ? (isSidebarCollapsed ? 'md:ml-[80px]' : 'md:ml-[244px]')
+                    : ''
+                }`}>
 
                 {/* Scrollable Area */}
                 <div
@@ -36,22 +60,22 @@ const Layout = ({ children }) => {
                     className={`flex-1 w-full ${isReels ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden'} custom-scrollbar relative`}
                 >
                     {/* Content Wrapper to center feed if needed */}
-                    <div className={`w-full min-h-full ${showSidebars ? 'flex justify-center' : ''}`}>
+                    <div className={`w-full min-h-full ${showRightSidebar ? 'flex justify-center' : ''}`}>
                         {/* If showing sidebars, constrain width and margin for RightBar */}
-                        <div className={`w-full ${showSidebars ? 'max-w-[630px] lg:mr-[320px]' : ''}`}>
+                        <div className={`w-full ${showRightSidebar ? 'max-w-[630px] lg:mr-[320px]' : ''}`}>
                             {children}
-                            {/* Bottom spacer for Mobile NavigationBar */}
-                            {!isReels && !isChat && !isAuthPage && !isLanding && <div className="h-20 md:hidden"></div>}
+                            {/* Bottom spacer for Mobile NavigationBar (not needed in AuraX) */}
+                            {!isReels && !isChat && !isAuraX && !isAuthPage && !isLanding && <div className="h-20 md:hidden"></div>}
                         </div>
                     </div>
                 </div>
 
-                {/* Mobile Bottom Nav */}
+                {/* Mobile Bottom Nav (handles its own visibility) */}
                 <NavigationBar />
             </div>
 
             {/* Right Sidebar - Desktop Only & Conditionally Rendered */}
-            {showSidebars && <RightBar />}
+            {showRightSidebar && <RightBar />}
 
         </div>
     );

@@ -80,7 +80,7 @@ const ChatPage = ({ user }) => {
 
   return (
     <div className="h-[100dvh] bg-[var(--bg-primary)] flex justify-center md:px-2 md:py-2">
-      <div className="w-full max-w-6xl h-full md:h-[85vh] bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--border)] md:rounded-2xl shadow-xl flex overflow-hidden">
+      <div className="w-full h-full md:h-[98vh] bg-[var(--card-bg)] backdrop-blur-xl border border-[var(--border)] md:rounded-2xl shadow-xl flex overflow-hidden">
 
         {/* ================= LEFT SIDEBAR ================= */}
         <div

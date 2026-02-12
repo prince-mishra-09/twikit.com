@@ -1,0 +1,92 @@
+/* Galaxy Background Container */
+.galaxy-container {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+  overflow-x: hidden;
+  z-index: 0;
+}
+
+.galaxy-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.stars-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Star Generation Mixin Equivalent in pure CSS */
+/* We use multiple box-shadows to create stars without many DOM elements */
+
+#stars {
+  width: 1px;
+  height: 1px;
+  background: transparent;
+  box-shadow: 1744px 122px #FFF , 134px 1321px #FFF , 92px 859px #FFF, 1843px 432px #FFF, 342px 143px #FFF, 832px 321px #FFF, 1243px 542px #FFF, 231px 764px #FFF, 654px 921px #FFF, 1543px 213px #FFF, 432px 1532px #FFF, 876px 123px #FFF, 1654px 654px #FFF, 123px 1654px #FFF, 543px 321px #FFF, 1432px 765px #FFF, 765px 1432px #FFF, 321px 543px #FFF, 987px 234px #FFF, 1234px 987px #FFF, 456px 789px #FFF, 789px 456px #FFF, 123px 456px #FFF, 456px 123px #FFF, 789px 789px #FFF, 123px 789px #FFF, 789px 123px #FFF, 456px 456px #FFF, 123px 123px #FFF, 987px 987px #FFF;
+  animation: animStar 50s linear infinite;
+}
+
+#stars:after {
+  content: " ";
+  position: absolute;
+  top: 2000px;
+  width: 1px;
+  height: 1px;
+  background: transparent;
+  box-shadow: 1744px 122px #FFF , 134px 1321px #FFF , 92px 859px #FFF, 1843px 432px #FFF, 342px 143px #FFF, 832px 321px #FFF, 1243px 542px #FFF, 231px 764px #FFF, 654px 921px #FFF, 1543px 213px #FFF, 432px 1532px #FFF, 876px 123px #FFF, 1654px 654px #FFF, 123px 1654px #FFF, 543px 321px #FFF, 1432px 765px #FFF, 765px 1432px #FFF, 321px 543px #FFF, 987px 234px #FFF, 1234px 987px #FFF, 456px 789px #FFF, 789px 456px #FFF, 123px 456px #FFF, 456px 123px #FFF, 789px 789px #FFF, 123px 789px #FFF, 789px 123px #FFF, 456px 456px #FFF, 123px 123px #FFF, 987px 987px #FFF;
+}
+
+#stars2 {
+  width: 2px;
+  height: 2px;
+  background: transparent;
+  box-shadow: 543px 432px #FFF, 876px 123px #FFF, 1234px 765px #FFF, 234px 987px #FFF, 654px 321px #FFF, 987px 654px #FFF, 1432px 234px #FFF, 321px 876px #FFF, 765px 543px #FFF, 123px 456px #FFF, 456px 123px #FFF, 789px 789px #FFF, 123px 789px #FFF, 789px 123px #FFF, 456px 456px #FFF, 123px 123px #FFF, 987px 987px #FFF;
+  animation: animStar 100s linear infinite;
+}
+
+#stars2:after {
+  content: " ";
+  position: absolute;
+  top: 2000px;
+  width: 2px;
+  height: 2px;
+  background: transparent;
+  box-shadow: 543px 432px #FFF, 876px 123px #FFF, 1234px 765px #FFF, 234px 987px #FFF, 654px 321px #FFF, 987px 654px #FFF, 1432px 234px #FFF, 321px 876px #FFF, 765px 543px #FFF, 123px 456px #FFF, 456px 123px #FFF, 789px 789px #FFF, 123px 789px #FFF, 789px 123px #FFF, 456px 456px #FFF, 123px 123px #FFF, 987px 987px #FFF;
+}
+
+#stars3 {
+  width: 3px;
+  height: 3px;
+  background: transparent;
+  box-shadow: 123px 765px #FFF, 987px 234px #FFF, 456px 876px #FFF;
+  animation: animStar 150s linear infinite;
+}
+
+#stars3:after {
+  content: " ";
+  position: absolute;
+  top: 2000px;
+  width: 3px;
+  height: 3px;
+  background: transparent;
+  box-shadow: 123px 765px #FFF, 987px 234px #FFF, 456px 876px #FFF;
+}
+
+@keyframes animStar {
+  from {
+    transform: translateY(0px);
+  }
+  to {
+    transform: translateY(-2000px);
+  }
+}

@@ -25,6 +25,8 @@ const ChatPage = lazy(() => import("./pages/ChatPage"));
 const TwikitLanding = lazy(() => import("./pages/TwikitLanding"));
 const PostDetail = lazy(() => import("./pages/PostDetail"));
 const Notifications = lazy(() => import("./pages/Notifications"));
+const AuraX = lazy(() => import("./pages/AuraX"));
+const AuraXOnboarding = lazy(() => import("./pages/AuraXOnboarding"));
 
 function App() {
   const { loading, isAuth, user, setUser } = UserData();
@@ -76,6 +78,8 @@ function App() {
                   <Route path="/register" element={!isAuth ? <Register /> : <Home />} />
                   <Route path="/search" element={<Search />} />
                   <Route path="/chat" element={isAuth ? <ChatPage user={user} /> : <Navigate to="/login" />} />
+                  <Route path="/aurax/onboarding" element={isAuth ? <AuraXOnboarding /> : <Navigate to="/login" />} />
+                  <Route path="/aurax" element={isAuth ? <AuraX /> : <Navigate to="/login" />} />
                   <Route path="/notifications" element={isAuth ? <Notifications /> : <Navigate to="/login" />} />
                   <Route path="/login" element={!isAuth ? <Login /> : <Home />} />
                   <Route path="*" element={<NotFound />} />

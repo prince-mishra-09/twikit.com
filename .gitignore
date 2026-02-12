@@ -7,3 +7,10 @@ coverage/
 .DS_Store
 Thumbs.db
 .vscode/
+
+# Debug and Test Scripts
+debug_*.js
+test_*.js
+check_*.js
+expire_*.js
+temp_*.js

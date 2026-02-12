@@ -1,0 +1,80 @@
+.aurax-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.aurax-ghost-svg {
+    filter: drop-shadow(0 0 8px rgba(0, 245, 255, 0.8));
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Floating Animation */
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-3px);
+    }
+
+    /* Reduced movement for small icons */
+}
+
+/* Glitch Movement */
+.ghost-glitch-path {
+    animation: glitch-move 0.3s infinite;
+    display: none;
+    /* Only shows when glitching */
+}
+
+/* Randomly show glitch path */
+.aurax-ghost-svg:hover .ghost-glitch-path {
+    display: block;
+}
+
+@keyframes glitch-move {
+    0% {
+        transform: translate(0);
+    }
+
+    20% {
+        transform: translate(-3px, 2px);
+    }
+
+    40% {
+        transform: translate(3px, -1px);
+    }
+
+    60% {
+        transform: translate(-1px, -2px);
+    }
+
+    80% {
+        transform: translate(2px, 1px);
+    }
+
+    100% {
+        transform: translate(0);
+    }
+}
+
+/* Neon Pulse */
+.ghost-main-path {
+    animation: neon-pulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes neon-pulse {
+    from {
+        stroke-width: 3;
+        filter: brightness(1);
+    }
+
+    to {
+        stroke-width: 4;
+        filter: brightness(1.5) drop-shadow(0 0 5px #00F5FF);
+    }
+}

@@ -547,219 +547,411 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
   // FULL MODE (For Feed/Reels Player)
   if (type === "reel") {
     return (
-      <div className={`w-full h-full relative group ${isFeed ? "aspect-[9/16]" : ""}`}>
-        {/* PAUSE OVERLAY */}
-        {!isPlaying && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20 pointer-events-none">
-            <div className="bg-black/40 p-4 rounded-full backdrop-blur-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-white">
-                <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clipRule="evenodd" />
-              </svg>
+      <div className={`w-full relative group ${isFeed ? "flex flex-col bg-[var(--bg-primary)] border-b border-[var(--border)] pb-4" : "h-full"}`}>
+        {/* === TOP OVERLAY (FEED ONLY) === */}
+        {isFeed && (
+          <div className="absolute top-0 left-0 w-full p-3 z-20 bg-gradient-to-b from-black/60 to-transparent flex items-center justify-between pointer-events-none">
+            <div className="flex items-center gap-3 pointer-events-auto">
+              <Link to={`/user/${value.owner?._id}`} className="flex items-center gap-2">
+                <StoryAvatar user={value.owner} size="w-8 h-8" />
+                <span className="text-white font-bold text-sm shadow-black drop-shadow-md">
+                  {value.owner?.name || "Deleted User"}
+                </span>
+              </Link>
+
+              {/* FOLLOW BUTTON */}
+              {user && user._id !== value.owner?._id && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    followHandler();
+                  }}
+                  className={`text-xs px-3 py-1 rounded-full backdrop-blur-md transition border font-medium ${isFollowed
+                    ? "bg-white/20 border-white/30 text-white"
+                    : "bg-[var(--accent)] border-[var(--accent)] text-white hover:opacity-90"
+                    }`}
+                >
+                  {isFollowed ? "Following" : "Follow"}
+                </button>
+              )}
+            </div>
+
+            {/* Menu Button */}
+            <div className="pointer-events-auto">
+              {user && value.owner._id !== user._id && (
+                <div className="relative">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
+                    className="text-white text-xl drop-shadow-lg opacity-80 hover:opacity-100 p-1"
+                  >
+                    <BsThreeDotsVertical />
+                  </button>
+                  {showMenu && (
+                    <div className="absolute right-0 top-full mt-2 w-40 bg-[#1F2937] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[100] animate-in slide-in-from-top-2 fade-in duration-200">
+                      <button
+                        onClick={notInterestedHandler}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
+                      >
+                        ❌ Not Interested
+                      </button>
+                      <button
+                        onClick={muteHandler}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
+                      >
+                        🔇 Mute @{value.owner?.name || "user"}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm("Block this user? They will disappear from your feed.")) {
+                            blockUser(value.owner?._id, null);
+                            setIsHidden(true);
+                          }
+                          setShowMenu(false);
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
+                      >
+                        🚫 Block User
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* VIDEO */}
-        <div onClick={() => {
-          if (isFeed && type === "reel") {
-            navigate(`/reels?id=${value._id}`);
-          } else {
-            if (isPlaying) { videoRef.current.pause(); setIsPlaying(false); }
-            else { videoRef.current.play(); setIsPlaying(true); }
-          }
-        }} onDoubleClick={handleDoubleClick} className="w-full h-full cursor-pointer bg-black flex items-center justify-center">
-          <video
-            ref={videoRef}
-            src={value.post.url}
-            className="w-full h-full object-contain"
-            loop
-            playsInline
-            muted={false}
-            onTimeUpdate={(e) => {
-              handleTimeUpdate(); // Trigger view count check
-              if (videoRef.current) {
-                const current = videoRef.current.currentTime;
-                const duration = videoRef.current.duration;
-                if (duration > 0) setProgress((current / duration) * 100);
-              }
-            }}
-          />
-        </div>
-
-        {/* BOTTOM PROGRESS BAR */}
-        <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gray-800/40 z-30">
-          <div
-            className="h-full bg-[var(--accent)] transition-all duration-100 ease-linear"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-
-        {/* RIGHT SIDE ACTIONS */}
-        <div className="absolute bottom-16 right-4 flex flex-col gap-6 items-center z-30">
-          <div className="flex flex-col items-center gap-1">
-            {/* View Count Indicator */}
-            <div className="flex flex-col items-center animate-fade-in mb-3 opacity-90">
-              <IoEyeOutline size={22} className="text-white" />
-              <div className="flex flex-col items-center -mt-1">
-                <span className="text-white text-[11px] font-bold">
-                  {(value.views || 0) + (viewTracked ? 1 : 0)}
-                </span>
-                <span className="text-[9px] text-gray-400 font-medium uppercase tracking-tighter">Views</span>
+        {/* FEED: Video Container with Aspect Ratio */}
+        {/* PLAYER: Full Height Container */}
+        <div className={`relative w-full ${isFeed ? "aspect-[9/16] bg-black" : "h-full"}`}>
+          {/* PAUSE OVERLAY */}
+          {!isPlaying && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20 pointer-events-none">
+              <div className="bg-black/40 p-4 rounded-full backdrop-blur-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-white">
+                  <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clipRule="evenodd" />
+                </svg>
               </div>
             </div>
-
-            <button
-              onClick={() => feedbackHandler("vibeUp")}
-              className="group flex flex-col items-center gap-1.5 transition-transform active:scale-90"
-            >
-              <div className={`p-2 rounded-full transition-colors ${isVibeUp ? "bg-[var(--accent)]/10" : "bg-white/5"}`}>
-                <VibeUpIcon active={isVibeUp} />
-              </div>
-              <span className={`text-[11px] font-bold tracking-tight ${isVibeUp ? "text-[var(--accent)]" : "text-gray-400"}`}>
-                Vibe Up
-              </span>
-            </button>
-            <span
-              onClick={() => setVibeModal(true)}
-              className="text-white text-[10px] font-medium drop-shadow-md cursor-pointer hover:underline opacity-80"
-            >
-              {vibeUpCount}
-            </span>
-          </div>
-
-          <div className="flex flex-col items-center gap-1">
-            <button
-              onClick={() => feedbackHandler("vibeDown")}
-              className="group flex flex-col items-center gap-1.5 transition-transform active:scale-90"
-            >
-              <div className={`p-2 rounded-full transition-colors ${isVibeDown ? "bg-white/10" : "bg-white/5"}`}>
-                <VibeDownIcon active={isVibeDown} />
-              </div>
-              <span className={`text-[11px] font-bold tracking-tight ${isVibeDown ? "text-gray-300 opacity-100" : "text-gray-400"}`}>
-                Vibe Down
-              </span>
-            </button>
-            {isOwner && (
-              <span className="text-gray-500 text-[9px] font-medium drop-shadow-md uppercase tracking-tighter opacity-70">
-                {vibeDownCount} private
-              </span>
-            )}
-          </div>
-
-          {/* COMMENT */}
-          <div className="flex flex-col items-center gap-1">
-            <button onClick={() => setShow(!show)} className="text-3xl text-white drop-shadow-lg transition-transform active:scale-95">
-              <BsChatFill />
-            </button>
-            <span className="text-white text-xs font-medium drop-shadow-md">{value.commentsCount || 0}</span>
-          </div>
-
-          {/* SAVE */}
-          <div className="flex flex-col items-center gap-1">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShareModal(true);
-              }}
-              className="text-2xl drop-shadow-lg transition-transform active:scale-95 mb-2"
-            >
-              <IoPaperPlaneOutline className="text-white" />
-            </button>
-            <button onClick={saveHandler} className="text-3xl drop-shadow-lg transition-transform active:scale-95">
-              {isSaved ? <BsBookmarkFill className="text-white" /> : <BsBookmark className="text-white" />}
-            </button>
-          </div>
-
-          {/* DELETE (if owner) */}
-          {user && value.owner._id === user._id && (
-            <button onClick={deleteHandler} className="text-white text-2xl drop-shadow-lg opacity-80 hover:opacity-100">
-              <MdDelete />
-            </button>
           )}
 
-          {/* MENU (if NOT owner) */}
-          {user && value.owner._id !== user._id && (
-            <div className="relative">
-              <button
-                onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
-                className="text-white text-2xl drop-shadow-lg opacity-80 hover:opacity-100 p-1"
-              >
-                <BsThreeDotsVertical />
-              </button>
-              {showMenu && (
-                <div className="absolute right-0 bottom-full mb-2 w-40 bg-[#1F2937] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[100] animate-in slide-in-from-bottom-2 fade-in duration-200">
+          {/* VIDEO */}
+          <div onClick={() => {
+            if (isFeed && type === "reel") {
+              navigate(`/reels?id=${value._id}`);
+            } else {
+              if (isPlaying) { videoRef.current.pause(); setIsPlaying(false); }
+              else { videoRef.current.play(); setIsPlaying(true); }
+            }
+          }} onDoubleClick={handleDoubleClick} className="w-full h-full cursor-pointer bg-black flex items-center justify-center">
+            <video
+              ref={videoRef}
+              src={value.post.url}
+              className="w-full h-full object-contain"
+              loop
+              playsInline
+              muted={false}
+              onTimeUpdate={(e) => {
+                handleTimeUpdate(); // Trigger view count check
+                if (videoRef.current) {
+                  const current = videoRef.current.currentTime;
+                  const duration = videoRef.current.duration;
+                  if (duration > 0) setProgress((current / duration) * 100);
+                }
+              }}
+            />
+          </div>
+
+          {/* BOTTOM PROGRESS BAR (Visible in both, slightly different style?) */}
+          <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gray-800/40 z-30">
+            <div
+              className="h-full bg-[var(--accent)] transition-all duration-100 ease-linear"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+          {/* RIGHT SIDE ACTIONS (PLAYER ONLY) */}
+          {!isFeed && (
+            <div className="absolute bottom-16 right-4 flex flex-col gap-6 items-center z-30">
+              <div className="flex flex-col items-center gap-1">
+                {/* View Count Indicator */}
+                <div className="flex flex-col items-center animate-fade-in mb-3 opacity-90">
+                  <IoEyeOutline size={22} className="text-white" />
+                  <div className="flex flex-col items-center -mt-1">
+                    <span className="text-white text-[11px] font-bold">
+                      {(value.views || 0) + (viewTracked ? 1 : 0)}
+                    </span>
+                    <span className="text-[9px] text-gray-400 font-medium uppercase tracking-tighter">Views</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => feedbackHandler("vibeUp")}
+                  className="group flex flex-col items-center gap-1.5 transition-transform active:scale-90"
+                >
+                  <div className={`p-2 rounded-full transition-colors ${isVibeUp ? "bg-[var(--accent)]/10" : "bg-white/5"}`}>
+                    <VibeUpIcon active={isVibeUp} />
+                  </div>
+                  <span className={`text-[11px] font-bold tracking-tight ${isVibeUp ? "text-[var(--accent)]" : "text-gray-400"}`}>
+                    Vibe Up
+                  </span>
+                </button>
+                <span
+                  onClick={() => setVibeModal(true)}
+                  className="text-white text-[10px] font-medium drop-shadow-md cursor-pointer hover:underline opacity-80"
+                >
+                  {vibeUpCount}
+                </span>
+              </div>
+
+              <div className="flex flex-col items-center gap-1">
+                <button
+                  onClick={() => feedbackHandler("vibeDown")}
+                  className="group flex flex-col items-center gap-1.5 transition-transform active:scale-90"
+                >
+                  <div className={`p-2 rounded-full transition-colors ${isVibeDown ? "bg-white/10" : "bg-white/5"}`}>
+                    <VibeDownIcon active={isVibeDown} />
+                  </div>
+                  <span className={`text-[11px] font-bold tracking-tight ${isVibeDown ? "text-gray-300 opacity-100" : "text-gray-400"}`}>
+                    Vibe Down
+                  </span>
+                </button>
+                {isOwner && (
+                  <span className="text-gray-500 text-[9px] font-medium drop-shadow-md uppercase tracking-tighter opacity-70">
+                    {vibeDownCount} private
+                  </span>
+                )}
+              </div>
+
+              {/* COMMENT */}
+              <div className="flex flex-col items-center gap-1">
+                <button onClick={() => setShow(!show)} className="text-3xl text-white drop-shadow-lg transition-transform active:scale-95">
+                  <BsChatFill />
+                </button>
+                <span className="text-white text-xs font-medium drop-shadow-md">{value.commentsCount || 0}</span>
+              </div>
+
+              {/* SAVE */}
+              <div className="flex flex-col items-center gap-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShareModal(true);
+                  }}
+                  className="text-2xl drop-shadow-lg transition-transform active:scale-95 mb-2"
+                >
+                  <IoPaperPlaneOutline className="text-white" />
+                </button>
+                <button onClick={saveHandler} className="text-3xl drop-shadow-lg transition-transform active:scale-95">
+                  {isSaved ? <BsBookmarkFill className="text-white" /> : <BsBookmark className="text-white" />}
+                </button>
+              </div>
+
+              {/* DELETE (if owner) */}
+              {user && value.owner._id === user._id && (
+                <button onClick={deleteHandler} className="text-white text-2xl drop-shadow-lg opacity-80 hover:opacity-100">
+                  <MdDelete />
+                </button>
+              )}
+
+              {/* MENU (if NOT owner) */}
+              {user && value.owner._id !== user._id && (
+                <div className="relative">
                   <button
-                    onClick={notInterestedHandler}
-                    className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
+                    onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
+                    className="text-white text-2xl drop-shadow-lg opacity-80 hover:opacity-100 p-1"
                   >
-                    ❌ Not Interested
+                    <BsThreeDotsVertical />
                   </button>
-                  <button
-                    onClick={muteHandler}
-                    className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
-                  >
-                    🔇 Mute @{value.owner?.name || "user"}
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (confirm("Block this user? They will disappear from your feed.")) {
-                        blockUser(value.owner?._id, null);
-                        setIsHidden(true);
-                      }
-                      setShowMenu(false);
-                    }}
-                    className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
-                  >
-                    🚫 Block User
-                  </button>
+                  {showMenu && (
+                    <div className="absolute right-0 bottom-full mb-2 w-40 bg-[#1F2937] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[100] animate-in slide-in-from-bottom-2 fade-in duration-200">
+                      <button
+                        onClick={notInterestedHandler}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
+                      >
+                        ❌ Not Interested
+                      </button>
+                      <button
+                        onClick={muteHandler}
+                        className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
+                      >
+                        🔇 Mute @{value.owner?.name || "user"}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm("Block this user? They will disappear from your feed.")) {
+                            blockUser(value.owner?._id, null);
+                            setIsHidden(true);
+                          }
+                          setShowMenu(false);
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
+                      >
+                        🚫 Block User
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           )}
-        </div>
 
-        {/* BOTTOM LEFT INFO */}
-        <div className="absolute bottom-6 left-4 right-16 z-30 text-white pointer-events-none">
-          <div className="flex items-center gap-3 mb-3 pointer-events-auto">
-            <Link to={`/user/${value.owner?._id}`} className="flex items-center gap-2">
-              <img
-                loading="lazy"
-                decoding="async"
-                src={value.owner?.profilePic?.url ? value.owner.profilePic.url.replace("/upload/", "/upload/f_auto,q_auto/") : "https://placehold.co/100"}
-                className="w-9 h-9 rounded-full border border-white/20 object-cover shrink-0"
-                alt=""
-              />
-              <span className="font-semibold text-sm shadow-black drop-shadow-md">{value.owner?.name || "Deleted User"}</span>
-            </Link>
+          {/* BOTTOM LEFT INFO (PLAYER ONLY) */}
+          {!isFeed && (
+            <div className="absolute bottom-6 left-4 right-16 z-30 text-white pointer-events-none">
+              <div className="flex items-center gap-3 mb-3 pointer-events-auto">
+                <Link to={`/user/${value.owner?._id}`} className="flex items-center gap-2">
+                  <img
+                    loading="lazy"
+                    decoding="async"
+                    src={value.owner?.profilePic?.url ? value.owner.profilePic.url.replace("/upload/", "/upload/f_auto,q_auto/") : "https://placehold.co/100"}
+                    className="w-9 h-9 rounded-full border border-white/20 object-cover shrink-0"
+                    alt=""
+                  />
+                  <span className="font-semibold text-sm shadow-black drop-shadow-md">{value.owner?.name || "Deleted User"}</span>
+                </Link>
 
-            {/* FOLLOW BUTTON */}
-            {user && user._id !== value.owner?._id && (
-              <button
-                onClick={followHandler}
-                className={`text-xs px-3 py-1 rounded-lg backdrop-blur-md transition border ${isFollowed
-                  ? "bg-white/10 border-white/30 text-white"
-                  : "bg-[var(--accent)] border-[var(--accent)] text-[var(--text-on-accent)] hover:opacity-90"
-                  }`}
-              >
-                {isFollowed ? "Following" : "Follow"}
-              </button>
-            )}
-          </div>
-          {value.caption && (
-            <div className="pointer-events-auto">
-              <p className="text-sm text-gray-100 drop-shadow-md break-words">
-                {expanded ? value.caption : (value.caption.slice(0, captionLimit) + (value.caption.length > captionLimit ? "..." : ""))}
-                {value.caption.length > captionLimit && (
-                  <button onClick={() => setExpanded(!expanded)} className="text-gray-300 ml-1 hover:text-white font-semibold">
-                    {expanded ? "less" : "more"}
+                {/* FOLLOW BUTTON */}
+                {user && user._id !== value.owner?._id && (
+                  <button
+                    onClick={followHandler}
+                    className={`text-xs px-3 py-1 rounded-lg backdrop-blur-md transition border ${isFollowed
+                      ? "bg-white/10 border-white/30 text-white"
+                      : "bg-[var(--accent)] border-[var(--accent)] text-[var(--text-on-accent)] hover:opacity-90"
+                      }`}
+                  >
+                    {isFollowed ? "Following" : "Follow"}
                   </button>
                 )}
-              </p>
+              </div>
+              {value.caption && (
+                <div className="pointer-events-auto">
+                  <p className="text-sm text-gray-100 drop-shadow-md break-words">
+                    {expanded ? value.caption : (value.caption.slice(0, captionLimit) + (value.caption.length > captionLimit ? "..." : ""))}
+                    {value.caption.length > captionLimit && (
+                      <button onClick={() => setExpanded(!expanded)} className="text-gray-300 ml-1 hover:text-white font-semibold">
+                        {expanded ? "less" : "more"}
+                      </button>
+                    )}
+                  </p>
+                </div>
+              )}
+              {/* Date below caption */}
+              <p className="text-[var(--text-secondary)] text-xs mt-1 pointer-events-auto">{formatDate}</p>
             </div>
           )}
-          {/* Date below caption */}
-          <p className="text-[var(--text-secondary)] text-xs mt-1 pointer-events-auto">{formatDate}</p>
         </div>
+
+        {/* === BOTTOM ACTION BAR (FEED ONLY) === */}
+        {isFeed && (
+          <div className="px-3 pt-3">
+            {/* Action Row: Reals & Comments inline - Optimized for Mobile */}
+            <div className="flex items-center justify-between sm:justify-start sm:gap-6 mb-3">
+
+              <div className="flex items-center gap-4 sm:gap-6">
+                <button
+                  onClick={() => feedbackHandler("vibeUp")}
+                  className="flex items-center gap-1.5 sm:gap-2 group transition-transform active:scale-95 translate-y-[-1px]"
+                >
+                  <div className={`transition-colors ${isVibeUp ? "text-[var(--accent)]" : "text-[var(--text-primary)]"}`}>
+                    <VibeUpIcon active={isVibeUp} />
+                  </div>
+                  <span
+                    className={`text-xs sm:text-sm font-bold tracking-tight whitespace-nowrap ${isVibeUp ? "text-[var(--accent)]" : "text-[var(--text-primary)]"}`}
+                  >
+                    Vibe Up
+                  </span>
+                  <span
+                    onClick={(e) => { e.stopPropagation(); setVibeModal(true); }}
+                    className={`text-xs sm:text-sm font-medium ml-0.5 ${isVibeUp ? "text-[var(--accent)]" : "text-[var(--text-primary)]"} hover:underline`}
+                  >
+                    {vibeUpCount}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => feedbackHandler("vibeDown")}
+                  className="flex items-center gap-1.5 sm:gap-2 group transition-transform active:scale-95 translate-y-[-1px]"
+                >
+                  <div className={`transition-colors ${isVibeDown ? "text-[var(--accent-secondary)]" : "text-[var(--text-primary)]"}`}>
+                    <VibeDownIcon active={isVibeDown} />
+                  </div>
+                  <span
+                    className={`text-xs sm:text-sm font-bold tracking-tight whitespace-nowrap ${isVibeDown ? "text-[var(--accent-secondary)]" : "text-[var(--text-primary)]"}`}
+                  >
+                    Vibe Down
+                  </span>
+                  {isOwner && (
+                    <span className="text-[10px] text-[var(--text-primary)] font-medium italic translate-y-[1px]">
+                      {vibeDownCount}p
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* Right Side Actions (Comment, Share, Save) */}
+              <div className="flex items-center gap-4 sm:gap-6">
+                {/* Comment Group */}
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <button
+                    onClick={() => setShow(!show)}
+                    className="text-xl sm:text-2xl transition-transform active:scale-75"
+                  >
+                    <BsChatFill className="text-[var(--text-primary)]" />
+                  </button>
+                  <span className="text-[var(--text-primary)] font-semibold text-xs sm:text-sm">{value.commentsCount || 0}</span>
+                </div>
+
+                {/* Share Group */}
+                <button
+                  onClick={() => setShareModal(true)}
+                  className="text-xl sm:text-2xl transition-transform active:scale-75 text-[var(--text-primary)]"
+                >
+                  <IoPaperPlaneOutline />
+                </button>
+
+                <button
+                  onClick={saveHandler}
+                  className="text-xl sm:text-2xl transition-transform active:scale-75 text-[var(--text-primary)]"
+                >
+                  {isSaved ? <BsBookmarkFill /> : <BsBookmark />}
+                </button>
+              </div>
+            </div>
+
+            {/* Caption */}
+            {value.caption && (
+              <div className="text-[var(--text-primary)] text-sm mb-2">
+                <Link to={`/user/${value.owner?._id}`} className="font-bold mr-2">
+                  @{value.owner?.username || value.owner?.name?.toLowerCase().replace(/\s+/g, '_') || "user"}
+                </Link>
+                <span className="text-[var(--text-secondary)]">
+                  {expanded ? value.caption : (value.caption?.slice(0, captionLimit) + (value.caption?.length > captionLimit ? "..." : ""))}
+                </span>
+                {
+                  value.caption?.length > captionLimit && (
+                    <button onClick={() => setExpanded(!expanded)} className="text-[var(--text-secondary)] text-xs ml-1 hover:text-[var(--text-primary)]">
+                      {expanded ? "less" : "more"}
+                    </button>
+                  )
+                }
+              </div >
+            )}
+
+            {/* View Comments Link */}
+            {
+              value.commentsCount > 0 && (
+                <button
+                  onClick={() => setShow(!show)}
+                  className="text-[var(--text-secondary)] text-xs font-medium"
+                >
+                  View all {value.commentsCount} comments
+                </button>
+              )
+            }
+            {/* Date */}
+            <p className="text-[var(--text-secondary)] text-xs mt-1">{formatDate}</p>
+          </div>
+        )}
 
         <PostCardOverlays
           show={show} setShow={setShow} commentsRef={commentsRef} loadingComments={loadingComments} comments={comments}
@@ -779,7 +971,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
       {/* ===== POST IMAGE & OVERLAY HEADER ===== */}
       <div className="relative w-full group">
         {/* Header Overlay */}
-        <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-10 pointer-events-none">
+        <div className="relative top-0 left-0 w-full pb-2 flex justify-between items-start z-10 pointer-events-none">
           <Link
             to={`/user/${value.owner?._id}`}
             className="flex items-center gap-3 pointer-events-auto"

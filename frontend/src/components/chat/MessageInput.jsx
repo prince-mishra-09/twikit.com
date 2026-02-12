@@ -72,7 +72,7 @@ const MessageInput = ({ setMessages, selectedChat }) => {
   return (
     <form
       onSubmit={handleMessage}
-      className="flex items-center gap-3 px-4 py-3"
+      className="flex items-center gap-3"
     >
       {/* INPUT */}
       <input

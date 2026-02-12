@@ -1,6 +1,7 @@
-import dotenv from "dotenv";
+import dotenv from "dotenv"; // Restart trigger
 import path from "path";
 import fs from "fs";
+import { startAuraCleanupService } from "./services/auraCleanupService.js";
 
 const envPath = path.resolve(process.cwd(), ".env");
 console.log("Current Working Directory:", process.cwd());
@@ -39,6 +40,7 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import feedRoutes from "./routes/feedRoutes.js";
 import storyRoutes from "./routes/storyRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
+import auraXRoutes from "./routes/auraXRoutes.js";
 import { migrateUsernames } from "./utils/migration.js";
 
 // Import monitoring system
@@ -135,8 +137,9 @@ app.use("/api/feed", feedRoutes);
 app.use("/api/story", storyRoutes);
 app.use("/api/story", storyRoutes);
 app.use("/api/comment", commentRoutes);
+app.use("/api/aurax", auraXRoutes);
 import testRoutes from "./routes/testRoutes.js";
-app.use("/api", testRoutes);
+app.use("/api/test", testRoutes);
 // Monitoring metrics endpoint (protected - briefly checks key or similar if needed)
 app.get("/api/metrics", async (req, res) => {
   // Secure check using Authorization Header
@@ -187,9 +190,12 @@ server.listen(port, async () => {
   await initializeRedis(); // Explicitly init Redis after env vars are ready
   await migrateUsernames();
 
+
   // Start monitoring system after server starts
   setTimeout(() => {
     monitoringService.start();
+    // Start Aura Archival Service (Check every 1 minute)
+    startAuraCleanupService(60 * 1000);
   }, 5000); // Wait 5 seconds for DB connection
   console.log(`Server running on:`);
   console.log(`- Local:   http://localhost:${port}`);

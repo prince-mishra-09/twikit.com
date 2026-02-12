@@ -151,7 +151,7 @@ const Home = () => {
 
           {/* Global Upload Progress */}
           {addLoading && uploadProgress > 0 && (
-            <div className="w-full px-0 md:px-0 mb-4 mt-2 relative z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="w-full px-0 md:px-0  mt-2 relative z-50 animate-in fade-in slide-in-from-top-2 duration-300">
               <div className="h-1.5 w-full bg-gray-800/50 overflow-hidden border-y border-white/5 shadow-lg">
                 <div
                   className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 bg-[length:200%_100%] animate-[shimmer_2s_infinite] shadow-[0_0_12px_rgba(99,102,241,0.8)] transition-all duration-300 ease-out"

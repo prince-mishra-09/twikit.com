@@ -1,0 +1,456 @@
+/* AuraX Page Container */
+.aurax-page-container {
+  min-height: 100vh;
+  /* background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);  <-- REMOVED: Now handled by GalaxyBackground */
+  background: transparent;
+  padding-bottom: 100px;
+  /* Space for floating button */
+}
+
+/* Top Sticky Navbar */
+/* Desktop Sidebar */
+.aurax-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
+  background: rgba(26, 26, 46, 0.6);
+  /* Glassmorphism */
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 30px 20px;
+  z-index: 100;
+}
+
+.sidebar-top {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: 10px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+}
+
+.sidebar-title {
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, #00F5FF, #FF1493);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.sidebar-btn {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+  /* Ensure full width */
+}
+
+.sidebar-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  transform: translateX(5px);
+}
+
+.sidebar-icon {
+  font-size: 1.4rem;
+}
+
+.sidebar-btn.create-btn {
+  background: linear-gradient(90deg, #8B00FF, #0066FF);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+}
+
+.sidebar-btn.create-btn:hover {
+  box-shadow: 0 6px 20px rgba(138, 43, 226, 0.5);
+  transform: translateY(-2px);
+}
+
+.sidebar-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 20px;
+}
+
+.sidebar-btn.exit-btn {
+  color: #ff4444;
+}
+
+.sidebar-btn.exit-btn:hover {
+  background: rgba(255, 0, 0, 0.1);
+}
+
+/* Hide Top Navbar on Desktop */
+.aurax-top-navbar {
+  display: none;
+}
+
+/* Feed Content Adjustment for Desktop Sidebar */
+.aurax-feed-content {
+  margin-left: 260px;
+  /* Offset for Sidebar */
+  width: auto;
+  /* Let block layout consume remaining space */
+  padding: 30px 80px 30px 30px;
+  /* Extra right padding to prevent clipping */
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.aurax-navbar-title {
+  font-size: 1.8rem;
+  font-weight: bold;
+  background: linear-gradient(90deg, #00F5FF, #FF1493);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  text-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.aurax-nav-btn {
+  height: 40px;
+  min-width: 40px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(5px);
+  padding: 0 12px;
+}
+
+.aurax-nav-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.aurax-nav-btn.theme-toggle {
+  font-size: 1.4rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.aurax-nav-btn.create-btn {
+  background: linear-gradient(135deg, #8B00FF, #0066FF);
+  box-shadow: 0 0 10px rgba(138, 43, 226, 0.4);
+}
+
+.aurax-nav-btn.create-btn:hover {
+  box-shadow: 0 0 20px rgba(138, 43, 226, 0.6);
+}
+
+.aurax-nav-btn.rename-btn {
+  background: rgba(138, 43, 226, 0.2);
+  border: 1px solid rgba(138, 43, 226, 0.4);
+}
+
+.aurax-nav-btn.exit-btn {
+  background: linear-gradient(90deg, #FF1493, #FF4500);
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0 16px;
+}
+
+.btn-icon {
+  font-size: 1.2rem;
+}
+
+/* Hide text on mobile for exit button to save space */
+@media (max-width: 480px) {
+  .aurax-nav-btn.exit-btn .btn-text {
+    display: none;
+  }
+}
+
+/* Feed Content */
+/* Old feed content block removed */
+
+/* Feed Grid (Masonry) */
+.aurax-feed-grid {
+  column-count: 4;
+  /* Reduced from 5 to 4 to increase card width */
+  column-gap: 30px;
+  /* Increased gap */
+  position: relative;
+  z-index: 10;
+}
+
+/* Removed old .aurax-create-nav-btn styles */
+
+@media (min-width: 1100px) {
+  .aurax-feed-grid {
+    column-count: 3;
+  }
+}
+
+/* @media (max-width: 1100px) {
+  .aurax-feed-grid {
+    column-count: 3;
+  }
+} */
+
+@media (max-width: 1100px) {
+  .aurax-feed-grid {
+    column-count: 1;
+  }
+}
+
+/* Mobile Responsive - Redundant block removed */
+
+/* Empty State */
+.aurax-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+}
+
+.empty-ghost-animation {
+  margin-bottom: 20px;
+}
+
+.empty-ghost {
+  font-size: 5rem;
+  display: block;
+  filter: drop-shadow(0 0 20px rgba(0, 245, 255, 0.6));
+}
+
+.empty-title {
+  font-size: 2rem;
+  color: #00F5FF;
+  margin: 0 0 10px 0;
+  text-shadow: 0 0 20px rgba(0, 245, 255, 0.8);
+}
+
+.empty-subtitle {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 30px 0;
+  font-family: 'Permanent Marker', cursive;
+}
+
+.empty-create-btn {
+  padding: 15px 30px;
+  background: linear-gradient(90deg, #8B00FF, #0066FF);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 25px rgba(138, 43, 226, 0.6);
+}
+
+.empty-create-btn:hover {
+  box-shadow: 0 0 40px rgba(138, 43, 226, 0.9);
+  transform: translateY(-3px);
+}
+
+/* Loading More */
+.aurax-loading-more {
+  text-align: center;
+  padding: 20px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+}
+
+/* Floating Create Button */
+.aurax-floating-create-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 4px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8B00FF, #0066FF);
+  border: none;
+  color: #fff;
+  font-size: 2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 90;
+  transition: all 0.3s ease;
+}
+
+.aurax-floating-create-btn:hover {
+  box-shadow: 0 6px 20px rgba(138, 43, 226, 0.5);
+  transform: translateY(-2px);
+}
+
+.create-plus-icon {
+  font-size: 2rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+
+  /* Show Top Navbar */
+  .aurax-top-navbar {
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 15px;
+    background: rgba(26, 26, 46, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Hide Sidebar */
+  .aurax-sidebar {
+    display: none;
+  }
+
+  .aurax-navbar-title {
+    font-size: 1.5rem;
+  }
+
+  .navbar-actions {
+    gap: 8px;
+  }
+
+  .aurax-nav-btn {
+    height: 36px;
+    min-width: 36px;
+    font-size: 1.1rem;
+    padding: 0 8px;
+  }
+
+  .aurax-feed-content {
+    padding: 15px;
+    max-width: 100%;
+    margin: 0 auto;
+    /* Reset margin */
+    padding-left: 15px;
+    /* Reset padding-left */
+  }
+
+  .aurax-feed-grid {
+    column-count: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+
+  .aurax-nav-btn.exit-btn {
+    padding: 0 10px;
+    font-size: 0.9rem;
+  }
+
+  /* Hide text on mobile for exit button to save space */
+  .aurax-nav-btn.exit-btn .btn-text {
+    display: none;
+  }
+
+  .aurax-feed-content {
+    padding: 15px;
+    max-width: 100%;
+    /* Use full width */
+  }
+
+  .aurax-feed-grid {
+    column-count: 1;
+    /* Single column on mobile */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .empty-ghost {
+    font-size: 4rem;
+  }
+
+  .empty-title {
+    font-size: 1.6rem;
+  }
+
+  .empty-subtitle {
+    font-size: 1rem;
+  }
+
+  .aurax-floating-create-btn {
+    bottom: 16px;
+    right: 16px;
+    /* Give some spacing from edge */
+    width: 56px;
+    height: 56px;
+  }
+
+  .create-plus-icon {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .aurax-feed-content {
+    padding: 10px;
+  }
+
+  .aurax-floating-create-btn {
+    width: 52px;
+    height: 52px;
+    bottom: 12px;
+    right: 12px;
+  }
+
+  .aurax-navbar-title {
+    font-size: 1.3rem;
+    /* Smaller title on very small screens */
+  }
+}

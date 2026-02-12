@@ -1,0 +1,321 @@
+/* Modal Backdrop */
+.aurax-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    /* Slightly lighter backdrop */
+    backdrop-filter: blur(8px);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Modal Content - WHITE GLASS THEME */
+.aurax-modal-content {
+    width: 100%;
+    max-width: 600px;
+    background: rgba(255, 255, 255, 0.95);
+    /* Light Theme */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    /* Soft shadow */
+    max-height: 90vh;
+    overflow-y: auto;
+    color: #0f1419;
+}
+
+/* Header */
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 25px;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f1419;
+    margin: 0;
+    text-shadow: none;
+    font-family: 'Inter', sans-serif;
+}
+
+.modal-close-btn {
+    background: rgba(0, 0, 0, 0.05);
+    border: none;
+    color: #536471;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #0f1419;
+    transform: rotate(90deg);
+}
+
+/* Tab Switcher */
+.tab-switcher {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    background: #f7f9f9;
+    border-radius: 12px;
+    padding: 5px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #536471;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    color: #0f1419;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.tab-btn.active {
+    background: #fff;
+    color: #0f1419;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Modal Body */
+.modal-body {
+    margin-bottom: 25px;
+}
+
+/* Caption Input */
+.modal-caption-input {
+    width: 100%;
+    padding: 15px;
+    background: #f0f2f5;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    color: #0f1419;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: all 0.3s ease;
+    margin-bottom: 8px;
+    min-height: 120px;
+}
+
+.modal-caption-input:focus {
+    background: #fff;
+    border-color: #1d9bf0;
+    box-shadow: 0 0 0 4px rgba(29, 155, 240, 0.1);
+}
+
+.modal-caption-input::placeholder {
+    color: #536471;
+}
+
+.char-counter {
+    text-align: right;
+    color: #536471;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+}
+
+/* Photo Upload Section */
+.photo-upload-section {
+    margin-top: 15px;
+}
+
+.photo-upload-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: #f7f9f9;
+    border: 2px dashed #cfd9de;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #1d9bf0;
+}
+
+.photo-upload-btn:hover {
+    background: #f0f2f5;
+    border-color: #1d9bf0;
+}
+
+.upload-plus-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    filter: none;
+    color: #1d9bf0;
+}
+
+.upload-hint {
+    font-size: 0.9rem;
+    color: #536471;
+    margin: 5px 0 0 0;
+}
+
+/* Media Preview */
+.media-preview-container {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #cfd9de;
+    background: #000;
+}
+
+.media-preview {
+    width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    display: block;
+}
+
+.remove-media-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.6);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(4px);
+}
+
+.remove-media-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: scale(1.1);
+}
+
+/* Submit Button */
+.modal-submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: #0f1419;
+    /* Solid Black */
+    border: none;
+    border-radius: 30px;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.modal-submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    background: #272c30;
+}
+
+.modal-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #cfd9de;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Mobile Responsive - Full Screen */
+@media (max-width: 768px) {
+    .aurax-modal-backdrop {
+        align-items: flex-end;
+        /* Or center? Users usually prefer bottom sheet or full screen. Requested full screen. */
+        background: #fff;
+        /* Ensure bg is solid if full screen, or keep translucent? User asked for "full mobile area" like rename page. */
+    }
+
+    .aurax-modal-content {
+        position: fixed;
+        top: 0 !important;
+        left: 0 !important;
+        transform: none !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        max-height: none !important;
+        border-radius: 0 !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        box-shadow: none !important;
+        background: #fff;
+        /* Solid white for full screen mobile */
+    }
+
+    .modal-header {
+        margin-top: 10px;
+        margin-bottom: 20px;
+    }
+
+    .modal-title {
+        font-size: 1.8rem;
+    }
+
+    .modal-body {
+        flex: 1;
+        /* Push content to fill space */
+    }
+
+    .modal-submit-btn {
+        margin-top: auto;
+        /* Push to bottom */
+        margin-bottom: 20px;
+    }
+}

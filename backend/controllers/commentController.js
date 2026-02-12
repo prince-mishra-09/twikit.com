@@ -1,4 +1,5 @@
 import { Post } from "../models/postModel.js";
+import User from "../models/userModel.js";
 import { Comment } from "../models/Comment.js";
 import { Notification } from "../models/Notification.js";
 import TryCatch from "../utils/tryCatch.js";
@@ -34,10 +35,45 @@ export const createComment = TryCatch(async (req, res) => {
 
     await newComment.populate("user", "name profilePic username");
 
-    // Real-time Emit (Optional: You might want to emit to specific post room)
-    // For now we can stick to simple update or let frontend fetch. 
-    // If we want real-time, we should emit 'postCommentUpdated' behavior but now it's complex with separate doc.
-    // Better to just notify user and let them refresh or append if they are active.
+    // Real-time Emit
+    io.to("post:" + postId).emit("postCommentUpdated", {
+        postId,
+        comments: await Comment.find({ post: postId })
+            .populate("user", "name profilePic username")
+            .sort({ createdAt: -1 }) // We might need to handle grouping in frontend or send structured data
+        // For simplicity, let's just trigger a refetch or send the new comment?
+        // Sending the whole list is heavy but consistent with frontend expectation "postCommentUpdated" which expects "comments" array.
+        // Let's stick to the current pattern or improve it.
+        // The frontend expects: p.comments = data.comments.
+    });
+
+    // Actually, sending ALL comments is bad for performance. 
+    // But to match current frontend implementation in PostContext:
+    /*
+        socket.on("postCommentUpdated", (data) => {
+            setPosts((prev) => prev.map((p) => p._id === data.postId ? { ...p, comments: data.comments } : p));
+            ...
+        });
+    */
+    // We need to send the updated list.
+    // Optimization: In a real app, we'd append. But here we follow the existing pattern.
+    const updatedComments = await Comment.find({ post: postId })
+        .populate("user", "name profilePic username")
+        .sort({ createdAt: -1 });
+
+    // Grouping logic is duplicated here? The frontend expects simple list or grouped?
+    // PostContext just replaces `comments`. 
+    // But `PostCard` uses `comments` prop which is usually the list. 
+    // Note: data.comments in PostContext replaces p.comments.
+
+    // Let's use the same grouping logic as getPostComments?
+    // Or just send the list and let frontend handle it? 
+    // The frontend `PostCardOverlays` uses `comments` array.
+
+    io.to("post:" + postId).emit("postCommentUpdated", {
+        postId,
+        comments: updatedComments // Send flat list, frontend might need to map it
+    });
 
     // Notification Logic
     let receiverId;
