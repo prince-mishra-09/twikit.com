@@ -1,6 +1,6 @@
 import { Chat } from "../models/chatModel.js";
 import { Messages } from "../models/messagesModel.js";
-import { getReceiverSocketId, io } from "../socket/socket.js";
+import { getReceiverSocketId, getIO } from "../socket/socketIO.js";
 import { Notification } from "../models/Notification.js";
 import TryCatch from "../utils/tryCatch.js";
 import { sendPushNotification } from "./notificationController.js";
@@ -98,14 +98,22 @@ export const sendMessage = TryCatch(async (req, res) => {
   // IF NO MESSAGE AND NO SHARED CONTENT, JUST RETURN CHAT
   if (!message && !sharedContent) {
     // Populate users to avoid frontend crash
-    await chat.populate("users", "name username profilePic lastSeen");
+    await chat.populate("users", "name username profilePic lastSeen showLastSeen");
 
-    const otherUser = chat.users.find(
+    const chatObj = chat.toObject();
+    chatObj.users = chatObj.users.map(u => {
+      if (u.showLastSeen === false) {
+        u.lastSeen = null;
+      }
+      return u;
+    });
+
+    const otherUser = chatObj.users.find(
       (u) => u._id.toString() !== senderId.toString()
     );
 
     return res.status(200).json({
-      ...chat.toObject(),
+      ...chatObj,
       users: [otherUser], // Return only the other user for consistency
     });
   }
@@ -130,7 +138,7 @@ export const sendMessage = TryCatch(async (req, res) => {
   const reciverSocketId = getReceiverSocketId(recieverId);
 
   if (reciverSocketId) {
-    io.to(reciverSocketId).emit("newMessage", newMessage);
+    getIO().to(reciverSocketId).emit("newMessage", newMessage);
   }
 
   /* REMOVED NOTIFICATION LOGIC - Chat has its own flow */
@@ -290,7 +298,36 @@ export const getAllChats = TryCatch(async (req, res) => {
       }
     },
     // 6. Sort by latest interaction
-    { $sort: { updatedAt: -1 } }
+    { $sort: { updatedAt: -1 } },
+    // 7. Data Sanitization (Last Seen Privacy)
+    {
+      $project: {
+        _id: 1,
+        latestMessage: 1,
+        updatedAt: 1,
+        unreadCount: 1,
+        users: {
+          $map: {
+            input: "$users",
+            as: "u",
+            in: {
+              $mergeObjects: [
+                "$$u",
+                {
+                  lastSeen: {
+                    $cond: {
+                      if: { $eq: ["$$u.showLastSeen", false] },
+                      then: null,
+                      else: "$$u.lastSeen"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
   ]);
 
   res.json(chats);
@@ -316,7 +353,7 @@ export const markMessageAsRead = TryCatch(async (req, res) => {
     if (otherUser) {
       const otherUserSocketId = getReceiverSocketId(otherUser);
       if (otherUserSocketId) {
-        io.to(otherUserSocketId).emit("messagesRead", { chatId, readerId: userId });
+        getIO().to(otherUserSocketId).emit("messagesRead", { chatId, readerId: userId });
       }
     }
   }
@@ -347,7 +384,7 @@ export const deleteMessage = TryCatch(async (req, res) => {
       const receiverId = chat.users.find(u => u.toString() !== userId.toString());
       const receiverSocketId = getReceiverSocketId(receiverId);
       if (receiverSocketId) {
-        io.to(receiverSocketId).emit("messageDeleted", { messageId: id, chatId: message.chatId });
+        getIO().to(receiverSocketId).emit("messageDeleted", { messageId: id, chatId: message.chatId });
       }
     }
   } else {

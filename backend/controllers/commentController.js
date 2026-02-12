@@ -3,7 +3,7 @@ import User from "../models/userModel.js";
 import { Comment } from "../models/Comment.js";
 import { Notification } from "../models/Notification.js";
 import TryCatch from "../utils/tryCatch.js";
-import { io } from "../socket/socket.js";
+import { getIO } from "../socket/socketIO.js";
 import { sendPushNotification } from "./notificationController.js";
 
 export const createComment = TryCatch(async (req, res) => {
@@ -36,7 +36,7 @@ export const createComment = TryCatch(async (req, res) => {
     await newComment.populate("user", "name profilePic username");
 
     // Real-time Emit
-    io.to("post:" + postId).emit("postCommentUpdated", {
+    getIO().to("post:" + postId).emit("postCommentUpdated", {
         postId,
         comments: await Comment.find({ post: postId })
             .populate("user", "name profilePic username")
@@ -70,7 +70,7 @@ export const createComment = TryCatch(async (req, res) => {
     // Or just send the list and let frontend handle it? 
     // The frontend `PostCardOverlays` uses `comments` array.
 
-    io.to("post:" + postId).emit("postCommentUpdated", {
+    getIO().to("post:" + postId).emit("postCommentUpdated", {
         postId,
         comments: updatedComments // Send flat list, frontend might need to map it
     });
@@ -104,7 +104,7 @@ export const createComment = TryCatch(async (req, res) => {
         await notification.populate("sender", "name profilePic");
         await notification.populate("postId", "post");
 
-        io.to(receiverId.toString()).emit("notification:new", notification);
+        getIO().to("user:" + receiverId.toString()).emit("notification:new", notification);
 
         const bodyText = type === "comment_reply"
             ? `${req.user.name} replied to your comment`

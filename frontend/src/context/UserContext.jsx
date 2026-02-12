@@ -55,7 +55,7 @@ export const UserContextProvider = ({ children }) => {
 
   const fetchUser = useCallback(async () => {
     try {
-      const { data } = await axios.get("/api/user/me");
+      const { data } = await axios.get("/api/user/me?t=" + new Date().getTime());
       setUser(data);
       setIsAuth(true);
       registerPush(); // Trigger notification permission request
@@ -94,11 +94,18 @@ export const UserContextProvider = ({ children }) => {
     try {
       const { data } = await axios.post("/api/user/follow/" + id);
       toast.success(data.message);
-      fetchUser(); // Ensure strict sync with backend
+
+      // Update state with server-returned truthful data
+      if (data.followings) {
+        setUser((prev) => ({ ...prev, followings: data.followings }));
+      } else {
+        // Fallback for requests/errors
+        fetchUser();
+      }
       return data.message;
     } catch (error) {
       toast.error(getErrorMessage(error));
-      // Revert on failure (fetchUser will correct it, but we can also manually revert if needed)
+      // Revert on failure
       fetchUser();
       return null;
     }
@@ -214,6 +221,51 @@ export const UserContextProvider = ({ children }) => {
     }
   }, [fetchUser]);
 
+  const toggleOnlineStatus = useCallback(async () => {
+    // Optimistic Update: Toggle immediately
+    setUser((prev) => {
+      if (!prev) return prev;
+      return { ...prev, showOnlineStatus: !prev.showOnlineStatus };
+    });
+
+    try {
+      const { data } = await axios.put("/api/user/status");
+      // toast.success(data.message); // Optional: Success toast might be annoying for instant toggle
+
+      // Sync with server response to be sure
+      setUser((prev) => prev ? { ...prev, showOnlineStatus: data.showOnlineStatus } : prev);
+
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+      // Revert on failure
+      setUser((prev) => {
+        if (!prev) return prev;
+        return { ...prev, showOnlineStatus: !prev.showOnlineStatus };
+      });
+    }
+  }, []);
+
+  const toggleLastSeen = useCallback(async () => {
+    // Optimistic Update
+    setUser((prev) => {
+      if (!prev) return prev;
+      return { ...prev, showLastSeen: !prev.showLastSeen };
+    });
+
+    try {
+      const { data } = await axios.put("/api/user/last-seen");
+      // Sync
+      setUser((prev) => prev ? { ...prev, showLastSeen: data.showLastSeen } : prev);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+      // Revert
+      setUser((prev) => {
+        if (!prev) return prev;
+        return { ...prev, showLastSeen: !prev.showLastSeen };
+      });
+    }
+  }, []);
+
   const registerPush = useCallback(async () => {
     if (!("serviceWorker" in navigator)) return;
 
@@ -260,8 +312,8 @@ export const UserContextProvider = ({ children }) => {
     logoutUser, registerUser, followUser, updateProfilePic,
     updateProfileInfo, savePost, hidePost, muteUser, unmuteUser,
     togglePrivacy, removeFollower, blockUser, unblockUser,
-    registerPush, showLoginPrompt, setShowLoginPrompt, searchUser
-  }), [loginUser, isAuth, user, loading, logoutUser, registerUser, followUser, updateProfilePic, updateProfileInfo, savePost, hidePost, muteUser, unmuteUser, togglePrivacy, removeFollower, blockUser, unblockUser, registerPush, showLoginPrompt, searchUser]);
+    registerPush, showLoginPrompt, setShowLoginPrompt, searchUser, toggleOnlineStatus, toggleLastSeen
+  }), [loginUser, isAuth, user, loading, logoutUser, registerUser, followUser, updateProfilePic, updateProfileInfo, savePost, hidePost, muteUser, unmuteUser, togglePrivacy, removeFollower, blockUser, unblockUser, registerPush, showLoginPrompt, searchUser, toggleOnlineStatus, toggleLastSeen]);
 
   return (
     <UserContext.Provider value={value}>

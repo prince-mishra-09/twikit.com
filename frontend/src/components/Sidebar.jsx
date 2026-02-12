@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AiFillHome, AiOutlineHome, AiOutlinePlusSquare, AiFillPlusSquare } from "react-icons/ai";
 import { IoSearch, IoSearchOutline, IoChatbubbleEllipses, IoChatbubbleEllipsesOutline, IoNotifications, IoNotificationsOutline, IoLogOutOutline } from "react-icons/io5";
 import { BsCameraReels, BsCameraReelsFill } from "react-icons/bs";
-import { RiAccountCircleFill, RiAccountCircleLine } from "react-icons/ri";
+import { RiAccountCircleFill, RiAccountCircleLine, RiRecordCircleFill } from "react-icons/ri";
 import { FaBars } from "react-icons/fa"; // Import FaBars
 import { UserData } from "../context/UserContext";
 import CreatePostModal from "./CreatePostModal";
@@ -14,7 +14,7 @@ import { NotificationData } from "../context/NotificationContext";
 import AuraXIcon from "./AuraXIcon"; // Import the new icon
 
 const Sidebar = ({ isCollapsed, toggleSidebar }) => { // Accept props
-    const { user, isAuth, logoutUser, setShowLoginPrompt } = UserData();
+    const { user, isAuth, logoutUser, setShowLoginPrompt, toggleOnlineStatus } = UserData();
     const { unreadCount } = NotificationData();
     const { totalUnreadMessages } = ChatData();
     const location = useLocation();

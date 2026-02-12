@@ -166,14 +166,25 @@ const UserAccount = ({ user: loggedInUser }) => {
   // Keep state in sync if props change (e.g. navigation to another user)
   useEffect(() => {
     if (!loggedInUser) return;
-    // Use params.id for faster check if user object isn't loaded yet
     const targetId = user?._id || params.id;
-    setFollowed(loggedInUser.followings?.includes(targetId));
+
+    // Robust comparison
+    const isFollowing = loggedInUser.followings?.some(id =>
+      (typeof id === 'object' ? id._id : id).toString() === targetId.toString()
+    );
+
+    console.log("[UserAccount] Syncing follow state:", {
+      targetId,
+      followings: loggedInUser.followings,
+      isFollowing
+    });
+
+    setFollowed(isFollowing);
 
     if (user) {
       setRequested(user.followRequests?.includes(loggedInUser._id));
     }
-  }, [loggedInUser, user, params.id]); // Added params.id dependency
+  }, [loggedInUser, user, params.id]);
 
   const followHandler = async () => {
     if (!loggedInUser) {
@@ -250,7 +261,7 @@ const UserAccount = ({ user: loggedInUser }) => {
 
   async function followData() {
     try {
-      const { data } = await axios.get("/api/user/followdata/" + user._id);
+      const { data } = await axios.get("/api/user/followdata/" + user._id + "?t=" + Date.now());
       setFollowersData(data.followers);
       setFollowingsData(data.followings);
     } catch (error) {
@@ -333,7 +344,7 @@ const UserAccount = ({ user: loggedInUser }) => {
               {/* <span className="text-[var(--text-secondary)] text-sm font-normal">
                 • {user.gender}
               </span> */}
-              {onlineUsers.includes(user._id) && (
+              {(user._id === loggedInUser?._id ? user.showOnlineStatus : onlineUsers.includes(user._id)) && (
                 <span className="text-green-400 text-xs">●</span>
               )}
             </p>

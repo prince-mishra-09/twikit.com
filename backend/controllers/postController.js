@@ -4,7 +4,7 @@ import User from "../models/userModel.js";
 import TryCatch from "../utils/tryCatch.js";
 import getDataUrl from "../utils/urlGenerator.js";
 import cloudinary from "cloudinary";
-import { io } from "../socket/socket.js";
+import { getIO } from "../socket/socketIO.js";
 import { Notification } from "../models/Notification.js";
 import { sendPushNotification } from "./notificationController.js";
 import redis from "../utils/redis.js";
@@ -56,13 +56,13 @@ export const newPost = TryCatch(async (req, res) => {
             await post.populate("owner", "name username profilePic isPrivate");
 
             // 3. Emit "Ready" Event to User
-            io.to("user:" + ownerId.toString()).emit("post:ready", post);
+            getIO().to("user:" + ownerId.toString()).emit("post:ready", post);
 
         } catch (error) {
             console.error("Background Upload Error:", error);
 
             // Emit "Failed" Event
-            io.to("user:" + ownerId.toString()).emit("post:failed", {
+            getIO().to("user:" + ownerId.toString()).emit("post:failed", {
                 message: "Post upload failed",
                 error: error.message || "Unknown error"
             });
@@ -285,7 +285,8 @@ export const handleFeedback = TryCatch(async (req, res) => {
 
     // Handle migration case where fields might be missing if not yet migrated
     const currentList = existingPost[currentField] || [];
-    const isRemoving = currentList.includes(userId);
+    // Robust check (Guard against nulls)
+    const isRemoving = Array.isArray(currentList) && currentList.some(id => id && id.toString() === userId.toString());
 
     let updatedPost;
 
@@ -312,8 +313,11 @@ export const handleFeedback = TryCatch(async (req, res) => {
 
     // 🔥 REAL-TIME EMIT (PRIVACY SAFE)
     // Only emit VIBE UP update if it actually changed (Public)
-    if (feedbackType === "vibeUp" || (feedbackType === "vibeDown" && action === "added" && existingPost.vibesUp?.includes(userId))) {
-        io.to("post:" + updatedPost._id).emit("postVibeUpdated", {
+    // Check previous state robustly
+    const wasVibedUp = existingPost.vibesUp && existingPost.vibesUp.some(id => id && id.toString() === userId.toString());
+
+    if (feedbackType === "vibeUp" || (feedbackType === "vibeDown" && action === "added" && wasVibedUp)) {
+        getIO().to("post:" + updatedPost._id.toString()).emit("postVibeUpdated", {
             postId: updatedPost._id,
             vibesUp: updatedPost.vibesUp,
             vibesUpCount: updatedPost.vibesUp.length,
@@ -322,7 +326,7 @@ export const handleFeedback = TryCatch(async (req, res) => {
     }
 
     // Emit VIBE DOWN update ONLY to owner's private room
-    io.to("user:" + updatedPost.owner.toString()).emit("postVibeDownUpdated", {
+    getIO().to("user:" + updatedPost.owner.toString()).emit("postVibeDownUpdated", {
         postId: updatedPost._id,
         vibesDown: updatedPost.vibesDown,
         message: isRemoving ? `${feedbackType} removed` : `${feedbackType} added`,
@@ -349,7 +353,7 @@ export const handleFeedback = TryCatch(async (req, res) => {
 
                 await notification.populate("sender", "name profilePic");
                 await notification.populate("postId", "post");
-                io.to("user:" + updatedPost.owner.toString()).emit("notification:new", notification);
+                getIO().to("user:" + updatedPost.owner.toString()).emit("notification:new", notification);
 
                 if (feedbackType === "vibeUp") {
                     // updatedPost.owner is an ID (line 48 population is separate in other func, here strict findById update).

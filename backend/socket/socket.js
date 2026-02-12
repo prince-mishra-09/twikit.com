@@ -16,11 +16,15 @@ const io = new Server(server, {
   },
 });
 
-const userSocketMap = {};
+import { setIO, userSocketMap, getReceiverSocketId } from "./socketIO.js";
+setIO(io);
 
-export const getReceiverSocketId = (receiverId) => {
-  return userSocketMap[receiverId];
-};
+// const userSocketMap = {}; // Moved to socketIO.js
+
+// export const getReceiverSocketId = (receiverId) => {
+//   return userSocketMap[receiverId];
+// };
+
 
 // 🔒 MANDATORY JWT AUTHENTICATION MIDDLEWARE
 io.use(async (socket, next) => {
@@ -57,6 +61,33 @@ io.use(async (socket, next) => {
   }
 });
 
+const getOnlineUserIds = () => {
+  const onlineIds = [];
+  for (const [userId, socketId] of Object.entries(userSocketMap)) {
+    const socket = io.sockets.sockets.get(socketId);
+    if (socket && socket.user && socket.user.showOnlineStatus) {
+      onlineIds.push(userId);
+    }
+  }
+  return onlineIds;
+};
+
+export const broadcastOnlineUsers = () => {
+  io.emit("getOnlineUser", getOnlineUserIds());
+};
+
+// Allow controller to update the socket's user object directly
+export const updateUserSocketData = (userId, data) => {
+  const socketId = userSocketMap[userId];
+  if (socketId) {
+    const socket = io.sockets.sockets.get(socketId);
+    if (socket && socket.user) {
+      socket.user = { ...socket.user, ...data };
+      broadcastOnlineUsers(); // Re-broadcast immediately
+    }
+  }
+};
+
 io.on("connection", (socket) => {
   // ✅ Identity is now verified via JWT
   const userId = socket.user._id.toString();
@@ -74,16 +105,14 @@ io.on("connection", (socket) => {
       socket.leave("post:" + postId);
     });
 
-    io.emit("getOnlineUser", Object.keys(userSocketMap));
+    broadcastOnlineUsers();
   }
-
-  io.emit("getOnlineUser", Object.keys(userSocketMap));
 
   socket.on("disconnect", async () => {
     delete userSocketMap[userId];
-    io.emit("getOnlineUser", Object.keys(userSocketMap));
+    broadcastOnlineUsers();
 
-    // Update lastSeen
+    // Update lastSeen (Only if they were "technically" online, or always? Always is fine for DB)
     try {
       const module = await import("../models/userModel.js");
       const User = module.default;

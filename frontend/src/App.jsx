@@ -35,24 +35,53 @@ function App() {
   useEffect(() => {
     if (socket && user) {
       const handleFollow = (data) => {
+        // If I am the follower
+        if (data.followerId === user._id) {
+          setUser((prev) => {
+            // Ensure unique add
+            if (prev.followings?.includes(data.followingId)) return prev;
+            return {
+              ...prev,
+              followings: [...(prev.followings || []), data.followingId]
+            };
+          });
+        }
+        // If someone followed me
+        else if (data.followingId === user._id) {
+          setUser((prev) => {
+            if (prev.followers?.includes(data.followerId)) return prev;
+            return {
+              ...prev,
+              followers: [...(prev.followers || []), data.followerId]
+            };
+          });
+        }
+      };
+
+      const handleUnfollow = (data) => {
+        // If I unfollowed someone
         if (data.followerId === user._id) {
           setUser((prev) => ({
             ...prev,
-            followings: prev.followings?.includes(data.followingId)
-              ? prev.followings.filter(id => id !== data.followingId)
-              : [...(prev.followings || []), data.followingId]
+            followings: prev.followings?.filter(id => id !== data.followingId) || []
           }));
-        } else if (data.followingId === user._id) {
+        }
+        // If someone unfollowed me
+        else if (data.followingId === user._id) {
           setUser((prev) => ({
             ...prev,
-            followers: prev.followers?.includes(data.followerId)
-              ? prev.followers.filter(id => id !== data.followerId)
-              : [...(prev.followers || []), data.followerId]
+            followers: prev.followers?.filter(id => id !== data.followerId) || []
           }));
         }
       };
+
       socket.on("userFollowed", handleFollow);
-      return () => socket.off("userFollowed", handleFollow);
+      socket.on("userUnfollowed", handleUnfollow);
+
+      return () => {
+        socket.off("userFollowed", handleFollow);
+        socket.off("userUnfollowed", handleUnfollow);
+      };
     }
   }, [socket, user, setUser]);
 

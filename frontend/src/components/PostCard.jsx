@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { createPortal } from "react-dom";
+import { toast } from "react-hot-toast";
 import { BsChatFill, BsThreeDotsVertical, BsBookmark, BsBookmarkFill } from "react-icons/bs";
 import { IoPaperPlaneOutline, IoEyeOutline, IoClose } from "react-icons/io5";
 
@@ -971,10 +972,10 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
       {/* ===== POST IMAGE & OVERLAY HEADER ===== */}
       <div className="relative w-full group">
         {/* Header Overlay */}
-        <div className="relative top-0 left-0 w-full pb-2 flex justify-between items-start z-10 pointer-events-none">
+        <div className="relative top-0 left-0 w-full pb-2 px-2 flex justify-between items-start z-10 pointer-events-none">
           <Link
             to={`/user/${value.owner?._id}`}
-            className="flex items-center gap-3 pointer-events-auto"
+            className="flex  items-center gap-3 pointer-events-auto"
           >
             <div className="relative">
               <StoryAvatar user={value.owner} />
@@ -983,10 +984,10 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
               )}
             </div>
             <div className="flex flex-col">
-              <p className="text-white font-bold text-sm shadow-black drop-shadow-md">
+              <p className="text-[var(--text-primary)] font-bold text-sm shadow-black drop-shadow-md">
                 {value.owner?.name || "Deleted User"}
               </p>
-              <p className="text-white/70 text-[10px] font-medium drop-shadow-md">
+              <p className="text-[var(--text-secondary)] text-[10px] font-medium drop-shadow-md">
                 {formatDate}
               </p>
             </div>
@@ -1006,7 +1007,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
                 <button
                   onClick={followHandler}
                   className={`text-xs font-bold px-4 py-1.5 rounded-full backdrop-blur-md transition-all shadow-lg ${isFollowed
-                    ? "bg-white/20 text-white border border-white/20"
+                    ? "bg-white/20 text-black border border-white/20"
                     : "bg-[var(--accent)] text-[var(--text-on-accent)] hover:opacity-90"
                     }`}
                 >

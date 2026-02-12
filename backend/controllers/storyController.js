@@ -2,7 +2,7 @@ import { Story } from "../models/storyModel.js";
 import User from "../models/userModel.js";
 import getDataUrl from "../utils/urlGenerator.js";
 import cloudinary from "cloudinary";
-import { getReceiverSocketId, io } from "../socket/socket.js";
+import { getReceiverSocketId, getIO } from "../socket/socketIO.js";
 
 export const createStory = async (req, res) => {
     try {
@@ -45,7 +45,7 @@ export const createStory = async (req, res) => {
         // Ensure user is connected in socket room named by their userId
         if (user.followers && user.followers.length > 0) {
             user.followers.forEach(followerId => {
-                io.to(followerId.toString()).emit("story:new", fullStory);
+                getIO().to(followerId.toString()).emit("story:new", fullStory);
             });
         }
 
@@ -184,7 +184,7 @@ export const viewStory = async (req, res) => {
             // Notify owner
             // Use Room-based emission directly to user ID
             const viewerUser = await User.findById(userId).select("name profilePic");
-            io.to(story.user.toString()).emit("story:view", {
+            getIO().to(story.user.toString()).emit("story:view", {
                 storyId,
                 viewer: viewerUser
             });

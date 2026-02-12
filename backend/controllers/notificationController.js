@@ -60,7 +60,7 @@ export const subscribeToPush = TryCatch(async (req, res) => {
     res.status(201).json({ message: "Subscription added" });
 });
 
-import { getReceiverSocketId } from "../socket/socket.js";
+import { getReceiverSocketId } from "../socket/socketIO.js";
 
 // Internal helper to send push notifications to a user
 export const sendPushNotification = async (userId, payload) => {

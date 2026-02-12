@@ -16,6 +16,8 @@ import {
   removeFollower,
   blockUser,
   unblockUser,
+  toggleOnlineStatus,
+  toggleLastSeen,
 } from "../controllers/userControllers.js";
 import uploadFile from "../middlewares/multer.js";
 
@@ -34,6 +36,8 @@ router.post("/reject-request/:id", isAuth, rejectFollowRequest);
 router.post("/block/:id", isAuth, blockUser);
 router.delete("/unblock/:id", isAuth, unblockUser);
 router.put("/privacy", isAuth, togglePrivacy);
+router.put("/status", isAuth, toggleOnlineStatus);
+router.put("/last-seen", isAuth, toggleLastSeen);
 router.delete("/follower/:id", isAuth, removeFollower);
 
 /* ================= ID BASED (ALWAYS LAST) ================= */

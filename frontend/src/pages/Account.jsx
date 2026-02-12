@@ -22,10 +22,12 @@ import ShareModal from "../components/ShareModal";
 import { BsShare, BsPalette } from "react-icons/bs";
 import ThemeModal from "../components/ThemeModal";
 import { getOptimizedImg } from "../utils/cloudinary";
+import { RiRecordCircleFill } from "react-icons/ri";
+import { IoEye, IoEyeOff } from "react-icons/io5";
 
 const Account = ({ user }) => {
   const navigate = useNavigate();
-  const { logoutUser, updateProfilePic, updateProfileName, unmuteUser, togglePrivacy, removeFollower, unblockUser, user: loggedInUser, followUser } = UserData();
+  const { logoutUser, updateProfilePic, updateProfileName, unmuteUser, togglePrivacy, removeFollower, unblockUser, user: loggedInUser, followUser, toggleOnlineStatus, toggleLastSeen } = UserData();
   const { posts, reels, loading } = PostData();
   const { stories } = StoriesData();
 
@@ -81,7 +83,7 @@ const Account = ({ user }) => {
   const [followingsData, setFollowingsData] = useState([]);
 
   async function followData() {
-    const { data } = await axios.get("/api/user/followdata/" + user._id);
+    const { data } = await axios.get("/api/user/followdata/" + user._id + "?t=" + Date.now());
     setFollowersData(data.followers);
     setFollowingsData(data.followings);
   }
@@ -267,6 +269,41 @@ const Account = ({ user }) => {
                   >
                     Blocked Users
                   </button>
+                  <button
+                    onClick={() => {
+                      user.toggleOnlineStatus ? user.toggleOnlineStatus() : toggleOnlineStatus();
+                      // Status changes are optimistic, but we might want to keep menu open or show toast. 
+                      // For now, let's close it to match other actions or keep it open? 
+                      // User might want to toggle and see result. Let's keep it open or close it?
+                      // The sidebar toggle kept it. Here it's a menu. Better to close or give feedback.
+                      // Let's close it for now as per other items.
+                      setShowSettings(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2 justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span>Online Status</span>
+                    </div>
+                    <span className="text-xs font-medium bg-[var(--bg-secondary)] px-2 py-0.5 rounded-full">
+                      {user.showOnlineStatus ? "On" : "Off"}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      user.toggleLastSeen ? user.toggleLastSeen() : toggleLastSeen();
+                      setShowSettings(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2 justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span>Last Seen Status</span>
+                    </div>
+                    <span className="text-xs font-medium bg-[var(--bg-secondary)] px-2 py-0.5 rounded-full">
+                      {user.showLastSeen ? "On" : "Off"}
+                    </span>
+                  </button>
+
                   <div className="border-t border-[var(--border)]">
                     <button
                       onClick={() => {

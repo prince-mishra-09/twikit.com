@@ -108,7 +108,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
 
   useEffect(() => {
     fetchMessages();
-  }, [selectedChat]);
+  }, [selectedChat?._id]);
 
   const messageContainerRef = useRef(null);
 
@@ -159,7 +159,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
     >
 
       {/* HEADER - Fixed at top */}
-      <div className="flex-none flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] bg-[var(--card-bg)]/80 backdrop-blur-md z-20">
+      <div className="absolute w-full flex-none flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] bg-[var(--card-bg)]/100 backdrop-blur-md z-20">
         <button
           onClick={() => setSelectedChat(null)}
           className="md:hidden mr-1 text-[var(--text-primary)] p-2 rounded-full hover:bg-[var(--text-primary)]/10"

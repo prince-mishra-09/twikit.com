@@ -10,8 +10,8 @@ import toast from "react-hot-toast";
 
 // Gen Z / Modern Colors
 const GEN_Z_COLORS = [
-    "#ffff02ff", // Light Yellow (User Custom)
-    "#000000", // Classic Black
+     
+    "#000000", // Classic Black (User Custom)
     "#1A1A1A", // Dark Gray
     "#FFFFFF", // White
     "#FF00FF", // Magenta
@@ -21,6 +21,7 @@ const GEN_Z_COLORS = [
     "#FF4500", // Orange Red
     "#8A2BE2", // Blue Violet
     "#FF1493", // Deep Pink
+    "#ffff02ff", // Light Yellow
 ];
 
 // Fonts
@@ -247,7 +248,7 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
                         className="flex items-center gap-2 bg-[#1F2937] border border-gray-700 px-3 py-1.5 rounded-full hover:bg-gray-800 transition"
                     >
                         <IoText size={20} className="text-purple-400" />
-                        <span className="text-sm font-bold text-gray-200">Text</span>
+                        <span className="text-sm font-bold text-gray-200"></span>
                     </button>
 
                     {/* 3. Color Circle (Showing Current Color) */}

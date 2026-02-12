@@ -6,7 +6,7 @@ import bcrypt from 'bcrypt'
 import getDataUrl from "../utils/urlGenerator.js";
 import cloudinary from "cloudinary";
 import { sendPushNotification } from "./notificationController.js";
-import { io } from "../socket/socket.js";
+import { getIO } from "../socket/socketIO.js";
 import redis from "../utils/redis.js";
 
 export const myProfile = tryCatch(async (req, res) => {
@@ -101,6 +101,7 @@ export const userProfile = async (req, res) => {
 export const followAndUnfollowUser = tryCatch(async (req, res) => {
   const user = await User.findById(req.params.id);
   const loggedInUser = await User.findById(req.user._id);
+  const io = getIO();
 
   if (!user)
     return res.status(404).json({
@@ -112,18 +113,19 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
       message: "You can't follow yourself",
     });
 
-  if (user.followers.includes(loggedInUser._id)) {
-    // UNFOLLOW LOGIC (Always allowed)
-    const indexFollowing = loggedInUser.followings.indexOf(user._id);
-    const indexFollower = user.followers.indexOf(loggedInUser._id);
+  // ROBUST CHECKS (Use String comparison)
+  const isFollowing = loggedInUser.followings.some(id => id.toString() === user._id.toString());
+  const isRequested = user.followRequests.some(id => id.toString() === loggedInUser._id.toString());
 
-    loggedInUser.followings.splice(indexFollowing, 1);
-    user.followers.splice(indexFollower, 1);
+  if (isFollowing) {
+    // UNFOLLOW LOGIC
+    loggedInUser.followings = loggedInUser.followings.filter(id => id.toString() !== user._id.toString());
+    user.followers = user.followers.filter(id => id.toString() !== loggedInUser._id.toString());
 
     await loggedInUser.save();
     await user.save();
 
-    // CLEANUP NOTIFICATION & INVALIDATE CACHE
+    // CLEANUP
     await Notification.deleteMany({
       sender: loggedInUser._id,
       receiver: user._id,
@@ -133,30 +135,38 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
     await redis.del(`user:${loggedInUser._id}`);
     await redis.del(`user:${user._id}`);
 
+    // Emit Unfollowed
+    io.emit("userUnfollowed", {
+      followerId: loggedInUser._id,
+      followingId: user._id,
+    });
+
     res.json({
       message: "User Unfollowed",
+      followings: loggedInUser.followings
     });
-  } else if (user.followRequests.includes(loggedInUser._id)) {
+  } else if (isRequested) {
     // RETRACT REQUEST LOGIC
-    const index = user.followRequests.indexOf(loggedInUser._id);
-    user.followRequests.splice(index, 1);
+    user.followRequests = user.followRequests.filter(id => id.toString() !== loggedInUser._id.toString());
     await user.save();
 
-    // CLEANUP NOTIFICATION
     await Notification.deleteMany({
       sender: loggedInUser._id,
       receiver: user._id,
       type: "follow_request"
     });
 
+    // No Redis/Socket needed for request retraction usually, or maybe cache for user?
+    await redis.del(`user:${user._id}`);
+
     res.json({ message: "Follow Request Retracted" });
   } else {
     // FOLLOW LOGIC
-    // ... (Existing logic for follow/request)
     if (user.isPrivate) {
       // PRIVATE ACCOUNT: Send Request
       user.followRequests.push(loggedInUser._id);
       await user.save();
+      await redis.del(`user:${user._id}`); // Invalidate target user cache
 
       const notification = await Notification.create({
         receiver: user._id,
@@ -168,8 +178,6 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
       await notification.populate("sender", "name profilePic username");
       io.to("user:" + user._id.toString()).emit("notification:new", notification);
 
-      // SEND PUSH NOTIFICATION
-      // User is already fetched at line 94
       await sendPushNotification(user._id, {
         title: `${user.name} • Follow Request`,
         body: `${loggedInUser.name} wants to follow you`,
@@ -186,37 +194,44 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
     await loggedInUser.save();
     await user.save();
 
-    // NOTIFICATION LOGIC
+    // NOTIFICATION
     const notification = await Notification.create({
       receiver: user._id,
       sender: loggedInUser._id,
       type: "follow",
     });
 
-    io.to(user._id.toString()).emit("notification:new", notification);
+    try {
+      // Try/Catch mainly for notification/socket failures not to block response
+      await notification.populate("sender", "name profilePic username");
+      io.to("user:" + user._id.toString()).emit("notification:new", notification);
 
-    // SEND PUSH NOTIFICATION
-    await sendPushNotification(user._id, {
-      title: `${user.name} • New Follower`,
-      body: `${loggedInUser.name} started following you`,
-      url: `/notifications`,
+      await sendPushNotification(user._id, {
+        title: `${user.name} • New Follower`,
+        body: `${loggedInUser.name} started following you`,
+        url: `/notifications`,
+      });
+    } catch (e) {
+      console.log("Notification error", e);
+    }
+
+    // CLEANUP & EVENTS
+    await redis.del(`user:${loggedInUser._id}`);
+    await redis.del(`user:${user._id}`);
+
+    io.emit("userFollowed", {
+      followerId: loggedInUser._id,
+      followingId: user._id,
     });
 
-    res.json({
+    return res.json({
       message: "User Followed",
+      followings: loggedInUser.followings
     });
   }
 
-  // Real-time update & Cache Invalidation
-  await redis.del(`user:${loggedInUser._id}`);
-  await redis.del(`user:${user._id}`);
 
-  io.emit("userFollowed", {
-    followerId: loggedInUser._id,
-    followingId: user._id,
-  });
 })
-
 
 export const userFollowerandFollowingData = tryCatch(async (req, res) => {
   const targetUser = await User.findById(req.params.id);
@@ -468,13 +483,16 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
   const userId = req.params.id; // The user who sent the request
   const loggedInUser = await User.findById(req.user._id); // The receiver (me)
   const sender = await User.findById(userId);
+  const io = getIO();
 
   if (!sender) return res.status(404).json({ message: "User not found" });
 
-  // Remove from requests
-  if (loggedInUser.followRequests.includes(sender._id)) {
-    const index = loggedInUser.followRequests.indexOf(sender._id);
-    loggedInUser.followRequests.splice(index, 1);
+  // Check via string
+  const isRequested = loggedInUser.followRequests.some(id => id.toString() === sender._id.toString());
+
+  // Remove from requests (Safe filter)
+  if (isRequested) {
+    loggedInUser.followRequests = loggedInUser.followRequests.filter(id => id.toString() !== sender._id.toString());
   }
 
   // Add to followers/following
@@ -509,7 +527,7 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
 
   await notification.populate("sender", "name profilePic username");
 
-  io.to(sender._id.toString()).emit("notification:new", notification);
+  io.to("user:" + sender._id.toString()).emit("notification:new", notification);
 
   // SEND PUSH NOTIFICATION
   // Sender is the one who sent request (now follower). Reciever is loggedInUser (Me).
@@ -522,13 +540,13 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
   });
 
   // Real-time Follow Update for Receiever (Me)
-  io.to(loggedInUser._id.toString()).emit("userFollowed", {
+  io.to("user:" + loggedInUser._id.toString()).emit("userFollowed", {
     followerId: sender._id,
     followingId: loggedInUser._id,
   });
 
   // Real-time Follow Update for Sender (Them)
-  io.to(sender._id.toString()).emit("userFollowed", {
+  io.to("user:" + sender._id.toString()).emit("userFollowed", {
     followerId: sender._id,
     followingId: loggedInUser._id,
   });
@@ -543,11 +561,13 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
 export const rejectFollowRequest = tryCatch(async (req, res) => {
   const userId = req.params.id;
   const loggedInUser = await User.findById(req.user._id);
+  const io = getIO();
 
-  // Remove from requests
-  if (loggedInUser.followRequests.includes(userId)) {
-    const index = loggedInUser.followRequests.indexOf(userId);
-    loggedInUser.followRequests.splice(index, 1);
+  // Robust Remove from requests
+  const isRequested = loggedInUser.followRequests.some(id => id.toString() === userId.toString());
+
+  if (isRequested) {
+    loggedInUser.followRequests = loggedInUser.followRequests.filter(id => id.toString() !== userId.toString());
     await loggedInUser.save();
   }
 
@@ -677,4 +697,38 @@ export const unblockUser = tryCatch(async (req, res) => {
 
   await redis.del(`user:${loggedInUser._id}`);
   await redis.del(`user:${userToUnblock._id}`);
+});
+
+export const toggleOnlineStatus = tryCatch(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  user.showOnlineStatus = !user.showOnlineStatus;
+  await user.save();
+
+  // Invalidate cache
+  await redis.del(`user:${user._id}`);
+
+  // Update socket state and broadcast immediately
+  const { updateUserSocketData } = await import("../socket/socket.js");
+  updateUserSocketData(user._id.toString(), { showOnlineStatus: user.showOnlineStatus });
+
+  res.json({
+    message: user.showOnlineStatus ? "You are now Online" : "You are now Offline",
+    showOnlineStatus: user.showOnlineStatus
+  });
+});
+
+export const toggleLastSeen = tryCatch(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  user.showLastSeen = !user.showLastSeen;
+  await user.save();
+
+  // Invalidate cache
+  await redis.del(`user:${user._id}`);
+
+  res.json({
+    message: user.showLastSeen ? "Last Seen Visible" : "Last Seen Hidden",
+    showLastSeen: user.showLastSeen
+  });
 });
