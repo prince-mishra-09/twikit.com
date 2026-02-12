@@ -12,6 +12,7 @@ import NotFound from "./components/NotFound";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { SkeletonPost } from "./components/Skeleton";
 import RouteAwareSkeleton, { SkeletonFullPage } from "./components/Loading";
+import Maintenance from "./pages/Maintenance";
 
 // Lazy Imports
 const Home = lazy(() => import("./pages/Home"));
@@ -32,6 +33,10 @@ function App() {
   const { loading, isAuth, user, setUser } = UserData();
   const { socket } = SocketData();
 
+  // Maintenance Mode (Temporary)
+  return <Maintenance />;
+
+  /*
   useEffect(() => {
     if (socket && user) {
       const handleFollow = (data) => {
@@ -120,6 +125,7 @@ function App() {
       </ErrorBoundary>
     </>
   );
+  */
 }
 
 export default App;

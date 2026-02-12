@@ -279,37 +279,59 @@ export const handleFeedback = TryCatch(async (req, res) => {
     const currentField = feedbackType === "vibeUp" ? "vibesUp" : "vibesDown";
     const otherField = feedbackType === "vibeUp" ? "vibesDown" : "vibesUp";
 
+    logToFile(`Handling feedback: ${feedbackType} for post ${postId} by user ${userId}`);
+
     // 1. Check if feedback already exists in CURRENT field
     const existingPost = await Post.findById(postId);
-    if (!existingPost) return res.status(404).json({ message: "No Post with this id" });
+    if (!existingPost) {
+        logToFile("Post not found");
+        return res.status(404).json({ message: "No Post with this id" });
+    }
+    logToFile(`Post found: ${existingPost._id}`);
 
-    // Handle migration case where fields might be missing if not yet migrated
+    logToFile(`Current User ID: ${userId}`);
     const currentList = existingPost[currentField] || [];
-    // Robust check (Guard against nulls)
-    const isRemoving = Array.isArray(currentList) && currentList.some(id => id && id.toString() === userId.toString());
+    logToFile(`Current list type: ${typeof currentList}, Is Array: ${Array.isArray(currentList)}`);
+
+    let isRemoving = false;
+    try {
+        isRemoving = Array.isArray(currentList) && currentList.some(id => {
+            if (!id) return false;
+            return id.toString() === userId.toString();
+        });
+    } catch (err) {
+        logToFile(`Error in isRemoving check: ${err.message}`);
+    }
+    logToFile(`isRemoving calculated: ${isRemoving}`);
 
     let updatedPost;
 
-    if (isRemoving) {
-        // REMOVE
-        updatedPost = await Post.findByIdAndUpdate(
-            postId,
-            { $pull: { [currentField]: userId } },
-            { new: true }
-        );
-    } else {
-        // ADD (And ensure removed from the other field)
-        updatedPost = await Post.findByIdAndUpdate(
-            postId,
-            {
-                $addToSet: { [currentField]: userId },
-                $pull: { [otherField]: userId }
-            },
-            { new: true }
-        );
+    try {
+        if (isRemoving) {
+            // REMOVE
+            updatedPost = await Post.findByIdAndUpdate(
+                postId,
+                { $pull: { [currentField]: userId } },
+                { new: true }
+            );
+        } else {
+            // ADD (And ensure removed from the other field)
+            updatedPost = await Post.findByIdAndUpdate(
+                postId,
+                {
+                    $addToSet: { [currentField]: userId },
+                    $pull: { [otherField]: userId }
+                },
+                { new: true }
+            );
+        }
+    } catch (dbError) {
+        logToFile(`DB Update Error: ${dbError.message}\n${dbError.stack}`);
+        throw dbError;
     }
 
     const action = isRemoving ? "removed" : "added";
+    console.log(`[DEBUG] Action: ${action}, UpdatedPost ID: ${updatedPost?._id}`);
 
     // 🔥 REAL-TIME EMIT (PRIVACY SAFE)
     // Only emit VIBE UP update if it actually changed (Public)
@@ -317,6 +339,7 @@ export const handleFeedback = TryCatch(async (req, res) => {
     const wasVibedUp = existingPost.vibesUp && existingPost.vibesUp.some(id => id && id.toString() === userId.toString());
 
     if (feedbackType === "vibeUp" || (feedbackType === "vibeDown" && action === "added" && wasVibedUp)) {
+        console.log("[DEBUG] Emitting postVibeUpdated");
         getIO().to("post:" + updatedPost._id.toString()).emit("postVibeUpdated", {
             postId: updatedPost._id,
             vibesUp: updatedPost.vibesUp,
