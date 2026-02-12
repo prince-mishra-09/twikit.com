@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { isSameId, includesId } from "./utils/idUtils";
 import { UserData } from "./context/UserContext";
 import { SocketData } from "./context/SocketContext";
 import { NotificationProvider } from "./context/NotificationContext";
@@ -33,18 +34,21 @@ function App() {
   const { loading, isAuth, user, setUser } = UserData();
   const { socket } = SocketData();
 
-  // Maintenance Mode (Temporary)
-  return <Maintenance />;
+  // Maintenance Mode (Toggle this to true to enable)
+  const isMaintenanceMode = true; // Set to true when needed
 
-  /*
+  if (isMaintenanceMode && user?.email !== "admin@prince") {
+    return <BrowserRouter><Maintenance /></BrowserRouter>;
+  }else{
+
+
   useEffect(() => {
     if (socket && user) {
       const handleFollow = (data) => {
         // If I am the follower
-        if (data.followerId === user._id) {
+        if (isSameId(data.followerId, user._id)) {
           setUser((prev) => {
-            // Ensure unique add
-            if (prev.followings?.includes(data.followingId)) return prev;
+            if (includesId(prev.followings, data.followingId)) return prev;
             return {
               ...prev,
               followings: [...(prev.followings || []), data.followingId]
@@ -52,9 +56,9 @@ function App() {
           });
         }
         // If someone followed me
-        else if (data.followingId === user._id) {
+        else if (isSameId(data.followingId, user._id)) {
           setUser((prev) => {
-            if (prev.followers?.includes(data.followerId)) return prev;
+            if (includesId(prev.followers, data.followerId)) return prev;
             return {
               ...prev,
               followers: [...(prev.followers || []), data.followerId]
@@ -65,17 +69,17 @@ function App() {
 
       const handleUnfollow = (data) => {
         // If I unfollowed someone
-        if (data.followerId === user._id) {
+        if (isSameId(data.followerId, user._id)) {
           setUser((prev) => ({
             ...prev,
-            followings: prev.followings?.filter(id => id !== data.followingId) || []
+            followings: (prev.followings || []).filter(id => !isSameId(id, data.followingId))
           }));
         }
         // If someone unfollowed me
-        else if (data.followingId === user._id) {
+        else if (isSameId(data.followingId, user._id)) {
           setUser((prev) => ({
             ...prev,
-            followers: prev.followers?.filter(id => id !== data.followerId) || []
+            followers: (prev.followers || []).filter(id => !isSameId(id, data.followerId))
           }));
         }
       };
@@ -124,8 +128,8 @@ function App() {
           </StoriesProvider></NotificationProvider></BrowserRouter>}
       </ErrorBoundary>
     </>
-  );
-  */
+  );}
+
 }
 
 export default App;

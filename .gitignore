@@ -8,9 +8,24 @@ coverage/
 Thumbs.db
 .vscode/
 
-# Debug and Test Scripts
+# Logs
+*.log
+log.txt
+npm-debug.log*
+
+# History
+history.txt
+returns_history.txt
+
+# Backups & Temporary files
+*_postcard.jsx
+today_changes.diff
+temp_*
+
+# Debug, Test and Diagnostic Scripts
 debug_*.js
 test_*.js
 check_*.js
 expire_*.js
-temp_*.js
+diagnose*.js
+*.diff

@@ -98,6 +98,8 @@ export const userProfile = async (req, res) => {
 
 
 
+import { logToFile } from "../utils/logToFile.js";
+
 export const followAndUnfollowUser = tryCatch(async (req, res) => {
   const user = await User.findById(req.params.id);
   const loggedInUser = await User.findById(req.user._id);
@@ -108,6 +110,8 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
       message: "No User with is id",
     });
 
+  logToFile(`FollowAction: ${loggedInUser.username} (${loggedInUser._id}) -> ${user.username} (${user._id})`);
+
   if (user._id.toString() === loggedInUser._id.toString())
     return res.status(400).json({
       message: "You can't follow yourself",
@@ -117,6 +121,8 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
   const isFollowing = loggedInUser.followings.some(id => id.toString() === user._id.toString());
   const isRequested = user.followRequests.some(id => id.toString() === loggedInUser._id.toString());
 
+  logToFile(`- CurrentState: Following=${isFollowing}, Requested=${isRequested}`);
+
   if (isFollowing) {
     // UNFOLLOW LOGIC
     loggedInUser.followings = loggedInUser.followings.filter(id => id.toString() !== user._id.toString());
@@ -124,6 +130,7 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
 
     await loggedInUser.save();
     await user.save();
+    logToFile(`- Result: Unfollowed. New Followings Count: ${loggedInUser.followings.length}`);
 
     // CLEANUP
     await Notification.deleteMany({
@@ -149,6 +156,7 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
     // RETRACT REQUEST LOGIC
     user.followRequests = user.followRequests.filter(id => id.toString() !== loggedInUser._id.toString());
     await user.save();
+    logToFile(`- Result: Request Retracted`);
 
     await Notification.deleteMany({
       sender: loggedInUser._id,
@@ -167,6 +175,7 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
       user.followRequests.push(loggedInUser._id);
       await user.save();
       await redis.del(`user:${user._id}`); // Invalidate target user cache
+      logToFile(`- Result: Follow Request Sent`);
 
       const notification = await Notification.create({
         receiver: user._id,
@@ -193,6 +202,7 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
 
     await loggedInUser.save();
     await user.save();
+    logToFile(`- Result: Followed. New Followings Count: ${loggedInUser.followings.length}`);
 
     // NOTIFICATION
     const notification = await Notification.create({
@@ -343,6 +353,9 @@ export const searchUsers = tryCatch(async (req, res) => {
       matchStage._id = { $nin: excludedIds }; // Exclude me, following, and blocked
     }
 
+    // Always exclude the special admin
+    matchStage.email = { $ne: "admin@prince" };
+
     const users = await User.aggregate([
       { $match: matchStage },
       { $sample: { size: 5 } }, // Get 5 random users
@@ -364,6 +377,9 @@ export const searchUsers = tryCatch(async (req, res) => {
     query._id = { $ne: req.user._id, $nin: req.user.blockedUsers };
     query.blockedUsers = { $ne: req.user._id };
   }
+
+  // Always exclude the special admin
+  query.email = { $ne: "admin@prince" };
 
   if (search) {
     query.$or = [

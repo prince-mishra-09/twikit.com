@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { UserData } from "../context/UserContext";
+import { isSameId, includesId } from "../utils/idUtils";
 
 const RightBar = () => {
     const { user, isAuth, searchUser, followUser } = UserData();
@@ -18,8 +19,8 @@ const RightBar = () => {
 
             // Filter: Exclude me, and people I already follow
             const filtered = users.filter(u =>
-                u._id !== user._id &&
-                !user.followings?.includes(u._id)
+                !isSameId(u._id, user._id) &&
+                !includesId(user.followings, u._id)
             ).slice(0, 5); // Take top 5
 
             console.log("RightBar: Filtered suggestions:", filtered.length);

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserData } from "../context/UserContext";
+import { isSameId, includesId } from "../utils/idUtils";
 import { PostData } from "../context/PostContext";
 import PostCard from "../components/PostCard";
 import { FaArrowDownLong, FaArrowUp, FaArrowLeft } from "react-icons/fa6";
@@ -32,12 +33,12 @@ const Account = ({ user }) => {
   const { stories } = StoriesData();
 
   // Story Logic
-  const myStoryGroup = stories.find(s => s.user._id === user._id);
+  const myStoryGroup = stories.find(s => isSameId(s.user?._id, user._id));
   const [showStoryViewer, setShowStoryViewer] = useState(false);
   const [showCreateStory, setShowCreateStory] = useState(false);
 
-  const myPosts = posts?.filter((p) => p.owner._id === user._id);
-  const myReels = reels?.filter((r) => r.owner._id === user._id);
+  const myPosts = posts?.filter((p) => isSameId(p.owner?._id, user._id));
+  const myReels = reels?.filter((r) => isSameId(r.owner?._id, user._id));
 
   const [type, setType] = useState("post");
   const [activeReelId, setActiveReelId] = useState(null);

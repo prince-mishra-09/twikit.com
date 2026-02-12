@@ -1,6 +1,7 @@
 import axios from "axios";
 import { createContext, useContext, useEffect, useState, useMemo, useCallback } from "react";
 import toast, { Toaster } from "react-hot-toast";
+import { isSameId, includesId } from "../utils/idUtils";
 
 
 const UserContext = createContext();
@@ -82,12 +83,13 @@ export const UserContextProvider = ({ children }) => {
     // Optimistic Update
     setUser((prev) => {
       if (!prev) return prev;
-      const isFollowing = prev.followings.includes(id);
+      const isFollowing = includesId(prev.followings, id);
+
       return {
         ...prev,
         followings: isFollowing
-          ? prev.followings.filter((f) => f !== id)
-          : [...prev.followings, id],
+          ? prev.followings.filter((f) => !isSameId(f, id))
+          : [...(prev.followings || []), id],
       };
     });
 
@@ -295,7 +297,7 @@ export const UserContextProvider = ({ children }) => {
 
   const searchUser = useCallback(async (query) => {
     try {
-      const { data } = await axios.get(`/api/user/search?search=${query}`);
+      const { data } = await axios.get(`/api/user/all?search=${query}`);
       return data.users;
     } catch (error) {
       // toast.error(getErrorMessage(error)); // Don't toast for search/suggestions

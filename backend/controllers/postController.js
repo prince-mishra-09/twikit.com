@@ -8,6 +8,8 @@ import { getIO } from "../socket/socketIO.js";
 import { Notification } from "../models/Notification.js";
 import { sendPushNotification } from "./notificationController.js";
 import redis from "../utils/redis.js";
+import { logToFile } from "../utils/logToFile.js";
+
 
 // ==============================================================================
 // 1. CREATE POST (Robust Background Handling)
@@ -152,23 +154,11 @@ export const getAllPosts = TryCatch(async (req, res) => {
             profilePic: 1,
             isPrivate: 1
         },
-        vibesUp: {
-            $filter: {
-                input: "$vibesUp",
-                as: "r",
-                cond: { $not: { $in: ["$$r", hiddenUserObjectIds] } }
-            }
-        },
+        vibesUp: 1,
         vibesDown: {
             $cond: {
                 if: { $eq: ["$owner._id", userObjectId] },
-                then: {
-                    $filter: {
-                        input: "$vibesDown",
-                        as: "r",
-                        cond: { $not: { $in: ["$$r", hiddenUserObjectIds] } }
-                    }
-                },
+                then: "$vibesDown",
                 else: []
             }
         }
@@ -267,55 +257,50 @@ export const getAllPosts = TryCatch(async (req, res) => {
 
 export const handleFeedback = TryCatch(async (req, res) => {
     const { feedbackType } = req.body; // "vibeUp" or "vibeDown"
+    const userId = req.user._id;
+    const postId = req.params.id;
+
+    logToFile(`[START] Feedback: ${feedbackType}, Post: ${postId}, User: ${userId}`);
+
+    // 1. Validate Post ID
+    if (!mongoose.Types.ObjectId.isValid(postId)) {
+        logToFile(`Invalid Post ID: ${postId}`);
+        return res.status(400).json({ message: "Invalid Post ID" });
+    }
 
     if (!["vibeUp", "vibeDown"].includes(feedbackType)) {
         return res.status(400).json({ message: "Invalid feedback type. Use 'vibeUp' or 'vibeDown'" });
     }
 
-    const userId = req.user._id;
-    const postId = req.params.id;
-
     // Mutually exclusive fields
     const currentField = feedbackType === "vibeUp" ? "vibesUp" : "vibesDown";
     const otherField = feedbackType === "vibeUp" ? "vibesDown" : "vibesUp";
 
-    logToFile(`Handling feedback: ${feedbackType} for post ${postId} by user ${userId}`);
-
-    // 1. Check if feedback already exists in CURRENT field
+    // 2. Fetch Post
     const existingPost = await Post.findById(postId);
     if (!existingPost) {
-        logToFile("Post not found");
+        logToFile(`Post not found: ${postId}`);
         return res.status(404).json({ message: "No Post with this id" });
     }
-    logToFile(`Post found: ${existingPost._id}`);
 
-    logToFile(`Current User ID: ${userId}`);
     const currentList = existingPost[currentField] || [];
-    logToFile(`Current list type: ${typeof currentList}, Is Array: ${Array.isArray(currentList)}`);
-
     let isRemoving = false;
     try {
-        isRemoving = Array.isArray(currentList) && currentList.some(id => {
-            if (!id) return false;
-            return id.toString() === userId.toString();
-        });
+        isRemoving = Array.isArray(currentList) && currentList.some(id => id && id.toString() === userId.toString());
     } catch (err) {
         logToFile(`Error in isRemoving check: ${err.message}`);
     }
-    logToFile(`isRemoving calculated: ${isRemoving}`);
+    logToFile(`isRemoving: ${isRemoving}`);
 
     let updatedPost;
-
     try {
         if (isRemoving) {
-            // REMOVE
             updatedPost = await Post.findByIdAndUpdate(
                 postId,
                 { $pull: { [currentField]: userId } },
                 { new: true }
             );
         } else {
-            // ADD (And ensure removed from the other field)
             updatedPost = await Post.findByIdAndUpdate(
                 postId,
                 {
@@ -325,41 +310,62 @@ export const handleFeedback = TryCatch(async (req, res) => {
                 { new: true }
             );
         }
+
+        if (!updatedPost) {
+            logToFile("Update failed: Post was likely deleted during operation");
+            return res.status(404).json({ message: "Post no longer exists" });
+        }
+        logToFile(`DB Update Success: ${updatedPost._id}`);
     } catch (dbError) {
-        logToFile(`DB Update Error: ${dbError.message}\n${dbError.stack}`);
-        throw dbError;
+        logToFile(`DB Update Error: ${dbError.message}`);
+        throw dbError; // Caught by tryCatch middleware
     }
 
     const action = isRemoving ? "removed" : "added";
-    console.log(`[DEBUG] Action: ${action}, UpdatedPost ID: ${updatedPost?._id}`);
 
-    // 🔥 REAL-TIME EMIT (PRIVACY SAFE)
-    // Only emit VIBE UP update if it actually changed (Public)
-    // Check previous state robustly
-    const wasVibedUp = existingPost.vibesUp && existingPost.vibesUp.some(id => id && id.toString() === userId.toString());
+    // 🔥 REAL-TIME EMIT (SAFE)
+    try {
+        const io = getIO();
 
-    if (feedbackType === "vibeUp" || (feedbackType === "vibeDown" && action === "added" && wasVibedUp)) {
-        console.log("[DEBUG] Emitting postVibeUpdated");
-        getIO().to("post:" + updatedPost._id.toString()).emit("postVibeUpdated", {
+        // Public update (Vibe Up changes)
+        // We emit if vibeUp was added/removed, OR if vibeDown was added while vibeUp was present (removal of vibeUp)
+        const wasVibedUp = existingPost.vibesUp && existingPost.vibesUp.some(id => id && id.toString() === userId.toString());
+
+        if (feedbackType === "vibeUp" || (feedbackType === "vibeDown" && action === "added" && wasVibedUp)) {
+            io.to("post:" + updatedPost._id.toString()).emit("postVibeUpdated", {
+                postId: updatedPost._id,
+                vibesUp: updatedPost.vibesUp,
+                vibesUpCount: updatedPost.vibesUp.length,
+                action: feedbackType === "vibeUp" ? action : "removed",
+            });
+        }
+
+        // Private update (Vibe Down info for owner)
+        io.to("user:" + updatedPost.owner.toString()).emit("postVibeDownUpdated", {
             postId: updatedPost._id,
-            vibesUp: updatedPost.vibesUp,
-            vibesUpCount: updatedPost.vibesUp.length,
-            action: feedbackType === "vibeUp" ? action : "removed",
+            vibesDown: updatedPost.vibesDown,
+            message: `${feedbackType} ${action}`,
         });
+        logToFile("Emits successful");
+    } catch (emitError) {
+        logToFile(`Emit warning: ${emitError.message}`);
+        // We don't throw here to ensure user gets a response even if socket fails
     }
 
-    // Emit VIBE DOWN update ONLY to owner's private room
-    getIO().to("user:" + updatedPost.owner.toString()).emit("postVibeDownUpdated", {
-        postId: updatedPost._id,
-        vibesDown: updatedPost.vibesDown,
-        message: isRemoving ? `${feedbackType} removed` : `${feedbackType} added`,
+    // 3. Send Response IMMEDIATELY
+    res.json({
+        message: `${feedbackType} ${action}`,
+        action,
+        post: updatedPost, // Return the full post object as 'post'
+        vibesUpCount: updatedPost.vibesUp.length,
+        isVibedUp: updatedPost.vibesUp.some(id => id && id.toString() === userId.toString()),
+        isVibedDown: updatedPost.vibesDown.some(id => id && id.toString() === userId.toString())
     });
 
-    // NOTIFICATION LOGIC (Asynchronous / Non-blocking)
+    // 4. Background Notification Logic
     (async () => {
         try {
             if (isRemoving) {
-                // Remove existing notification
                 await Notification.deleteMany({
                     sender: userId,
                     receiver: updatedPost.owner,
@@ -376,12 +382,12 @@ export const handleFeedback = TryCatch(async (req, res) => {
 
                 await notification.populate("sender", "name profilePic");
                 await notification.populate("postId", "post");
-                getIO().to("user:" + updatedPost.owner.toString()).emit("notification:new", notification);
+
+                try {
+                    getIO().to("user:" + updatedPost.owner.toString()).emit("notification:new", notification);
+                } catch (e) { }
 
                 if (feedbackType === "vibeUp") {
-                    // updatedPost.owner is an ID (line 48 population is separate in other func, here strict findById update).
-                    // We need to fetch owner name for Title if we don't have it.
-                    // Actually, updatedPost.owner is ObjectId.
                     const ownerUser = await User.findById(updatedPost.owner).select("name");
                     const ownerName = ownerUser ? ownerUser.name : "Twikit";
 
@@ -397,6 +403,7 @@ export const handleFeedback = TryCatch(async (req, res) => {
         }
     })();
 });
+
 
 export const addPostView = TryCatch(async (req, res) => {
     const postId = req.params.id;

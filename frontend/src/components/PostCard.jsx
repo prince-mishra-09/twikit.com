@@ -15,6 +15,7 @@ import { SocketData } from "../context/SocketContext";
 import StoryAvatar from "./StoryAvatar";
 import { Suspense } from "react";
 import { getOptimizedImg } from "../utils/cloudinary";
+import { isSameId, includesId } from "../utils/idUtils";
 
 const CommentItem = React.lazy(() => import("./CommentItem"));
 const ShareModal = React.lazy(() => import("./ShareModal"));
@@ -61,11 +62,11 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
   const { sendFeedback, addComment, deletePost, deleteComment } = PostData();
   const navigate = useNavigate();
 
-  const [isVibeUp, setIsVibeUp] = useState(value.vibesUp?.includes(user?._id) || false);
+  const [isVibeUp, setIsVibeUp] = useState(() => includesId(value.vibesUp, user?._id));
   const [vibeUpCount, setVibeUpCount] = useState(value.vibesUp?.length || 0);
-  const [isVibeDown, setIsVibeDown] = useState(value.vibesDown?.includes(user?._id) || false);
+  const [isVibeDown, setIsVibeDown] = useState(() => includesId(value.vibesDown, user?._id));
   const [vibeDownCount, setVibeDownCount] = useState(value.vibesDown?.length || 0);
-  const isOwner = user && value.owner?._id === user._id;
+  const isOwner = isSameId(value.owner?._id, user?._id);
   const [show, setShow] = useState(false);
   const [showImage, setShowImage] = useState(false);
   const [comment, setComment] = useState("");
@@ -90,27 +91,18 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
   const longPressTimer = useRef(null);
   const captionLimit = 40; // Characters to show before truncating
   // Initialize state from props/context directly to avoid flicker
-  const [isFollowed, setIsFollowed] = useState(() => {
-    // If not logged in, default to false
-    if (!user || !value.owner) return false;
-    return user.followings?.includes(value.owner._id);
-  });
+  const [isFollowed, setIsFollowed] = useState(() => includesId(user?.followings, value.owner?._id));
 
-  const [isSaved, setIsSaved] = useState(() => {
-    if (!user) return false;
-    return user.savedPosts?.includes(value._id);
-  });
+  const [isSaved, setIsSaved] = useState(() => includesId(user?.savedPosts, value._id));
 
   const [shareModal, setShareModal] = useState(false);
   const [vibeModal, setVibeModal] = useState(false);
 
   // Keep state in sync if props change (e.g. user updates via context)
   useEffect(() => {
-    if (user && value.owner) {
-      setIsFollowed(user.followings?.includes(value.owner._id));
-      setIsSaved(user.savedPosts?.includes(value._id));
-    }
-  }, [user, value.owner._id, value._id]);
+    setIsFollowed(includesId(user?.followings, value.owner?._id));
+    setIsSaved(includesId(user?.savedPosts, value._id));
+  }, [user, value.owner?._id, value._id]);
 
   // New Comment State
   const [comments, setComments] = useState([]);
@@ -140,9 +132,9 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
 
   // Sync state with props (Important for Feed Refresh / Socket Updates)
   useEffect(() => {
-    setIsVibeUp(value.vibesUp?.includes(user?._id) || false);
+    setIsVibeUp(includesId(value.vibesUp, user?._id));
     setVibeUpCount(value.vibesUp?.length || 0);
-    setIsVibeDown(value.vibesDown?.includes(user?._id) || false);
+    setIsVibeDown(includesId(value.vibesDown, user?._id));
     setVibeDownCount(value.vibesDown?.length || 0);
   }, [value, user?._id]);
 
@@ -317,6 +309,18 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
       document.body.style.overflow = "unset";
     };
   }, [showImage, show]);
+
+  const { socket } = SocketData();
+
+  // JOIN ROOM FOR REAL-TIME UPDATES
+  useEffect(() => {
+    if (socket && value?._id) {
+      socket.emit("join-post", value._id);
+      return () => {
+        socket.emit("leave-post", value._id);
+      };
+    }
+  }, [socket, value?._id]);
 
   const commentsRef = useRef(null);
   // Auto-scroll to top of comments when drawer opens or new comment added

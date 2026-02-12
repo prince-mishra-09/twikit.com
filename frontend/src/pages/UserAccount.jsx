@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { isSameId, includesId } from "../utils/idUtils";
 import toast from "react-hot-toast";
 import { PostData } from "../context/PostContext";
 import PostCard from "../components/PostCard";
@@ -143,19 +144,9 @@ const UserAccount = ({ user: loggedInUser }) => {
 
   // Initialize state from props/context directly to avoid flicker
   // Use params.id immediately instead of waiting for user object
-  const [followed, setFollowed] = useState(() => {
-    if (!loggedInUser) return false;
-    // Check against params.id since user might be null initially
-    return loggedInUser.followings?.includes(params.id);
-  });
+  const [followed, setFollowed] = useState(() => includesId(loggedInUser?.followings, params.id));
 
-  const [requested, setRequested] = useState(() => {
-    // Note: requests usually need the user object, but we can't do much about that
-    // without the user object or a separate requests list in loggedInUser.
-    // However, if we visited this page before, user might be in cache.
-    if (user) return user.followRequests?.includes(loggedInUser?._id);
-    return false;
-  });
+  const [requested, setRequested] = useState(() => includesId(user?.followRequests, loggedInUser?._id));
 
   // Restore useEffect to fetch posts when user or follow status changes
   // Restore useEffect to fetch posts when user or follow status changes
@@ -167,22 +158,10 @@ const UserAccount = ({ user: loggedInUser }) => {
   useEffect(() => {
     if (!loggedInUser) return;
     const targetId = user?._id || params.id;
-
-    // Robust comparison
-    const isFollowing = loggedInUser.followings?.some(id =>
-      (typeof id === 'object' ? id._id : id).toString() === targetId.toString()
-    );
-
-    console.log("[UserAccount] Syncing follow state:", {
-      targetId,
-      followings: loggedInUser.followings,
-      isFollowing
-    });
-
-    setFollowed(isFollowing);
+    setFollowed(includesId(loggedInUser.followings, targetId));
 
     if (user) {
-      setRequested(user.followRequests?.includes(loggedInUser._id));
+      setRequested(includesId(user.followRequests, loggedInUser._id));
     }
   }, [loggedInUser, user, params.id]);
 
