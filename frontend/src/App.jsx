@@ -37,8 +37,8 @@ function App() {
   // Maintenance Mode (Toggle this to true to enable)
   const isMaintenanceMode = true; // Set to true when needed
 
-  // Allow access if user is admin OR if currently on login page
-  const isBypass = user?.email === "admin@prince" || window.location.pathname === "/login";
+  // Only allow bypass if user is already logged in as admin
+  const isBypass = user?.email === "admin@prince";
 
   if (isMaintenanceMode && !isBypass) {
     return <BrowserRouter><Maintenance /></BrowserRouter>;
