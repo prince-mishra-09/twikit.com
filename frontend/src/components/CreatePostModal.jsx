@@ -134,15 +134,15 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                     }}
                 />
             ) : (
-                <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-[var(--bg-primary)] p-4">
-                    <div className="w-full max-w-[630px] bg-[#111827] border border-white/10 rounded-2xl shadow-2xl overflow-hidden relative flex flex-col max-h-[90vh]">
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-[var(--bg-primary)]/80 backdrop-blur-md p-4">
+                    <div className="w-full max-w-[630px] bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden relative flex flex-col max-h-[90vh]">
 
                         {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-white/10 shrink-0">
-                            <h2 className="text-white font-semibold text-lg">Create New</h2>
+                        <div className="flex items-center justify-between p-4 border-b border-[var(--border)] shrink-0">
+                            <h2 className="text-[var(--text-primary)] font-semibold text-lg">Create New</h2>
                             <button
                                 onClick={handleClose}
-                                className="text-gray-400 hover:text-white transition p-1 hover:bg-white/10 rounded-full"
+                                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition p-1 hover:bg-[var(--bg-secondary)] rounded-full"
                             >
                                 <AiOutlineClose size={24} />
                             </button>
@@ -152,22 +152,22 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
 
                             {/* Type Switcher */}
-                            <div className="flex bg-[#0B0F14] rounded-lg p-1 mb-4 border border-white/5 shrink-0">
+                            <div className="flex bg-[var(--bg-primary)] rounded-lg p-1 mb-4 border border-[var(--border)] shrink-0">
                                 <button
                                     onClick={() => { setType("post"); setFile(""); setFilePrev(""); }}
-                                    className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${type === "post" ? "bg-[#1f2937] text-white shadow" : "text-gray-400 hover:text-gray-200"}`}
+                                    className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${type === "post" ? "bg-[var(--accent)] text-[var(--text-on-accent)] shadow" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
                                 >
                                     Post
                                 </button>
                                 <button
                                     onClick={() => { setType("reel"); setFile(""); setFilePrev(""); }}
-                                    className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${type === "reel" ? "bg-[#1f2937] text-white shadow" : "text-gray-400 hover:text-gray-200"}`}
+                                    className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${type === "reel" ? "bg-[var(--accent)] text-[var(--text-on-accent)] shadow" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
                                 >
                                     Reel
                                 </button>
                                 <button
                                     onClick={() => { setType("story"); setShowStoryEditor(true); setFile(""); setFilePrev(""); }}
-                                    className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${type === "story" ? "bg-[#1f2937] text-white shadow" : "text-gray-400 hover:text-gray-200"}`}
+                                    className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${type === "story" ? "bg-[var(--accent)] text-[var(--text-on-accent)] shadow" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
                                 >
                                     Story
                                 </button>
@@ -177,7 +177,7 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                 {/* File Input Area */}
                                 <div
                                     onClick={() => { setBlinkFile(false); fileInputRef.current.click(); }}
-                                    className={`cursor-pointer rounded-xl border-2 border-dashed ${blinkFile ? "border-red-500 animate-pulse bg-red-500/5 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "border-white/10 bg-[#0B0F14] hover:border-indigo-500/50 hover:bg-[#0B0F14]/50"} text-gray-400 flex items-center justify-center min-h-[250px] transition-all group overflow-hidden duration-300`}
+                                    className={`cursor-pointer rounded-xl border-2 border-dashed ${blinkFile ? "border-red-500 animate-pulse bg-red-500/5 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "border-[var(--border)] bg-[var(--bg-primary)] hover:border-[var(--accent)]/50 hover:bg-[var(--bg-primary)]/50"} text-[var(--text-secondary)] flex items-center justify-center min-h-[250px] transition-all group overflow-hidden duration-300`}
                                 >
                                     {filePrev ? (
                                         <div className="relative w-full h-[300px] bg-black rounded-lg overflow-hidden flex items-center justify-center">
@@ -201,10 +201,10 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                         </div>
                                     ) : (
                                         <div className="flex flex-col items-center gap-2 group-hover:scale-105 transition">
-                                            <span className="text-4xl">
+                                            <span className="text-4xl text-[var(--text-primary)] opacity-80">
                                                 {type === "post" ? "📷" : type === "reel" ? "🎥" : "⏱️"}
                                             </span>
-                                            <span className="text-sm font-medium text-gray-400">
+                                            <span className="text-sm font-medium text-[var(--text-secondary)]">
                                                 Click to upload {type}
                                             </span>
                                         </div>
@@ -226,7 +226,7 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                     placeholder={`Write a caption for your ${type}...`}
                                     value={caption}
                                     onChange={(e) => { setBlinkCaption(false); setCaption(e.target.value); }}
-                                    className={`w-full px-4 py-3 rounded-xl bg-[#0B0F14] border ${blinkCaption ? "border-red-500 animate-pulse bg-red-500/5 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "border-white/10 focus:border-indigo-500/50"} text-white placeholder-gray-500 focus:outline-none transition-all resize-none custom-scrollbar duration-300`}
+                                    className={`w-full px-4 py-3 rounded-xl bg-[var(--bg-primary)] border ${blinkCaption ? "border-red-500 animate-pulse bg-red-500/5 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "border-[var(--border)] focus:border-[var(--accent)]/50"} text-[var(--text-primary)] placeholder-[var(--text-secondary)]/50 focus:outline-none transition-all resize-none custom-scrollbar duration-300`}
                                 />
 
                                 {/* Error Message */}
@@ -239,7 +239,7 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                 {/* Privacy Indicator */}
                                 <div className="flex items-center gap-1.5 px-1">
                                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/80"></div>
-                                    <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider">
+                                    <p className="text-[11px] text-[var(--text-secondary)] font-medium uppercase tracking-wider">
                                         Shared with: Public
                                     </p>
                                 </div>
@@ -247,7 +247,7 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                 {/* Submit */}
                                 <button
                                     disabled={addLoading}
-                                    className="w-full py-3 rounded-xl text-white font-medium bg-indigo-600/90 hover:bg-indigo-600 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-indigo-600/10"
+                                    className="w-full py-3 rounded-xl text-[var(--text-on-accent)] font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-[var(--accent)]/10"
                                 >
                                     Share
                                 </button>
@@ -258,9 +258,9 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                     {/* Discard Confirmation Modal */}
                     {showConfirmDiscard && (
                         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-                            <div className="w-full max-w-[280px] bg-[#1F2937] rounded-3xl p-6 shadow-2xl border border-white/10 text-center animate-in zoom-in-95 duration-200">
-                                <h3 className="text-white font-bold text-lg mb-2">Discard draft?</h3>
-                                <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+                            <div className="w-full max-w-[280px] bg-[var(--card-bg)] rounded-3xl p-6 shadow-2xl border border-[var(--border)] text-center animate-in zoom-in-95 duration-200">
+                                <h3 className="text-[var(--text-primary)] font-bold text-lg mb-2">Discard draft?</h3>
+                                <p className="text-[var(--text-secondary)] text-sm mb-6 leading-relaxed">
                                     Your reflection will be lost.
                                 </p>
                                 <div className="flex flex-col gap-2">
@@ -272,7 +272,7 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                     </button>
                                     <button
                                         onClick={() => setShowConfirmDiscard(false)}
-                                        className="w-full py-3 rounded-xl text-white font-medium hover:bg-white/5 transition"
+                                        className="w-full py-3 rounded-xl text-[var(--text-primary)] font-medium hover:bg-[var(--bg-secondary)] transition"
                                     >
                                         Keep writing
                                     </button>

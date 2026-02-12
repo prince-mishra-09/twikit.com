@@ -18,18 +18,18 @@
 .aurax-modal-content {
     width: 100%;
     max-width: 600px;
-    background: rgba(255, 255, 255, 0.95);
-    /* Light Theme */
+    background: var(--card-bg);
+    /* Dynamic Theme */
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.8);
+    border: 1px solid var(--border);
     border-radius: 20px;
     padding: 30px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     /* Soft shadow */
     max-height: 90vh;
     overflow-y: auto;
-    color: #0f1419;
+    color: var(--text-primary);
 }
 
 /* Header */
@@ -43,16 +43,16 @@
 .modal-title {
     font-size: 1.5rem;
     font-weight: 800;
-    color: #0f1419;
+    color: var(--text-primary);
     margin: 0;
     text-shadow: none;
     font-family: 'Inter', sans-serif;
 }
 
 .modal-close-btn {
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--bg-secondary);
     border: none;
-    color: #536471;
+    color: var(--text-secondary);
     border-radius: 50%;
     width: 36px;
     height: 36px;
@@ -65,8 +65,8 @@
 }
 
 .modal-close-btn:hover {
-    background: rgba(0, 0, 0, 0.1);
-    color: #0f1419;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     transform: rotate(90deg);
 }
 
@@ -75,9 +75,10 @@
     display: flex;
     gap: 10px;
     margin-bottom: 25px;
-    background: #f7f9f9;
+    background: var(--bg-primary);
     border-radius: 12px;
     padding: 5px;
+    border: 1px solid var(--border);
 }
 
 .tab-btn {
@@ -86,7 +87,7 @@
     background: transparent;
     border: none;
     border-radius: 8px;
-    color: #536471;
+    color: var(--text-secondary);
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
@@ -94,14 +95,15 @@
 }
 
 .tab-btn:hover {
-    color: #0f1419;
-    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-primary);
+    background: var(--bg-secondary);
 }
 
 .tab-btn.active {
-    background: #fff;
-    color: #0f1419;
+    background: var(--card-bg);
+    color: var(--accent);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border);
 }
 
 /* Modal Body */
@@ -113,10 +115,10 @@
 .modal-caption-input {
     width: 100%;
     padding: 15px;
-    background: #f0f2f5;
+    background: var(--bg-primary);
     border: 2px solid transparent;
     border-radius: 12px;
-    color: #0f1419;
+    color: var(--text-primary);
     font-size: 1rem;
     font-family: inherit;
     resize: vertical;
@@ -127,18 +129,18 @@
 }
 
 .modal-caption-input:focus {
-    background: #fff;
-    border-color: #1d9bf0;
-    box-shadow: 0 0 0 4px rgba(29, 155, 240, 0.1);
+    background: var(--bg-secondary);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-hover);
 }
 
 .modal-caption-input::placeholder {
-    color: #536471;
+    color: var(--text-secondary);
 }
 
 .char-counter {
     text-align: right;
-    color: #536471;
+    color: var(--text-secondary);
     font-size: 0.85rem;
     margin-bottom: 20px;
 }
@@ -154,29 +156,29 @@
     align-items: center;
     justify-content: center;
     padding: 40px 20px;
-    background: #f7f9f9;
-    border: 2px dashed #cfd9de;
+    background: var(--bg-primary);
+    border: 2px dashed var(--border);
     border-radius: 16px;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: #1d9bf0;
+    color: var(--accent);
 }
 
 .photo-upload-btn:hover {
-    background: #f0f2f5;
-    border-color: #1d9bf0;
+    background: var(--bg-secondary);
+    border-color: var(--accent);
 }
 
 .upload-plus-icon {
     font-size: 2.5rem;
     margin-bottom: 10px;
     filter: none;
-    color: #1d9bf0;
+    color: var(--accent);
 }
 
 .upload-hint {
     font-size: 0.9rem;
-    color: #536471;
+    color: var(--text-secondary);
     margin: 5px 0 0 0;
 }
 
@@ -185,7 +187,7 @@
     position: relative;
     border-radius: 16px;
     overflow: hidden;
-    border: 1px solid #cfd9de;
+    border: 1px solid var(--border);
     background: #000;
 }
 
@@ -224,11 +226,11 @@
 .modal-submit-btn {
     width: 100%;
     padding: 16px;
-    background: #0f1419;
-    /* Solid Black */
+    background: var(--accent);
+    /* Dynamic Accent */
     border: none;
     border-radius: 30px;
-    color: #fff;
+    color: var(--text-on-accent);
     font-size: 1.1rem;
     font-weight: 700;
     cursor: pointer;
@@ -243,13 +245,14 @@
 .modal-submit-btn:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    background: #272c30;
+    background: var(--accent-hover);
 }
 
 .modal-submit-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    background: #cfd9de;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
 }
 
 /* Loading Spinner */
@@ -295,8 +298,8 @@
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch;
         box-shadow: none !important;
-        background: #fff;
-        /* Solid white for full screen mobile */
+        background: var(--bg-primary);
+        /* Theme bg for full screen mobile */
     }
 
     .modal-header {

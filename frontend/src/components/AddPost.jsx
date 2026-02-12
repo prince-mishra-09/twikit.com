@@ -40,7 +40,7 @@ const AddPost = ({ type }) => {
   };
 
   return (
-    <div className="w-full bg-[#111827]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-lg p-4">
+    <div className="w-full bg-[var(--card-bg)] backdrop-blur-xl border border-[var(--border)] rounded-2xl shadow-lg p-4">
       <form
         onSubmit={submitHandler}
         className="flex flex-col gap-4"
@@ -51,13 +51,13 @@ const AddPost = ({ type }) => {
           placeholder="What's on your mind?"
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
-          className="w-full px-4 py-3 rounded-xl bg-[#0B0F14] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400 transition"
+          className="w-full px-4 py-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)]/50 focus:outline-none focus:border-[var(--accent)] transition"
         />
 
         {/* Media Upload */}
         <div
           onClick={() => fileInputRef.current.click()}
-          className="cursor-pointer rounded-xl border border-dashed border-white/20 bg-[#0B0F14] text-gray-400 flex items-center justify-center min-h-[90px] hover:border-indigo-400/50 transition"
+          className="cursor-pointer rounded-xl border border-dashed border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-secondary)] flex items-center justify-center min-h-[90px] hover:border-[var(--accent)]/50 transition"
         >
 
           {filePrev ? (
@@ -78,7 +78,7 @@ const AddPost = ({ type }) => {
               )}
             </>
           ) : (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-[var(--text-secondary)]">
               Add photo
             </span>
 
@@ -97,7 +97,7 @@ const AddPost = ({ type }) => {
         {/* Privacy Indicator */}
         <div className="flex items-center gap-1.5 px-1">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/80"></div>
-          <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider">
+          <p className="text-[11px] text-[var(--text-secondary)] font-medium uppercase tracking-wider">
             Shared with: Public
           </p>
         </div>
@@ -105,7 +105,7 @@ const AddPost = ({ type }) => {
         {/* Submit Button */}
         <button
           disabled={addLoading}
-          className="w-full py-3 rounded-xl text-white font-medium bg-indigo-600/90 hover:bg-indigo-600 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full py-3 rounded-xl text-[var(--text-on-accent)] font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {addLoading ? <LoadingAnimation /> : "Share"}
         </button>

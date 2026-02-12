@@ -154,12 +154,12 @@ const MessageContainer = ({ selectedChat, setChats }) => {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col bg-[var(--bg-primary)] md:static md:h-full"
+      className="fixed inset-0 z-[100] flex flex-col bg-[var(--bg-primary)] md:relative md:h-full"
       onClick={() => setActiveMessageId(null)} // Close menu on click outside
     >
 
       {/* HEADER - Fixed at top */}
-      <div className="absolute w-full flex-none flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] bg-[var(--card-bg)]/100 backdrop-blur-md z-20">
+      <div className="absolute top-0 left-0 w-full flex-none flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] bg-[var(--card-bg)]/100 backdrop-blur-md z-30">
         <button
           onClick={() => setSelectedChat(null)}
           className="md:hidden mr-1 text-[var(--text-primary)] p-2 rounded-full hover:bg-[var(--text-primary)]/10"
@@ -198,7 +198,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
         <>
           <div
             ref={messageContainerRef}
-            className="flex-1 overflow-y-auto px-4 py-3 space-y-2 bg-[var(--bg-primary)]"
+            className="flex-1 overflow-y-auto px-4 pt-20 pb-3 space-y-2 bg-[var(--bg-primary)]"
           >
             {messages &&
               messages.map((e, i) => {
