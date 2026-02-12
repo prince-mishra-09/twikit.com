@@ -37,10 +37,12 @@ function App() {
   // Maintenance Mode (Toggle this to true to enable)
   const isMaintenanceMode = true; // Set to true when needed
 
-  if (isMaintenanceMode && user?.email !== "admin@prince") {
-    return <BrowserRouter><Maintenance /></BrowserRouter>;
-  }else{
+  // Allow access if user is admin OR if currently on login page
+  const isBypass = user?.email === "admin@prince" || window.location.pathname === "/login";
 
+  if (isMaintenanceMode && !isBypass) {
+    return <BrowserRouter><Maintenance /></BrowserRouter>;
+  }
 
   useEffect(() => {
     if (socket && user) {
@@ -128,8 +130,7 @@ function App() {
           </StoriesProvider></NotificationProvider></BrowserRouter>}
       </ErrorBoundary>
     </>
-  );}
-
+  );
 }
 
 export default App;
