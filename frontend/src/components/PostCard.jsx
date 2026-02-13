@@ -124,7 +124,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
       const { data } = await axios.get("/api/comment/" + value._id);
       setComments(data.comments);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     } finally {
       setLoadingComments(false);
     }
@@ -378,7 +378,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
       try {
         axios.post(`/api/post/view/${value._id}`);
       } catch (error) {
-        console.error("Failed to track view", error);
+        // console.error("Failed to track view", error);
       }
     }
   };
@@ -392,7 +392,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
       if (isActive) {
         const playPromise = videoRef.current.play();
         if (playPromise !== undefined) {
-          playPromise.then(() => setIsPlaying(true)).catch((e) => console.log("play blocked", e));
+          playPromise.then(() => setIsPlaying(true)).catch((e) => { }); // console.log("play blocked", e));
         }
       } else {
         videoRef.current.pause();
@@ -760,7 +760,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
 
               {/* DELETE (if owner) */}
               {user && value.owner._id === user._id && (
-                <button onClick={deleteHandler} className="text-white text-2xl drop-shadow-lg opacity-80 hover:opacity-100">
+                <button onClick={() => setShowPostDeleteConfirm(true)} className="text-white text-2xl drop-shadow-lg opacity-80 hover:opacity-100">
                   <MdDelete />
                 </button>
               )}
@@ -1043,9 +1043,9 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
               <div className="flex items-center gap-2">
                 <button
                   onClick={followHandler}
-                  className={`text-xs font-bold px-4 py-1.5 rounded-full backdrop-blur-md transition-all shadow-lg ${isFollowed
-                    ? "bg-white/20 text-black border border-white/20"
-                    : "bg-[var(--accent)] text-[var(--text-on-accent)] hover:opacity-90"
+                  className={`text-xs font-bold px-4 py-1.5 rounded-full backdrop-blur-md transition-all duration-300 shadow-lg ${isFollowed
+                    ? "bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/40 hover:bg-[var(--accent)]/20 hover:shadow-[0_0_15px_rgba(0,255,209,0.2)]"
+                    : "bg-[var(--accent)] text-[var(--text-on-accent)] hover:opacity-90 shadow-[0_0_15px_rgba(0,255,209,0.3)]"
                     }`}
                 >
                   {isFollowed ? "Following" : "Follow"}

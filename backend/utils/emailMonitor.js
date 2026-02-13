@@ -56,7 +56,7 @@ class EmailMonitor {
     }
 
     async sendAlert(service, currentCount) {
-        console.log(`⚠️ EMAIL LIMIT ALERT: Usage at ${currentCount}/${DAILY_LIMIT}`);
+        // console.log(`⚠️ EMAIL LIMIT ALERT: Usage at ${currentCount}/${DAILY_LIMIT}`);
         try {
             await service.sendEmail({
                 to: process.env.ADMIN_EMAIL || process.env.SMTP_USER,

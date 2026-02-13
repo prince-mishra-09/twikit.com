@@ -14,7 +14,7 @@ class MonitoringService {
     // Start monitoring
     async start() {
         if (this.isRunning) {
-            console.log('⚠️ Monitoring already running');
+            // console.log('⚠️ Monitoring already running');
             return;
         }
 
@@ -24,9 +24,9 @@ class MonitoringService {
             console.warn('⚠️ Email service not ready, but monitoring will continue');
         }
 
-        console.log('🚀 Starting Twikit Monitoring System...');
-        console.log(`📧 Alerts will be sent to: ${process.env.ADMIN_EMAIL}`);
-        console.log(`⏰ Cooldown period: ${process.env.ALERT_COOLDOWN_MINUTES} minutes`);
+        // console.log('🚀 Starting Twikit Monitoring System...');
+        // console.log(`📧 Alerts will be sent to: ${process.env.ADMIN_EMAIL}`);
+        // console.log(`⏰ Cooldown period: ${process.env.ALERT_COOLDOWN_MINUTES} minutes`);
 
         this.isRunning = true;
 
@@ -38,7 +38,7 @@ class MonitoringService {
             this.runCheck();
         }, 60 * 1000); // 60 seconds
 
-        console.log('✅ Monitoring system started (checking every 60 seconds)');
+        // console.log('✅ Monitoring system started (checking every 60 seconds)');
     }
 
     // Run a single monitoring check
@@ -60,13 +60,13 @@ class MonitoringService {
     // Log metrics to console (for debugging)
     logMetrics(metrics) {
         const timestamp = new Date().toISOString();
-        console.log(`\n📊 [${timestamp}] System Metrics:`);
-        console.log(`  MongoDB Pool: ${metrics.mongoPool.current}/${metrics.mongoPool.max} (${metrics.mongoPool.percentage.toFixed(1)}%)`);
-        console.log(`  Socket.io: ${metrics.socketConnections.current}/${metrics.socketConnections.max} (${metrics.socketConnections.percentage.toFixed(1)}%)`);
-        console.log(`  Memory: ${metrics.memory.current}MB/${metrics.memory.max}MB (${metrics.memory.percentage.toFixed(1)}%)`);
-        console.log(`  API p95: ${metrics.apiPerformance.p95}ms (avg: ${metrics.apiPerformance.avg}ms, count: ${metrics.apiPerformance.count})`);
-        console.log(`  Error Rate: ${metrics.errorRate.rate}% (${metrics.errorRate.errors}/${metrics.errorRate.requests})`);
-        console.log(`  Redis: ${metrics.redisHealth.connected ? '✅ Connected' : '❌ Disconnected'} (${metrics.redisHealth.latency}ms - ${metrics.redisHealth.status})`);
+        // console.log(`\n📊 [${timestamp}] System Metrics:`);
+        // console.log(`  MongoDB Pool: ${metrics.mongoPool.current}/${metrics.mongoPool.max} (${metrics.mongoPool.percentage.toFixed(1)}%)`);
+        // console.log(`  Socket.io: ${metrics.socketConnections.current}/${metrics.socketConnections.max} (${metrics.socketConnections.percentage.toFixed(1)}%)`);
+        // console.log(`  Memory: ${metrics.memory.current}MB/${metrics.memory.max}MB (${metrics.memory.percentage.toFixed(1)}%)`);
+        // console.log(`  API p95: ${metrics.apiPerformance.p95}ms (avg: ${metrics.apiPerformance.avg}ms, count: ${metrics.apiPerformance.count})`);
+        // console.log(`  Error Rate: ${metrics.errorRate.rate}% (${metrics.errorRate.errors}/${metrics.errorRate.requests})`);
+        // console.log(`  Redis: ${metrics.redisHealth.connected ? '✅ Connected' : '❌ Disconnected'} (${metrics.redisHealth.latency}ms - ${metrics.redisHealth.status})`);
     }
 
     // Stop monitoring

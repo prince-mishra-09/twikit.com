@@ -11,6 +11,8 @@ export const UserContextProvider = ({ children }) => {
   const [isAuth, setIsAuth] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [waitingWorker, setWaitingWorker] = useState(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   const getErrorMessage = (error) =>
     error.response?.data?.message || error.message || "Something went wrong";
@@ -273,6 +275,30 @@ export const UserContextProvider = ({ children }) => {
 
     try {
       const register = await navigator.serviceWorker.register("/sw.js");
+
+      // Handle Service Worker Updates
+      register.addEventListener("updatefound", () => {
+        const newWorker = register.installing;
+        newWorker.addEventListener("statechange", () => {
+          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+            // New update available!
+            setWaitingWorker(newWorker);
+            setShowUpdateModal(true);
+          }
+        });
+      });
+
+      // If there's already a waiting worker on load
+      if (register.waiting && navigator.serviceWorker.controller) {
+        setWaitingWorker(register.waiting);
+        setShowUpdateModal(true);
+      }
+
+      // Listen for controllerchange to reload
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        window.location.reload();
+      });
+
       const publicVapidKey = "BDEaakozjRUhtyPzgDajIBVFpiXIQBi36jcO3rmiyRXEIDk8DmRxRrUi7VNI0mi9NQ6r_i_Hq_K5rJD0HlNQhl8"; // Generated Key
 
       let subscription = await register.pushManager.getSubscription();
@@ -314,7 +340,9 @@ export const UserContextProvider = ({ children }) => {
     logoutUser, registerUser, followUser, updateProfilePic,
     updateProfileInfo, savePost, hidePost, muteUser, unmuteUser,
     togglePrivacy, removeFollower, blockUser, unblockUser,
-    registerPush, showLoginPrompt, setShowLoginPrompt, searchUser, toggleOnlineStatus, toggleLastSeen
+    registerPush, showLoginPrompt, setShowLoginPrompt, searchUser, toggleOnlineStatus, toggleLastSeen,
+    showUpdateModal, setShowUpdateModal, waitingWorker,
+    applyUpdate: () => waitingWorker?.postMessage({ type: "SKIP_WAITING" })
   }), [loginUser, isAuth, user, loading, logoutUser, registerUser, followUser, updateProfilePic, updateProfileInfo, savePost, hidePost, muteUser, unmuteUser, togglePrivacy, removeFollower, blockUser, unblockUser, registerPush, showLoginPrompt, searchUser, toggleOnlineStatus, toggleLastSeen]);
 
   return (

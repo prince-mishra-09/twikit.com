@@ -13,7 +13,8 @@ import { UserData } from "../context/UserContext";
 import Modal from "../components/Modal";
 import { SocketData } from "../context/SocketContext";
 import { useNavigate } from "react-router-dom"; // Added for redirect
-import { BsGrid3X3, BsShare, BsPalette } from "react-icons/bs";
+import { BsGrid3X3, BsShare } from "react-icons/bs";
+import { IoSparklesOutline } from "react-icons/io5";
 import ReelsIcon from "../components/ReelsIcon";
 import { StoriesData } from "../context/StoriesContext";
 import { ChatData } from "../context/ChatContext"; // Added import
@@ -48,22 +49,22 @@ const UserAccount = ({ user: loggedInUser }) => {
 
   async function fetchData() {
     setLoading(true);
-    console.log(`[Profile Debug] Fetching data for user ID: ${params.id}`);
+    // console.log(`[Profile Debug] Fetching data for user ID: ${params.id}`);
     const startTime = Date.now();
 
     try {
       // Parallel fetch for speed (User + Posts only)
-      console.log("[Profile Debug] Starting parallel fetch (User + Posts)...");
+      // console.log("[Profile Debug] Starting parallel fetch (User + Posts)...");
       const userPromise = axios.get("/api/user/" + params.id);
       const postsPromise = axios.get("/api/post/user/" + params.id + "?type=post");
 
       const [userRes, postsRes] = await Promise.allSettled([userPromise, postsPromise]);
 
       const endTime = Date.now();
-      console.log(`[Profile Debug] Parallel fetch completed in ${endTime - startTime}ms`);
+      // console.log(`[Profile Debug] Parallel fetch completed in ${endTime - startTime}ms`);
 
       if (userRes.status === "fulfilled") {
-        console.log("[Profile Debug] User fetch SUCCESS", userRes.value.data);
+        // console.log("[Profile Debug] User fetch SUCCESS", userRes.value.data);
         setUser(userRes.value.data);
       } else {
         console.error("[Profile Debug] User fetch FAILED", userRes.reason);
@@ -74,7 +75,7 @@ const UserAccount = ({ user: loggedInUser }) => {
       }
 
       if (postsRes.status === "fulfilled") {
-        console.log(`[Profile Debug] Posts fetch SUCCESS. Count: ${postsRes.value.data.posts?.length}`);
+        // console.log(`[Profile Debug] Posts fetch SUCCESS. Count: ${postsRes.value.data.posts?.length}`);
         setUserPosts(postsRes.value.data.posts);
       } else {
         console.error("[Profile Debug] Posts fetch FAILED", postsRes.reason);
@@ -336,10 +337,10 @@ const UserAccount = ({ user: loggedInUser }) => {
             <div className="flex items-center gap-1 relative z-10">
               <button
                 onClick={cycleTheme}
-                className="text-[var(--text-primary)] text-xl p-2 hover:bg-[var(--bg-primary)]/50 rounded-full transition-colors shrink-0"
+                className="text-[var(--text-primary)] text-xl p-2 hover:bg-[var(--bg-primary)]/50 rounded-full transition-colors shrink-0 group"
                 title="Change Theme"
               >
-                <BsPalette />
+                <IoSparklesOutline className="group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 group-hover:text-[var(--accent)]" />
               </button>
               <button onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }} className="text-[var(--text-primary)] p-2 rounded-full hover:bg-[var(--bg-primary)]/10">
                 <FaEllipsisVertical />
@@ -423,10 +424,14 @@ const UserAccount = ({ user: loggedInUser }) => {
                   followHandler();
                 }
               }}
-              className={`flex-1 py-2 rounded-lg transition-colors ${followed ? "bg-red-500/10 text-red-500 hover:bg-red-500/20" : requested ? "bg-gray-600 text-white" : "bg-[var(--accent)] text-[var(--text-on-accent)] hover:bg-[var(--accent)]/90"
+              className={`flex-1 py-2 rounded-lg transition-all duration-300 font-semibold text-sm ${followed
+                ? "bg-[var(--accent)]/5 text-[var(--accent)] border border-[var(--accent)]/40 shadow-[0_0_15px_rgba(0,255,209,0.1)] hover:bg-[var(--accent)]/10 hover:shadow-[0_0_20px_rgba(0,255,209,0.2)]"
+                : requested
+                  ? "bg-gray-600 text-white"
+                  : "bg-[var(--accent)] text-[var(--text-on-accent)] hover:bg-[var(--accent)]/90 shadow-[0_0_15px_rgba(0,255,209,0.3)]"
                 }`}
             >
-              {followed ? "Unfollow" : requested ? "Requested" : "Follow"}
+              {followed ? "Following" : requested ? "Requested" : "Follow"}
             </button>
             <button
               onClick={messageHandler}

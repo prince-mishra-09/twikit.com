@@ -43,7 +43,7 @@ const Search = () => {
       setUsers(data.users || []);
       setPosts(data.posts || []);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       setUsers([]);
       setPosts([]);
     } finally {

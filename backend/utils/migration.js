@@ -9,7 +9,7 @@ export const migrateUsernames = async () => {
             return;
         }
 
-        console.log(`Migration: Found ${users.length} users without usernames. Starting migration...`);
+        // console.log(`Migration: Found ${users.length} users without usernames. Starting migration...`);
 
         for (const user of users) {
             let baseUsername = user.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
@@ -26,10 +26,10 @@ export const migrateUsernames = async () => {
 
             user.username = newUsername;
             await user.save();
-            console.log(`Migrated: ${user.name} -> @${newUsername}`);
+            // console.log(`Migrated: ${user.name} -> @${newUsername}`);
         }
 
-        console.log("Migration: Completed successfully.");
+        // console.log("Migration: Completed successfully.");
 
     } catch (error) {
         console.error("Migration Error:", error);

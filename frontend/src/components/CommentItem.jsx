@@ -17,15 +17,15 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
         const targetId = String(activeCommentId);
         const match = comment.replies.find(r => String(r._id) === targetId);
 
-        console.log("Reply Expand Check:", {
+        /* console.log("Reply Expand Check:", {
             parentId: comment._id,
             targetId,
             repliesCount: comment.replies.length,
             matchFound: !!match
-        });
+        }); */
 
         if (match) {
-            console.log("MATCH FOUND! Expanding replies for parent:", comment._id);
+            // console.log("MATCH FOUND! Expanding replies for parent:", comment._id);
             setShowReplies(true);
 
             // Scroll to the specific reply after expansion?

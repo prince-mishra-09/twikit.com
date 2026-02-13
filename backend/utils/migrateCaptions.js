@@ -29,7 +29,7 @@ if (fs.existsSync(envPath)) {
 
 if (!mongoUri) {
     // Fallback if not found or empty
-    console.log("MONGO_CONNECTION/MONGO_URI not found in .env, trying process.env...");
+    // console.log("MONGO_CONNECTION/MONGO_URI not found in .env, trying process.env...");
     mongoUri = process.env.MONGO_CONNECTION || process.env.MONGO_URI;
 }
 
@@ -38,18 +38,18 @@ if (!mongoUri) {
     process.exit(1);
 }
 
-console.log("Found Mongo URI (masked):", mongoUri.substring(0, 15) + "...");
+// console.log("Found Mongo URI (masked):", mongoUri.substring(0, 15) + "...");
 
 const migrateCaptions = async () => {
     try {
-        console.log("Connecting to DB...");
+        // console.log("Connecting to DB...");
         await mongoose.connect(mongoUri, { dbName: "twikitcom" });
-        console.log("Connected to DB successfully.");
+        // console.log("Connected to DB successfully.");
 
         const totalPosts = await Post.countDocuments();
-        console.log(`Total Posts in DB: ${totalPosts}`);
+        // console.log(`Total Posts in DB: ${totalPosts}`);
 
-        console.log("Running updateMany...");
+        // console.log("Running updateMany...");
         const result = await Post.updateMany(
             {
                 $or: [
@@ -62,12 +62,12 @@ const migrateCaptions = async () => {
             { $set: { caption: "______" } }
         );
 
-        console.log(`Migration Complete.`);
-        console.log(`Matched Documents: ${result.matchedCount}`);
-        console.log(`Modified Documents: ${result.modifiedCount}`);
+        // console.log(`Migration Complete.`);
+        // console.log(`Matched Documents: ${result.matchedCount}`);
+        // console.log(`Modified Documents: ${result.modifiedCount}`);
 
         await mongoose.disconnect();
-        console.log("Disconnected from DB.");
+        // console.log("Disconnected from DB.");
         process.exit(0);
     } catch (error) {
         console.error("Migration Failed with Error:");

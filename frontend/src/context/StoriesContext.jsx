@@ -17,12 +17,12 @@ export const StoriesProvider = ({ children }) => {
 
         // 1. New Story Posted by followed user
         const handleNewStory = (story) => {
-            console.log("Socket: New Story Received:", story);
+            // console.log("Socket: New Story Received:", story);
             setStories(prev => {
                 const existingUserGroup = prev.find(g => String(g.user._id) === String(story.user._id));
 
                 if (existingUserGroup) {
-                    console.log("Updating existing group");
+                    // console.log("Updating existing group");
                     // Update existing group: append story and move user to front? 
                     // Usually new stories push user to front of feed.
                     const updatedGroup = {
@@ -32,7 +32,7 @@ export const StoriesProvider = ({ children }) => {
                     // Move to front
                     return [updatedGroup, ...prev.filter(g => String(g.user._id) !== String(story.user._id))];
                 } else {
-                    console.log("Creating new group");
+                    // console.log("Creating new group");
                     // New user appearing in feed (rare but possible if sync issue or first story)
                     const newGroup = { user: story.user, stories: [story] };
                     return [newGroup, ...prev];
@@ -42,13 +42,13 @@ export const StoriesProvider = ({ children }) => {
 
         // 2. Someone viewed my story
         const handleStoryView = ({ storyId, viewer }) => {
-            console.log("Socket: Story View Received:", storyId, viewer);
+            // console.log("Socket: Story View Received:", storyId, viewer);
             setStories(prev => prev.map(group => {
                 // Debug: Log comparison
                 // console.log("Comparing", group.user._id, user._id);
                 if (String(group.user._id) !== String(user._id)) return group; // Not my stories
 
-                console.log("Updating my story view stats");
+                // console.log("Updating my story view stats");
                 return {
                     ...group,
                     stories: group.stories.map(s =>

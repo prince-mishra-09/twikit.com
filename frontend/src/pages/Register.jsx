@@ -60,7 +60,7 @@ const Register = () => {
       const { data } = await axios.post("/api/auth/send-otp", { email }, {
         timeout: 30000 // 30 second timeout
       });
-      console.log("OTP sent successfully:", data);
+      // console.log("OTP sent successfully:", data);
       setEmailSent(true);
       setStep(2);
       setError("");

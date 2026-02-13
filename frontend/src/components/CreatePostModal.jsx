@@ -181,18 +181,18 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                     className={`cursor-pointer rounded-xl border-2 border-dashed ${blinkFile ? "border-red-500 animate-pulse bg-red-500/5 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "border-[var(--border)] bg-[var(--bg-primary)] hover:border-[var(--accent)]/50 hover:bg-[var(--bg-primary)]/50"} text-[var(--text-secondary)] flex items-center justify-center min-h-[250px] transition-all group overflow-hidden duration-300`}
                                 >
                                     {filePrev ? (
-                                        <div className="relative w-full h-[300px] bg-black rounded-lg overflow-hidden flex items-center justify-center">
+                                        <div className="relative w-full aspect-[3/4] bg-black rounded-lg overflow-hidden flex items-center justify-center">
                                             {type === "post" ? (
                                                 <img
                                                     src={filePrev}
                                                     alt="preview"
-                                                    className="max-h-full max-w-full object-contain"
+                                                    className="w-full h-full object-cover"
                                                 />
                                             ) : (
                                                 <video
                                                     src={filePrev}
                                                     controls
-                                                    className="max-h-full max-w-full"
+                                                    className="w-full h-full object-cover"
                                                 />
                                             )}
                                             {/* Change Image Overlay */}

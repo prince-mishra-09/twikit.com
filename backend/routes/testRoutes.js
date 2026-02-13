@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get("/force-cleanup", async (req, res) => {
     try {
-        console.log("Manual cleanup triggered via API...");
+        // console.log("Manual cleanup triggered via API...");
         await archiveExpiredAuras();
         res.json({ message: "Cleanup triggered. Check terminal logs." });
     } catch (error) {

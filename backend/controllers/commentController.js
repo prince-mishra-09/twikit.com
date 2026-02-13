@@ -240,7 +240,7 @@ export const migrateLegacyComments = TryCatch(async (req, res) => {
         const comments = post.comments || [];
 
         if (comments.length > 0) {
-            console.log(`Migrating ${comments.length} comments for post ${post._id}`);
+            // console.log(`Migrating ${comments.length} comments for post ${post._id}`);
 
             for (const c of comments) {
                 // Check if already migrated? (Maybe duplicate check via date/text/user?)

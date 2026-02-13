@@ -22,7 +22,7 @@ export const NotificationProvider = ({ children }) => {
             const { data } = await axios.get("/api/notifications/all");
             setNotifications(data);
         } catch (error) {
-            console.log(error);
+            // console.log(error);
         } finally {
             setLoading(false);
         }
@@ -33,7 +33,7 @@ export const NotificationProvider = ({ children }) => {
             const { data } = await axios.get("/api/notifications/unread");
             setUnreadCount(data.count);
         } catch (error) {
-            console.log(error);
+            // console.log(error);
         }
     }
 

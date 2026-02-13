@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AiFillHome, AiOutlineHome, AiOutlinePlusSquare, AiFillPlusSquare } from "react-icons/ai";
-import { IoSearch, IoSearchOutline, IoChatbubbleEllipses, IoChatbubbleEllipsesOutline, IoNotifications, IoNotificationsOutline, IoLogOutOutline } from "react-icons/io5";
+import { IoSearch, IoSearchOutline, IoChatbubbleEllipses, IoChatbubbleEllipsesOutline, IoNotifications, IoNotificationsOutline, IoLogOutOutline, IoSparklesOutline } from "react-icons/io5";
 import { RiAccountCircleFill, RiAccountCircleLine, RiRecordCircleFill } from "react-icons/ri";
 import ReelsIcon from "./ReelsIcon";
 import { FaBars } from "react-icons/fa"; // Import FaBars
@@ -13,7 +13,7 @@ import { NotificationData } from "../context/NotificationContext";
 import { useTheme } from "../context/ThemeContext";
 
 import AuraXIcon from "./AuraXIcon"; // Import the new icon
-import { BsPalette } from "react-icons/bs";
+
 
 const Sidebar = ({ isCollapsed, toggleSidebar }) => { // Accept props
     const { user, isAuth, logoutUser, setShowLoginPrompt, toggleOnlineStatus } = UserData();
@@ -176,8 +176,8 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => { // Accept props
                     className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-[var(--text-primary)]/10 text-[var(--text-primary)] mb-2 ${isCollapsed ? "justify-center gap-0" : "gap-4"
                         }`}
                 >
-                    <div className="relative group-hover:rotate-12 transition-transform duration-200">
-                        <BsPalette className="text-2xl" />
+                    <div className="relative group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 group-hover:text-[var(--accent)]">
+                        <IoSparklesOutline className="text-2xl" />
                     </div>
                     {!isCollapsed && <span className="text-base font-normal whitespace-nowrap">Change Theme</span>}
                 </button>

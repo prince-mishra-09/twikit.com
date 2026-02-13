@@ -57,7 +57,7 @@ const AddPost = ({ type }) => {
         {/* Media Upload */}
         <div
           onClick={() => fileInputRef.current.click()}
-          className="cursor-pointer rounded-xl border border-dashed border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-secondary)] flex items-center justify-center min-h-[90px] hover:border-[var(--accent)]/50 transition"
+          className="cursor-pointer rounded-xl border border-dashed border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-secondary)] flex items-center justify-center aspect-[3/4] hover:border-[var(--accent)]/50 transition overflow-hidden"
         >
 
           {filePrev ? (
@@ -66,14 +66,14 @@ const AddPost = ({ type }) => {
                 <img
                   src={filePrev}
                   alt="preview"
-                  className="max-h-[300px] rounded-xl object-cover"
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <video
                   src={filePrev}
                   controls
                   controlsList="nodownload"
-                  className="max-h-[300px] rounded-xl"
+                  className="w-full h-full object-cover"
                 />
               )}
             </>

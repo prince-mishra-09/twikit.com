@@ -5,8 +5,8 @@ import { isSameId, includesId } from "../utils/idUtils";
 import { PostData } from "../context/PostContext";
 import PostCard from "../components/PostCard";
 import { FaArrowDownLong, FaArrowUp, FaArrowLeft } from "react-icons/fa6";
-import { IoMenu, IoClose } from "react-icons/io5";
-import { BsGrid3X3, BsShare, BsPalette, BsBookmark } from "react-icons/bs";
+import { IoMenu, IoClose, IoSparklesOutline } from "react-icons/io5";
+import { BsGrid3X3, BsShare, BsBookmark } from "react-icons/bs";
 import ReelsIcon from "../components/ReelsIcon";
 import Modal from "../components/Modal";
 import axios from "axios";
@@ -56,7 +56,7 @@ const Account = ({ user }) => {
       const { data } = await axios.get("/api/user/saved");
       setSavedPosts(data);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     } finally {
       setLoadingSaved(false);
     }
@@ -217,10 +217,10 @@ const Account = ({ user }) => {
           <div className="flex items-center gap-1 relative">
             <button
               onClick={cycleTheme}
-              className="text-[var(--text-primary)] text-xl p-2 hover:bg-[var(--bg-primary)]/50 rounded-full transition-colors shrink-0"
+              className="text-[var(--text-primary)] text-xl p-2 hover:bg-[var(--bg-primary)]/50 rounded-full transition-colors shrink-0 group"
               title="Change Theme"
             >
-              <BsPalette />
+              <IoSparklesOutline className="group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 group-hover:text-[var(--accent)]" />
             </button>
             <button
               onClick={() => setShowSettings(!showSettings)}
@@ -342,7 +342,7 @@ const Account = ({ user }) => {
                       }}
                       className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2"
                     >
-                      <BsPalette /> Display & Accessibility
+                      <IoSparklesOutline className="text-xl" /> Display & Accessibility
                     </button>
                   </div>
 

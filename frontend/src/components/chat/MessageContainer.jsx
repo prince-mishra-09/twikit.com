@@ -55,13 +55,13 @@ const MessageContainer = ({ selectedChat, setChats }) => {
 
   useEffect(() => {
     socket.on("newMessage", (message) => {
-      console.log("Socket: New Message Received", message);
-      console.log("Socket: Current Chat ID", selectedChat._id);
+      // console.log("Socket: New Message Received", message);
+      // console.log("Socket: Current Chat ID", selectedChat._id);
 
       if (selectedChat._id === message.chatId) {
         setMessages((prev) => [...prev, message]);
       } else {
-        console.log("Socket: Chat ID Mismatch", selectedChat._id, message.chatId);
+        // console.log("Socket: Chat ID Mismatch", selectedChat._id, message.chatId);
       }
     });
 
@@ -101,7 +101,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
       setMessages(data);
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       setLoading(false);
     }
   }
@@ -128,7 +128,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
       // But we should also update 'Chats' latest message if it was the last one?
       // Complexity: ignoring latestMessage update for now as it's minor.
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 

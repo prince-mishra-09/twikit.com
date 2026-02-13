@@ -41,7 +41,7 @@ export const PostContextProvider = ({ children }) => {
       setLoading(false);
       setLoadingMore(false);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       setLoading(false);
       setLoadingMore(false);
     }

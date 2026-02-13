@@ -9,6 +9,7 @@ import { useEffect, Suspense, lazy } from "react";
 import LoginPromptModal from "./components/LoginPromptModal";
 import ScrollToTop from "./components/ScrollToTop";
 import Layout from "./components/Layout";
+import PWAUpdateModal from "./components/PWAUpdateModal";
 import NotFound from "./components/NotFound";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { SkeletonPost } from "./components/Skeleton";
@@ -31,7 +32,7 @@ const AuraX = lazy(() => import("./pages/AuraX"));
 const AuraXOnboarding = lazy(() => import("./pages/AuraXOnboarding"));
 
 function App() {
-  const { loading, isAuth, user, setUser } = UserData();
+  const { loading, isAuth, user, setUser, showUpdateModal, setShowUpdateModal, applyUpdate } = UserData();
   const { socket } = SocketData();
 
   // Maintenance Mode (Toggle this to true to enable)
@@ -139,6 +140,11 @@ function App() {
           <ScrollToTop />
           <NotificationProvider><StoriesProvider>
             <LoginPromptModal />
+            <PWAUpdateModal
+              show={showUpdateModal}
+              onUpdate={applyUpdate}
+              onLater={() => setShowUpdateModal(false)}
+            />
             <Layout>
               <Suspense fallback={<RouteAwareSkeleton />}>
                 <Routes>

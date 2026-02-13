@@ -19,7 +19,7 @@ export const ChatContextProvider = ({ children }) => {
       const { data } = await axios.get("/api/messages/chats");
       setChats(data);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   }, []);
 
@@ -117,7 +117,7 @@ export const ChatContextProvider = ({ children }) => {
       return data;
     } catch (error) {
       toast.error(error.response?.data?.message);
-      console.log(error);
+      // console.log(error);
     }
   }, [chats]);
 

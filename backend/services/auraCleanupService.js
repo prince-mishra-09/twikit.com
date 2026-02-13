@@ -8,7 +8,7 @@ import { DeadAuraX } from "../models/DeadAuraX.js";
 export const archiveExpiredAuras = async () => {
     try {
         const now = new Date();
-        console.log(`[AuraCleanup] Checking for expired auras at ${now.toISOString()}...`);
+        // console.log(`[AuraCleanup] Checking for expired auras at ${now.toISOString()}...`);
 
         // 1. Find expired auras
         const expiredAuras = await AuraX.find({
@@ -17,7 +17,7 @@ export const archiveExpiredAuras = async () => {
 
         if (expiredAuras.length === 0) return;
 
-        console.log(`[AuraCleanup] Found ${expiredAuras.length} expired auras. Archiving...`);
+        // console.log(`[AuraCleanup] Found ${expiredAuras.length} expired auras. Archiving...`);
 
         // 2. Process each expired aura
         for (const aura of expiredAuras) {
@@ -65,7 +65,7 @@ export const archiveExpiredAuras = async () => {
             }
         }
 
-        console.log(`[AuraCleanup] Successfully processed ${expiredAuras.length} auras.`);
+        // console.log(`[AuraCleanup] Successfully processed ${expiredAuras.length} auras.`);
 
     } catch (error) {
         console.error("[AuraCleanup] Error archiving auras:", error);
@@ -74,7 +74,7 @@ export const archiveExpiredAuras = async () => {
 
 // Start the interval service
 export const startAuraCleanupService = (intervalMs = 60000) => {
-    console.log("[AuraCleanup] Service started. Checking every", intervalMs / 1000, "seconds.");
+    // console.log("[AuraCleanup] Service started. Checking every", intervalMs / 1000, "seconds.");
 
     // Run immediately on startup
     archiveExpiredAuras();

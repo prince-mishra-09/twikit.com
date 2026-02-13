@@ -24,7 +24,7 @@ class OTPEmailService {
       // 1. Check/Increment usage
       const { count, shouldAlert } = emailMonitor.incrementAndCheck();
 
-      console.log(`📤 Sending email to ${to} (Daily count: ${count})...`);
+      // console.log(`📤 Sending email to ${to} (Daily count: ${count})...`);
 
       const { data, error } = await this.getResend().emails.send({
         from: `Twikit <${this.fromEmail}>`,
@@ -51,7 +51,7 @@ class OTPEmailService {
   }
 
   async sendAlertEmail(count) {
-    console.log(`⚠️ Sending limit alert to admin...`);
+    // console.log(`⚠️ Sending limit alert to admin...`);
     await emailMonitor.sendAlert(this, count);
   }
 
@@ -88,11 +88,11 @@ class OTPEmailService {
   // Test email connection (For diagnostics)
   async testConnection() {
     try {
-      console.log("🧪 Testing Resend API connection...");
+      // console.log("🧪 Testing Resend API connection...");
       // We'll just try to list domains or something simple to verify API key
       const { data, error } = await this.getResend().domains.list();
       if (error) throw error;
-      console.log("✅ Resend API is ready");
+      // console.log("✅ Resend API is ready");
       return true;
     } catch (error) {
       console.error("❌ Resend API connection error:", error.message);

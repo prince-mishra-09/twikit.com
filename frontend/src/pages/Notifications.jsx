@@ -23,7 +23,7 @@ const Notifications = () => {
             await axios.put("/api/notifications/read");
             setUnreadCount(0);
         } catch (error) {
-            console.log(error);
+            // console.log(error);
         }
     }
 

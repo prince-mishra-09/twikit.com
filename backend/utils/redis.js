@@ -65,13 +65,13 @@ const redisProxy = new Proxy({}, {
 
 const initializeRedis = async () => {
     try {
-        console.log("Checking Redis Config...");
-        console.log("UPSTASH_URL:", process.env.UPSTASH_REDIS_REST_URL ? "Set" : "Missing");
-        console.log("UPSTASH_TOKEN:", process.env.UPSTASH_REDIS_REST_TOKEN ? "Set" : "Missing");
+        // console.log("Checking Redis Config...");
+        // console.log("UPSTASH_URL:", process.env.UPSTASH_REDIS_REST_URL ? "Set" : "Missing");
+        // console.log("UPSTASH_TOKEN:", process.env.UPSTASH_REDIS_REST_TOKEN ? "Set" : "Missing");
 
         // STRATEGY 1: Check for Upstash REST (HTTP)
         if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-            console.log("Found Upstash Credentials. Initializing HTTP Client...");
+            // console.log("Found Upstash Credentials. Initializing HTTP Client...");
 
             const upstashClient = new UpstashRedis({
                 url: process.env.UPSTASH_REDIS_REST_URL,
@@ -81,7 +81,7 @@ const initializeRedis = async () => {
             // Test Connection
             try {
                 await upstashClient.get("ping"); // Simple REST call
-                console.log("✅ Redis Connected Successfully (Upstash HTTP) 🚀");
+                // console.log("✅ Redis Connected Successfully (Upstash HTTP) 🚀");
                 redisClient = upstashClient;
                 isInitializing = false;
                 return;
@@ -114,7 +114,7 @@ const initializeRedis = async () => {
         redisClient = candidateClient;
 
         candidateClient.on("connect", () => {
-            console.log("✅ Redis Connected Successfully (IORedis TCP) 🚀");
+            // console.log("✅ Redis Connected Successfully (IORedis TCP) 🚀");
             isInitializing = false;
         });
 
@@ -124,7 +124,7 @@ const initializeRedis = async () => {
             if ((err.code === "ECONNREFUSED" || err.code === "ENOTFOUND") && process.env.NODE_ENV !== "production") {
                 if (memoryServer) return;
 
-                console.log("⚠️ Local Redis not found. Starting In-Memory Redis Server...");
+                // console.log("⚠️ Local Redis not found. Starting In-Memory Redis Server...");
 
                 try {
                     redisClient = null;
@@ -134,12 +134,12 @@ const initializeRedis = async () => {
                     const host = await memoryServer.getHost();
                     const port = await memoryServer.getPort();
 
-                    console.log(`✅ In-Memory Server Started at ${host}:${port}`);
+                    // console.log(`✅ In-Memory Server Started at ${host}:${port}`);
 
                     const memoryClient = new Redis({ host, port });
 
                     memoryClient.on("connect", () => {
-                        console.log(`✅ Connected to In-Memory Redis (${host}:${port})`);
+                        // console.log(`✅ Connected to In-Memory Redis (${host}:${port})`);
                         redisClient = memoryClient;
                         isInitializing = false;
                     });

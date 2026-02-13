@@ -15,10 +15,10 @@ const migrateVibes = async () => {
             dbName: "twikitcom",
         });
 
-        console.log("Connected to DB for Migration...");
+        // console.log("Connected to DB for Migration...");
 
         // 1. Rename existing fields in Posts
-        console.log("Starting Post field rename...");
+        // console.log("Starting Post field rename...");
         const postResult = await Post.updateMany(
             {},
             {
@@ -28,23 +28,23 @@ const migrateVibes = async () => {
                 }
             }
         );
-        console.log(`Post Migration: Modified ${postResult.modifiedCount} documents.`);
+        // console.log(`Post Migration: Modified ${postResult.modifiedCount} documents.`);
 
         // 2. Migrate Notification Types
-        console.log("Starting Notification type migration...");
+        // console.log("Starting Notification type migration...");
         const { Notification } = await import("../models/Notification.js");
 
         const notifResult1 = await Notification.updateMany(
             { type: "real" },
             { $set: { type: "vibeUp" } }
         );
-        console.log(`Notification Migration (Real -> VibeUp): Modified ${notifResult1.modifiedCount} documents.`);
+        // console.log(`Notification Migration (Real -> VibeUp): Modified ${notifResult1.modifiedCount} documents.`);
 
         const notifResult2 = await Notification.updateMany(
             { type: "reflect" },
             { $set: { type: "vibeDown" } }
         );
-        console.log(`Notification Migration (Reflect -> VibeDown): Modified ${notifResult2.modifiedCount} documents.`);
+        // console.log(`Notification Migration (Reflect -> VibeDown): Modified ${notifResult2.modifiedCount} documents.`);
 
 
         process.exit(0);

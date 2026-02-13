@@ -45,12 +45,12 @@ router.all('/test-email', async (req, res) => {
     }
 
     try {
-        console.log("🧪 Diagnostic: Testing Resend API...");
+        // console.log("🧪 Diagnostic: Testing Resend API...");
         const isReady = await Promise.race([otpEmailService.testConnection(), timeout(10000, "Resend API")]);
         diagnostic.resend_api = isReady ? "✅ Connected to Resend API" : "❌ API Check Failed (Check Key)";
 
         if (isReady) {
-            console.log("🧪 Diagnostic: Sending Test Email...");
+            // console.log("🧪 Diagnostic: Sending Test Email...");
             const sendResult = await Promise.race([otpEmailService.sendTestEmail(), timeout(15000, "Resend Send")]);
             if (sendResult.success) {
                 diagnostic.email_send = "✅ Test Email Sent to Admin";

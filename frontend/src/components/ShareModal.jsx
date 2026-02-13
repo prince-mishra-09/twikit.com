@@ -33,7 +33,7 @@ const ShareModal = ({ isOpen, onClose, content }) => {
                 const { data } = await axios.get(searchUrl);
                 setUsers(data.users || []);
             } catch (error) {
-                console.log(error);
+                // console.log(error);
             }
         }, 500);
         return () => clearTimeout(timer);
@@ -52,8 +52,8 @@ const ShareModal = ({ isOpen, onClose, content }) => {
         setLoading(true);
         try {
             // Send to all selected users
-            console.log("Sending shared content:", content);
-            console.log("Recipients:", selectedUsers);
+            // console.log("Sending shared content:", content);
+            // console.log("Recipients:", selectedUsers);
 
             const promises = selectedUsers.map(user =>
                 axios.post("/api/messages", {
@@ -64,7 +64,7 @@ const ShareModal = ({ isOpen, onClose, content }) => {
             );
 
             const responses = await Promise.all(promises);
-            console.log("Share responses:", responses);
+            // console.log("Share responses:", responses);
 
             toast.success(`Sent to ${selectedUsers.length} users!`);
             onClose();
@@ -72,7 +72,7 @@ const ShareModal = ({ isOpen, onClose, content }) => {
             setSelectedUsers([]);
         } catch (error) {
             toast.error(error.response?.data?.message || "Failed to send");
-            console.log(error);
+            // console.log(error);
         } finally {
             setLoading(false);
         }

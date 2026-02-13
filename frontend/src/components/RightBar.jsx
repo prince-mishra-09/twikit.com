@@ -27,7 +27,7 @@ const RightBar = () => {
             // 3. Haven't fetched yet in this session
             if (!isAuth || !user || !isDesktop || hasFetched) return;
 
-            console.log("RightBar: Fetching suggestions (Desktop Only, Once per session)...");
+            // console.log("RightBar: Fetching suggestions (Desktop Only, Once per session)...");
             try {
                 // Fetch all/top users using search with empty query
                 const users = await searchUser("");

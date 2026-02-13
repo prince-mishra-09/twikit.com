@@ -1,3 +1,17 @@
+self.addEventListener("install", (event) => {
+    self.skipWaiting(); // Force the waiting service worker to become active
+});
+
+self.addEventListener("activate", (event) => {
+    event.waitUntil(clients.claim()); // Become available to all pages immediately
+});
+
+self.addEventListener("message", (event) => {
+    if (event.data && event.data.type === "SKIP_WAITING") {
+        self.skipWaiting();
+    }
+});
+
 self.addEventListener("push", function (event) {
     const data = event.data.json();
     const title = data.title || "Twikit Notification";

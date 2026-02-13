@@ -10,7 +10,7 @@ import { ChatData } from "../context/ChatContext";
 import { SkeletonPost } from "../components/Skeleton";
 import { UserData } from "../context/UserContext";
 import { useTheme } from "../context/ThemeContext";
-import { BsPalette } from "react-icons/bs";
+
 
 const Home = () => {
   const { isAuth } = UserData();
@@ -106,13 +106,6 @@ const Home = () => {
               </span>
             </Link>
             <div className="flex items-center gap-3">
-              <button
-                onClick={cycleTheme}
-                className="bg-[var(--text-primary)]/10 p-2 text-[var(--text-primary)] rounded-full hover:bg-[var(--text-primary)]/20 transition-all"
-                title="Change Theme"
-              >
-                <BsPalette className="text-xl" />
-              </button>
               {isAuth && (
                 <>
                   <Link

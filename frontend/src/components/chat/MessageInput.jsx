@@ -61,7 +61,7 @@ const MessageInput = ({ setMessages, selectedChat }) => {
         prev.map((msg) => (msg._id === optimisticMessage._id ? data : msg))
       );
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       toast.error(error.response?.data?.message || "Failed to send message");
 
       // 5. REMOVE OPTIMISTIC MESSAGE ON FAILURE (or show retry)

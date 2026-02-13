@@ -118,7 +118,7 @@ io.on("connection", (socket) => {
       const User = module.default;
       await User.findByIdAndUpdate(userId, { lastSeen: Date.now() });
     } catch (err) {
-      console.log("Error updating lastSeen:", err);
+      // console.log("Error updating lastSeen:", err);
     }
   });
 });

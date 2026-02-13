@@ -28,7 +28,7 @@ export const userProfile = async (req, res) => {
   const requestId = Math.random().toString(36).substring(7); // Trace ID
 
   console.time(`[UserProfile:${requestId}] Total`);
-  console.log(`[UserProfile:${requestId}] Fetching for ${userId}`);
+  // console.log(`[UserProfile:${requestId}] Fetching for ${userId}`);
 
   // Helper to validate access (Block/Private)
   const validateAccess = (user, reqUser) => {
@@ -54,7 +54,7 @@ export const userProfile = async (req, res) => {
     console.timeEnd(`[UserProfile:${requestId}] Redis`);
 
     if (cachedUser) {
-      console.log(`[UserProfile:${requestId}] Cache HIT`);
+      // console.log(`[UserProfile:${requestId}] Cache HIT`);
       // Upstash auto-parses JSON, IORedis returns string
       const user = typeof cachedUser === 'string' ? JSON.parse(cachedUser) : cachedUser;
       const accessError = validateAccess(user, req.user);
@@ -67,7 +67,7 @@ export const userProfile = async (req, res) => {
     }
 
     // 2. Database Fallback (Use lean() for speed)
-    console.log(`[UserProfile:${requestId}] Cache MISS - Fetching DB`);
+    // console.log(`[UserProfile:${requestId}] Cache MISS - Fetching DB`);
     console.time(`[UserProfile:${requestId}] DB`);
     const user = await User.findById(userId).select("-password").lean();
     console.timeEnd(`[UserProfile:${requestId}] DB`);
@@ -222,7 +222,7 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
         url: `/notifications`,
       });
     } catch (e) {
-      console.log("Notification error", e);
+      // console.log("Notification error", e);
     }
 
     // CLEANUP & EVENTS

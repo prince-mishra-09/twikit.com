@@ -32,7 +32,7 @@ const ChatPage = ({ user }) => {
             return c;
           }));
         } catch (error) {
-          console.log(error);
+          // console.log(error);
         }
       };
 
