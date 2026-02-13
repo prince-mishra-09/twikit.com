@@ -12,7 +12,7 @@ Thumbs.db
 *.log
 log.txt
 npm-debug.log*
-
+*_logs.js
 # History
 history.txt
 returns_history.txt
