@@ -1,5 +1,5 @@
 import e from "express";
-import registerUser, { loginUser, logoutUser, sendOTP, verifyOTP, checkUsername, forgotPassword, resetPassword } from '../controllers/authControllers.js'
+import registerUser, { loginUser, logoutUser, sendOTP, verifyOTP, checkUsername, forgotPassword, resetPassword, refreshAccessToken } from '../controllers/authControllers.js'
 import uploadFile from '../middlewares/multer.js'
 import otpEmailService from "../utils/otpEmailService.js";
 
@@ -12,6 +12,7 @@ const router = e.Router();
 router.post('/register', uploadFile, registerUser);
 router.post('/login', loginUser)
 router.get('/logout', logoutUser)
+router.post('/refresh-token', refreshAccessToken)
 
 // OTP routes
 router.post('/send-otp', sendOTP);

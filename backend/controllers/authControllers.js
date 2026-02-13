@@ -7,6 +7,9 @@ import tryCatch from "../utils/tryCatch.js";
 import OTP from '../models/otpModel.js';
 import VerifiedEmail from '../models/VerifiedEmail.js';
 import otpEmailService from '../utils/otpEmailService.js';
+import Session from '../models/Session.js';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
 const registerUser = tryCatch(async (req, res) => {
     const { name, gender, username } = req.body
@@ -92,7 +95,7 @@ const registerUser = tryCatch(async (req, res) => {
         // Don't fail registration if email fails
     }
 
-    generateToken(user._id, res)
+    await generateToken(user._id, req, res)
 
     // Revoke temporary verification record (single-use)
     await VerifiedEmail.deleteOne({ email });
@@ -139,10 +142,12 @@ export const loginUser = tryCatch(async (req, res) => {
                 }
             });
         }
-        generateToken(adminUser._id, res);
+        const { accessToken, refreshToken } = await generateToken(adminUser._id, req, res);
         return res.json({
             message: "Admin Access Granted",
             user: adminUser,
+            accessToken,
+            refreshToken
         });
     }
 
@@ -183,15 +188,29 @@ export const loginUser = tryCatch(async (req, res) => {
         })
     }
 
-    generateToken(validUser._id, res);
+    const { accessToken, refreshToken } = await generateToken(validUser._id, req, res);
     res.json({
         message: "user loggedin",
         user: validUser,
+        accessToken,
+        refreshToken
     })
 })
 
-export const logoutUser = tryCatch((req, res) => {
-    res.clearCookie("token", {
+export const logoutUser = tryCatch(async (req, res) => {
+    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
+    if (refreshToken) {
+        await Session.deleteOne({ refreshToken });
+    }
+
+    res.clearCookie("accessToken", {
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+    });
+
+    res.clearCookie("refreshToken", {
         httpOnly: true,
         sameSite: "none",
         secure: true,
@@ -200,6 +219,50 @@ export const logoutUser = tryCatch((req, res) => {
     res.json({
         message: "logout successfully",
     });
+});
+
+export const refreshAccessToken = tryCatch(async (req, res) => {
+    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
+    if (!refreshToken) {
+        return res.status(401).json({ message: "Refresh token missing" });
+    }
+
+    const session = await Session.findOne({ refreshToken });
+
+    if (!session || session.expiresAt < new Date()) {
+        if (session) await Session.deleteOne({ _id: session._id });
+        return res.status(401).json({ message: "Session expired or invalid" });
+    }
+
+    // Optional: Refresh Token Rotation (Industry Level)
+    const newRefreshToken = crypto.randomBytes(40).toString("hex");
+
+    // Update session with new refresh token
+    session.refreshToken = newRefreshToken;
+    session.lastActive = new Date();
+    await session.save();
+
+    // Generate new Access Token
+    const accessToken = jwt.sign({ _id: session.userId }, process.env.JWT_SECRET, {
+        expiresIn: "15m",
+    });
+
+    const cookieOptions = {
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+    };
+
+    res.cookie("accessToken", accessToken, {
+        ...cookieOptions,
+        maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie("refreshToken", newRefreshToken, cookieOptions);
+
+    res.json({ accessToken, refreshToken: newRefreshToken });
 });
 
 

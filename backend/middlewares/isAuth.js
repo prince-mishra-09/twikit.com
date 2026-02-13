@@ -3,7 +3,8 @@ import User from "../models/userModel.js";
 
 export const isAuth = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    // Get token from Cookies (Web) or Authorization Header (Mobile App)
+    const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
 
     if (!token) {
       return res.status(401).json({ message: "Login required" });
