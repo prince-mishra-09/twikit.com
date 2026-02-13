@@ -25,6 +25,21 @@ const Search = () => {
   const actualPosts = posts.filter(p => p.type === 'post');
   const actualReels = posts.filter(p => p.type === 'reel');
 
+  // Quick Search Logic (Debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (search.trim()) {
+        fetchUsers();
+      } else {
+        setUsers([]);
+        setPosts([]);
+        setHasSearched(false);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
   async function fetchUsers() {
     if (!search.trim()) {
       setUsers([]);
@@ -70,20 +85,23 @@ const Search = () => {
       <div className="sticky top-0 z-20 bg-[var(--bg-primary)]/90 backdrop-blur-md border-b border-[var(--border)] px-2 py-3 mb-4">
         <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0 flex items-center gap-3 bg-[var(--bg-secondary)] rounded-full px-4 py-2.5 border border-transparent focus-within:border-[var(--accent)] transition-all group">
-            <FaSearch className="text-[var(--text-secondary)] group-focus-within:text-[var(--accent)] transition-colors" />
+            {loading ? (
+              <div className="w-4 h-4 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <FaSearch className="text-[var(--text-secondary)] group-focus-within:text-[var(--accent)] transition-colors" />
+            )}
             <input
               type="text"
               className="flex-1 bg-transparent outline-none text-[var(--text-primary)] placeholder-[var(--text-secondary)] text-base md:text-sm"
-              placeholder="Search..."
+              placeholder="Search people or posts..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && fetchUsers()}
-
             />
           </div>
           <button
             onClick={fetchUsers}
-            className="bg-[var(--accent)] hover:opacity-90 active:scale-95 text-white px-4 py-2.5 rounded-full text-sm font-bold transition-all shadow-lg shadow-[var(--accent)]/20 flex items-center justify-center gap-2"
+            className="bg-[var(--bg-primary)] border border-[var(--border)] hover:bg-[var(--bg-secondary)] active:scale-95 text-[var(--accent)] px-4 py-2.5 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2"
           >
             <FaSearch className="md:hidden text-lg" />
             <span className="hidden md:inline">Search</span>
@@ -98,27 +116,22 @@ const Search = () => {
             <LoadingAnimation />
           </div>
         ) : (users.length > 0 || posts.length > 0) ? (
-          <div className="space-y-4">
+          <div className="space-y-1">
             {/* 1. Top 10 Users */}
             {topUsers.map((u) => (
               <Link
                 key={u._id}
                 to={`/user/${u._id}`}
-                className="flex items-start gap-3 px-3 py-3 rounded-xl bg-[var(--card-bg)]/50 border border-[var(--border)] hover:bg-[var(--card-bg)] transition-all"
+                className="flex items-center gap-3 px-2 py-2 hover:bg-[var(--card-bg)]/30 transition-all"
               >
                 <img
                   src={u?.profilePic?.url || "/default-avatar.png"}
                   alt="profile"
-                  className="w-12 h-12 rounded-full object-cover border border-[var(--border)] shrink-0"
+                  className="w-11 h-11 rounded-full object-cover border border-[var(--border)] shrink-0"
                 />
                 <div className="flex flex-col flex-1 min-w-0">
-                  <p className="text-[var(--text-primary)] font-bold text-base truncate max-w-full">{u.name}</p>
-                  <p className="text-[var(--text-secondary)] text-sm truncate max-w-full">@{u.username}</p>
-                  {u.bio && (
-                    <p className="text-[var(--text-secondary)] text-xs mt-1.5 line-clamp-2 break-words leading-relaxed">
-                      {u.bio}
-                    </p>
-                  )}
+                  <p className="text-[var(--text-primary)] font-bold text-sm truncate max-w-full leading-tight">{u.name}</p>
+                  <p className="text-[var(--text-secondary)] text-xs truncate max-w-full">@{u.username}</p>
                 </div>
               </Link>
             ))}
@@ -155,16 +168,16 @@ const Search = () => {
                   <Link
                     key={u._id}
                     to={`/user/${u._id}`}
-                    className="flex items-start gap-3 px-3 py-3 rounded-xl bg-[var(--card-bg)]/50 border border-[var(--border)] hover:bg-[var(--card-bg)] transition-all mb-4"
+                    className="flex items-center gap-3 px-2 py-2 hover:bg-[var(--card-bg)]/30 transition-all"
                   >
                     <img
                       src={u?.profilePic?.url || "/default-avatar.png"}
                       alt="profile"
-                      className="w-12 h-12 rounded-full object-cover border border-[var(--border)] shrink-0"
+                      className="w-11 h-11 rounded-full object-cover border border-[var(--border)] shrink-0"
                     />
                     <div className="flex flex-col flex-1 min-w-0">
-                      <p className="text-[var(--text-primary)] font-bold text-base truncate max-w-full">{u.name}</p>
-                      <p className="text-[var(--text-secondary)] text-sm truncate max-w-full">@{u.username}</p>
+                      <p className="text-[var(--text-primary)] font-bold text-sm truncate max-w-full leading-tight">{u.name}</p>
+                      <p className="text-[var(--text-secondary)] text-xs truncate max-w-full">@{u.username}</p>
                     </div>
                   </Link>
                 ))}

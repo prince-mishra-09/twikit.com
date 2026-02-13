@@ -5,7 +5,7 @@ import { isSameId, includesId } from "../utils/idUtils";
 import { PostData } from "../context/PostContext";
 import PostCard from "../components/PostCard";
 import { FaArrowDownLong, FaArrowUp, FaArrowLeft } from "react-icons/fa6";
-import { IoMenu, IoClose, IoSparklesOutline } from "react-icons/io5";
+import { IoMenu, IoClose, IoSparklesOutline, IoLockClosedOutline, IoVolumeOffOutline, IoBanOutline, IoShieldCheckmarkOutline } from "react-icons/io5";
 import { BsGrid3X3, BsShare, BsBookmark } from "react-icons/bs";
 import ReelsIcon from "../components/ReelsIcon";
 import Modal from "../components/Modal";
@@ -245,6 +245,7 @@ const Account = ({ user }) => {
                     className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2 justify-between"
                   >
                     <div className="flex items-center gap-2">
+                      <IoShieldCheckmarkOutline className="text-lg" />
                       <span>Private Account</span>
                     </div>
                     <div className={`w-8 h-4 rounded-full relative transition-colors ${user.isPrivate ? "bg-[var(--accent)]" : "bg-gray-600"}`}>
@@ -259,7 +260,7 @@ const Account = ({ user }) => {
                     }}
                     className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2"
                   >
-                    <BsShare /> Share Profile
+                    <BsShare className="text-lg" /> Share Profile
                   </button>
 
                   <button
@@ -269,7 +270,7 @@ const Account = ({ user }) => {
                     }}
                     className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2"
                   >
-                    Edit Profile
+                    <FiEdit2 className="text-lg" /> Edit Profile
                   </button>
 
                   <button
@@ -279,7 +280,7 @@ const Account = ({ user }) => {
                     }}
                     className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2"
                   >
-                    Change Password
+                    <IoLockClosedOutline className="text-lg" /> Change Password
                   </button>
                   <button
                     onClick={() => {
@@ -288,7 +289,7 @@ const Account = ({ user }) => {
                     }}
                     className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2"
                   >
-                    Muted Users
+                    <IoVolumeOffOutline className="text-xl" /> Muted Users
                   </button>
                   <button
                     onClick={() => {
@@ -297,7 +298,7 @@ const Account = ({ user }) => {
                     }}
                     className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2"
                   >
-                    Blocked Users
+                    <IoBanOutline className="text-lg" /> Blocked Users
                   </button>
                   <button
                     onClick={() => {
@@ -312,6 +313,7 @@ const Account = ({ user }) => {
                     className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2 justify-between"
                   >
                     <div className="flex items-center gap-2">
+                      <RiRecordCircleFill className="text-lg" />
                       <span>Online Status</span>
                     </div>
                     <span className="text-xs font-medium bg-[var(--bg-secondary)] px-2 py-0.5 rounded-full">
@@ -327,6 +329,7 @@ const Account = ({ user }) => {
                     className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 flex items-center gap-2 justify-between"
                   >
                     <div className="flex items-center gap-2">
+                      <IoEye className="text-lg" />
                       <span>Last Seen Status</span>
                     </div>
                     <span className="text-xs font-medium bg-[var(--bg-secondary)] px-2 py-0.5 rounded-full">

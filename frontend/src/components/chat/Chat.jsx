@@ -12,8 +12,8 @@ const Chat = ({ chat, setSelectedChat, isOnline, unreadCount }) => {
       {user && (
         <div
           onClick={() => setSelectedChat(chat)}
-          className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer
-          bg-[var(--card-bg)]/60 hover:bg-[var(--card-bg)] transition border border-[var(--border)]"
+          className="flex items-center gap-3 px-3 py-2 cursor-pointer
+          hover:bg-[var(--text-primary)]/5 transition-all"
         >
           {/* Avatar */}
           <div className="relative">

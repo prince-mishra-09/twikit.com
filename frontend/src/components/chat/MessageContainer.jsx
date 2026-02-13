@@ -7,7 +7,8 @@ import MessageInput from "./MessageInput";
 import { SocketData } from "../../context/SocketContext";
 import { ChatData } from "../../context/ChatContext";
 
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaTimes, FaReply } from "react-icons/fa";
+import { IoClose } from "react-icons/io5";
 
 const MessageContainer = ({ selectedChat, setChats }) => {
   const [messages, setMessages] = useState([]);
@@ -134,7 +135,18 @@ const MessageContainer = ({ selectedChat, setChats }) => {
 
   // State for one active menu at a time
   const [activeMessageId, setActiveMessageId] = useState(null);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [highlightedMessageId, setHighlightedMessageId] = useState(null);
 
+  const scrollToMessage = (msgId) => {
+    const el = document.getElementById(`msg-${msgId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      setHighlightedMessageId(msgId);
+      // Clear highlight after animation
+      setTimeout(() => setHighlightedMessageId(null), 2000);
+    }
+  };
   // Helper for dates
   const formatDateLabel = (dateString) => {
     const date = new Date(dateString);
@@ -158,8 +170,8 @@ const MessageContainer = ({ selectedChat, setChats }) => {
       onClick={() => setActiveMessageId(null)} // Close menu on click outside
     >
 
-      {/* HEADER - Fixed at top */}
-      <div className="absolute top-0 left-0 w-full flex-none flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] bg-[var(--card-bg)]/100 backdrop-blur-md z-30">
+      {/* HEADER - Sticky at top */}
+      <div className="sticky top-0 w-full flex-none flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] bg-[var(--card-bg)]/100 backdrop-blur-md z-30">
         <button
           onClick={() => setSelectedChat(null)}
           className="md:hidden mr-1 text-[var(--text-primary)] p-2 rounded-full hover:bg-[var(--text-primary)]/10"
@@ -198,7 +210,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
         <>
           <div
             ref={messageContainerRef}
-            className="flex-1 overflow-y-auto px-4 pt-20 pb-3 space-y-2 bg-[var(--bg-primary)]"
+            className="flex-1 overflow-y-auto px-4 pt-4 pb-3 space-y-2 bg-[var(--bg-primary)]"
           >
             {messages &&
               messages.map((e, i) => {
@@ -223,26 +235,61 @@ const MessageContainer = ({ selectedChat, setChats }) => {
                       deleteHandler={deleteMessageHandler}
                       activeMessageId={activeMessageId}
                       setActiveMessageId={setActiveMessageId}
+                      onReply={(msg) => {
+                        // Vibrate if mobile? (Window.navigator.vibrate)
+                        setReplyingTo(msg);
+                      }}
+                      scrollToMessage={scrollToMessage}
+                      highlightedMessageId={highlightedMessageId}
                     />
                   </React.Fragment>
                 );
               })}
           </div>
 
-          {/* INPUT */}
-          <div className="flex-none border-t border-[var(--border)] bg-[var(--card-bg)]/80 backdrop-blur-md z-10 p-2 pb-2 md:pb-2">
-            {otherUser?.isPrivate && !user?.followings?.includes(otherUser._id) ? (
-              <div className="flex justify-center items-center py-4 bg-[var(--bg-secondary)]/30 rounded-lg mx-2 my-1 border border-[var(--border)]">
-                <p className="text-[var(--text-secondary)] text-sm">
-                  Follow <span className="font-bold text-[var(--text-primary)]">@{otherUser.username}</span> to message them
-                </p>
+          {/* INPUT AREA */}
+          <div className="flex-none  border-[var(--border)] bg-[var(--card-bg)]/80 backdrop-blur-md z-10">
+            {/* Reply Preview */}
+            {replyingTo && (
+              <div className="px-4 py-2  border-[var(--border)] flex items-center justify-between bg-black/5">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="text-[var(--accent)] shrink-0">
+                    <FaReply size={14} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-[var(--accent)]">
+                      Replying to {replyingTo.sender === user?._id ? "yourself" : `@${replyingTo.sender?.username || "user"}`}
+                    </p>
+                    <p className="text-xs text-[var(--text-secondary)] truncate">
+                      {replyingTo.text || (replyingTo.sharedContent ? "Shared content" : "Attachment")}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setReplyingTo(null)}
+                  className="p-1.5 hover:bg-[var(--bg-secondary)] rounded-full transition-colors shrink-0"
+                >
+                  <IoClose size={18} className="text-[var(--text-secondary)]" />
+                </button>
               </div>
-            ) : (
-              <MessageInput
-                setMessages={setMessages}
-                selectedChat={selectedChat}
-              />
             )}
+
+            <div className="p-2 pb-2 md:pb-2">
+              {otherUser?.isPrivate && !user?.followings?.includes(otherUser._id) ? (
+                <div className="flex justify-center items-center py-4 bg-[var(--bg-secondary)]/30 rounded-lg mx-2 my-1 border border-[var(--border)]">
+                  <p className="text-[var(--text-secondary)] text-sm">
+                    Follow <span className="font-bold text-[var(--text-primary)]">@{otherUser.username}</span> to message them
+                  </p>
+                </div>
+              ) : (
+                <MessageInput
+                  setMessages={setMessages}
+                  selectedChat={selectedChat}
+                  replyingTo={replyingTo}
+                  setReplyingTo={setReplyingTo}
+                />
+              )}
+            </div>
           </div>
         </>
       )}

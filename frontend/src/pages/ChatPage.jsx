@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChatData } from "../context/ChatContext";
 import axios from "axios";
@@ -18,6 +18,11 @@ const ChatPage = ({ user }) => {
   const [search, setSearch] = useState(false);
 
   const { onlineUsers } = SocketData();
+
+  // Sort chats by latest interaction for the sidebar
+  const sortedChats = useMemo(() => {
+    return [...chats].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  }, [chats]);
 
   useEffect(() => {
     if (selectedChat && selectedChat._id) {
@@ -100,7 +105,7 @@ const ChatPage = ({ user }) => {
             </div>
             <button
               onClick={() => setSearch(!search)}
-              className="bg-[var(--accent)] text-white p-2 rounded-full hover:opacity-90"
+              className="bg-[var(--bg-primary)] border border-[var(--border)] hover:bg-[var(--bg-secondary)] text-[var(--accent)] p-2 rounded-full transition-all"
             >
               {search ? "✕" : <FaSearch />}
             </button>
@@ -118,23 +123,23 @@ const ChatPage = ({ user }) => {
           </div>
 
           {/* Chat / User list */}
-          <div className="flex-1 overflow-y-auto px-2 space-y-2">
+          <div className="flex-1 overflow-y-auto px-2 space-y-1">
             {search ? (
               users.length > 0 ? (
                 users.map((u) => (
                   <div
                     key={u._id}
                     onClick={() => createNewChat(u._id)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer bg-[var(--bg-primary)]/60 hover:bg-[var(--bg-primary)]"
+                    className="flex items-center gap-3 px-3 py-2 hover:bg-[var(--text-primary)]/5 transition-all cursor-pointer"
                   >
                     <img
                       src={u.profilePic.url}
-                      className="w-9 h-9 rounded-full object-cover"
+                      className="w-10 h-10 rounded-full object-cover border border-[var(--border)]"
                       alt=""
                     />
                     <div className="flex flex-col">
-                      <p className="text-[var(--text-primary)] text-sm font-semibold">@{u.username}</p>
-                      <p className="text-[var(--text-secondary)] text-xs">{u.name}</p>
+                      <p className="text-[var(--text-primary)] text-sm font-semibold truncate">@{u.username}</p>
+                      <p className="text-[var(--text-secondary)] text-[10px]">{u.name}</p>
                     </div>
                   </div>
                 ))
@@ -143,8 +148,8 @@ const ChatPage = ({ user }) => {
                   No users found
                 </p>
               )
-            ) : chats.length > 0 ? (
-              chats.map((c) => (
+            ) : sortedChats.length > 0 ? (
+              sortedChats.map((c) => (
                 <Chat
                   key={c._id}
                   chat={c}

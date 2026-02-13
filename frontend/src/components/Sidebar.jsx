@@ -141,7 +141,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => { // Accept props
                                 >
                                     <div className="relative group-hover:scale-110 transition-transform duration-200">
                                         {isActive(item.path)
-                                            ? <item.activeIcon className="text-2xl text-[var(--text-primary)]" />
+                                            ? <item.activeIcon className="text-2xl text-[var(--accent)]" />
                                             : <item.icon className="text-2xl text-[var(--text-primary)]" />
                                         }
                                         {item.badge > 0 && (

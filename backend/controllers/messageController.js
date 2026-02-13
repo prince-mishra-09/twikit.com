@@ -8,7 +8,7 @@ import { Post } from "../models/postModel.js";
 import User from "../models/userModel.js";
 
 export const sendMessage = TryCatch(async (req, res) => {
-  const { recieverId, message, sharedContent } = req.body;
+  const { recieverId, message, sharedContent, replyTo } = req.body;
 
   const senderId = req.user._id;
 
@@ -123,9 +123,16 @@ export const sendMessage = TryCatch(async (req, res) => {
     sender: senderId,
     text: message,
     sharedContent,
+    replyTo,
   });
 
   await newMessage.save();
+
+  // Populate replyTo for socket emission
+  await newMessage.populate({
+    path: "replyTo",
+    populate: { path: "sender", select: "name username" },
+  });
 
   await chat.updateOne({
     latestMessage: {
@@ -176,6 +183,9 @@ export const getAllMessages = TryCatch(async (req, res) => {
   const messages = await Messages.find({
     chatId: chat._id,
     deletedBy: { $ne: userId }
+  }).populate({
+    path: "replyTo",
+    populate: { path: "sender", select: "name username" },
   });
 
   // Dynamic Accessibility Check for Shared Content

@@ -28,6 +28,10 @@ const messageSchema = new mongoose.Schema(
         username: String,
       },
     },
+    replyTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Messages",
+    },
   },
   {
     timestamps: true,

@@ -7,7 +7,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 const ShareModal = ({ isOpen, onClose, content }) => {
-    const { chats } = ChatData(); // Uses recent chats
+    const { chats, setChats } = ChatData(); // Uses recent chats
     const { user: myUser } = UserData();
     const [query, setQuery] = useState("");
     const [users, setUsers] = useState([]); // Search results
@@ -65,6 +65,25 @@ const ShareModal = ({ isOpen, onClose, content }) => {
 
             const responses = await Promise.all(promises);
             // console.log("Share responses:", responses);
+
+            // UPDATE LOCAL CHATS STATE FOR SORTING
+            setChats(prev => {
+                const updatedChats = [...prev];
+                selectedUsers.forEach(selUser => {
+                    const chatIndex = updatedChats.findIndex(c => c.users.some(u => u._id === selUser._id));
+                    if (chatIndex !== -1) {
+                        updatedChats[chatIndex] = {
+                            ...updatedChats[chatIndex],
+                            latestMessage: {
+                                text: message || (content.type === "reel" ? "Shared reel" : content.type === "post" ? "Shared post" : "Shared profile"),
+                                sender: myUser._id,
+                            },
+                            updatedAt: new Date().toISOString(),
+                        };
+                    }
+                });
+                return updatedChats;
+            });
 
             toast.success(`Sent to ${selectedUsers.length} users!`);
             onClose();
@@ -137,6 +156,7 @@ const ShareModal = ({ isOpen, onClose, content }) => {
                                     user={u}
                                     selected={selectedUsers.some(sel => sel._id === u._id)}
                                     onSelect={() => toggleUser(u)}
+                                    isRestricted={u.isPrivate && u._id !== myUser?._id && !myUser?.followings?.some(f => (f._id || f) === u._id)}
                                 />
                             )) : <p className="col-span-4 text-center text-[var(--text-secondary)] text-sm py-4">No users found</p>
                         ) : (
@@ -144,12 +164,16 @@ const ShareModal = ({ isOpen, onClose, content }) => {
                                 {chats.map(chat => {
                                     // Get other user
                                     const other = chat.users.find(u => u._id !== myUser?._id) || chat.users[0];
+                                    if (!other) return null;
+                                    const restricted = other.isPrivate && other._id !== myUser?._id && !myUser?.followings?.some(f => (f._id || f) === other._id);
+
                                     return (
                                         <UserItem
                                             key={chat._id}
                                             user={other}
                                             selected={selectedUsers.some(sel => sel._id === other._id)}
                                             onSelect={() => toggleUser(other)}
+                                            isRestricted={restricted}
                                         />
                                     );
                                 })}
@@ -203,10 +227,10 @@ const ShareModal = ({ isOpen, onClose, content }) => {
     );
 };
 
-const UserItem = ({ user, selected, onSelect }) => (
+const UserItem = ({ user, selected, onSelect, isRestricted }) => (
     <div
-        onClick={onSelect}
-        className={`flex flex-col items-center gap-2 p-2 rounded-xl cursor-pointer transition-all active:scale-95 group relative`}
+        onClick={isRestricted ? () => toast.error("Bhai, ye private account hai. Follow kiye bina share nahi kar sakte!") : onSelect}
+        className={`flex flex-col items-center gap-2 p-2 rounded-xl cursor-pointer transition-all active:scale-95 group relative ${isRestricted ? "opacity-30 grayscale saturate-0" : ""}`}
     >
         {/* Avatar Ring */}
         <div className={`p-1 rounded-full border-2 transition-colors ${selected ? "border-[var(--accent)]" : "border-transparent group-hover:border-[var(--border)]"}`}>
@@ -219,11 +243,18 @@ const UserItem = ({ user, selected, onSelect }) => (
                         </svg>
                     </div>
                 )}
+                {isRestricted && (
+                    <div className="absolute inset-0 bg-black/20 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white/60" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 17a2 2 0 01-2-2V9a2 2 0 012-2m0 10a2 2 0 002-2V9a2 2 0 00-2-2m0 10v4m0-14V3m0 0a9 9 0 110 18 9 9 0 010-18z" />
+                        </svg>
+                    </div>
+                )}
             </div>
         </div>
 
         {/* Username */}
-        <p className="text-xs text-[var(--text-secondary)] truncate max-w-full text-center group-hover:text-[var(--text-primary)] transition-colors">
+        <p className={`text-xs ${isRestricted ? "text-[var(--text-secondary)]/50" : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"} truncate max-w-full text-center transition-colors`}>
             {user.username || user.name.split(' ')[0]}
         </p>
     </div>

@@ -29,20 +29,20 @@ body {
   /* Hot Pink */
 }
 
-/* Theme Option A: "Cyber Neon" (Pitch Black) - Night Owls */
+/* Theme Option A: "Black & White" (Pure Monochrome) */
 [data-theme='cyber'] {
-  --bg-primary: #0D0D0D;
-  --bg-secondary: #1F1F1F;
-  --text-primary: #FFFFFF;
-  --text-secondary: #C0C0C0;
-  /* Brighter for better readability on dark bg */
-  --accent: #00FFD1;
-  --accent-hover: #00E0B8;
+  --bg-primary: #000000;
+  --bg-secondary: #0A0A0A;
+  --text-primary: #B0B0B0;
+  /* Greyish for inactive/regular text */
+  --text-secondary: #7A7A7A;
+  --accent: #FFFFFF;
+  /* Pure White for Active state */
+  --accent-hover: #E0E0E0;
   --text-on-accent: #000000;
-  --border: #333333;
-  --card-bg: #1F1F1F;
-  --accent-secondary: #FF2E63;
-  /* Hot Pink */
+  --border: #262626;
+  --card-bg: #0A0A0A;
+  --accent-secondary: #404040;
 }
 
 /* Theme Option B: "Soft Matcha" (Pale Matcha Green) - Aesthetic/Lifestyle */
@@ -180,4 +180,18 @@ h3 {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
   /* Chrome, Safari and Opera */
+}
+
+@keyframes highlight-flash {
+  0% {
+    background-color: rgba(58, 130, 238, 0.4);
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}
+
+.highlight-message {
+  animation: highlight-flash 1.5s ease-out forwards;
 }

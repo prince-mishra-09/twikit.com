@@ -5,7 +5,7 @@ import axios from "axios";
 import { BsSendFill } from "react-icons/bs";
 import { UserData } from "../../context/UserContext";
 
-const MessageInput = ({ setMessages, selectedChat }) => {
+const MessageInput = ({ setMessages, selectedChat, replyingTo, setReplyingTo }) => {
   const [textMsg, setTextMsg] = useState("");
   const inputRef = useRef(null);
   const { setChats } = ChatData();
@@ -25,7 +25,8 @@ const MessageInput = ({ setMessages, selectedChat }) => {
       text: messageText,
       sender: user._id, // We need 'user' from UserData()
       createdAt: new Date().toISOString(),
-      status: "sending"
+      status: "sending",
+      replyTo: replyingTo // Optimistic reply context
     };
 
     // 2. UPDATE MESSAGES LIST INSTANTLY
@@ -50,10 +51,13 @@ const MessageInput = ({ setMessages, selectedChat }) => {
       return prev;
     });
 
+    setReplyingTo(null); // Clear reply state INSTANTLY for better UX
+
     try {
       const { data } = await axios.post("/api/messages", {
         message: messageText,
         recieverId: selectedChat.users[0]._id,
+        replyTo: replyingTo?._id,
       });
 
       // 4. REPLACE OPTIMISTIC MESSAGE WITH REAL ONE

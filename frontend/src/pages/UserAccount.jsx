@@ -8,7 +8,7 @@ import { FaArrowDownLong, FaArrowUp, FaEllipsisVertical } from "react-icons/fa6"
 import { IoClose } from "react-icons/io5"; // Added import
 import axios from "axios";
 
-import { SkeletonPost } from "../components/Skeleton";
+import { SkeletonPost, SkeletonProfile } from "../components/Skeleton";
 import { UserData } from "../context/UserContext";
 import Modal from "../components/Modal";
 import { SocketData } from "../context/SocketContext";
@@ -30,6 +30,7 @@ const UserAccount = ({ user: loggedInUser }) => {
   const { createChat, setSelectedChat } = ChatData(); // Added
   const params = useParams();
   const navigate = useNavigate();
+  const { onlineUsers } = SocketData();
   const { cycleTheme } = useTheme();
 
 
