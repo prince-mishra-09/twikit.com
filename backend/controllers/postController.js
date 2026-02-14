@@ -323,6 +323,9 @@ export const handleFeedback = TryCatch(async (req, res) => {
 
     const action = isRemoving ? "removed" : "added";
 
+    // Populate owner before sending to client to prevent "Deleted User" bug
+    await updatedPost.populate("owner", "name username profilePic isPrivate");
+
     // 🔥 REAL-TIME EMIT (SAFE)
     try {
         const io = getIO();
