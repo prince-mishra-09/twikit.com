@@ -81,14 +81,19 @@ const MessageContainer = ({ selectedChat, setChats }) => {
       }
     });
 
-    socket.on("messageDeleted", ({ messageId }) => {
-      setMessages((prev) => prev.filter((msg) => msg._id !== messageId));
+    socket.on("messageReactionUpdated", ({ messageId, chatId, reactions }) => {
+      if (selectedChat._id === chatId) {
+        setMessages((prev) =>
+          prev.map((msg) => (msg._id === messageId ? { ...msg, reactions } : msg))
+        );
+      }
     });
 
     return () => {
       socket.off("newMessage");
       socket.off("messagesRead");
       socket.off("messageDeleted");
+      socket.off("messageReactionUpdated");
     };
   }, [socket, selectedChat, setChats, user._id]);
 

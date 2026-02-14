@@ -53,7 +53,7 @@ const Chat = ({ chat, setSelectedChat, isOnline, unreadCount }) => {
 
           {(unreadCount > 0) && (
             <div className="flex flex-col items-end gap-1">
-              <span className="bg-[var(--accent)] text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
+              <span className="bg-[#3450bf] text-black text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
                 {unreadCount}
               </span>
             </div>
