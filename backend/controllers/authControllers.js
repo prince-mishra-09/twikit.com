@@ -75,17 +75,27 @@ const registerUser = tryCatch(async (req, res) => {
 
     const myCloud = await cloudinary.v2.uploader.upload(fileUrl.content)
 
-    const user = await User.create({
-        name,
-        email,
-        password: hashPassword,
-        gender,
-        username: username || null,
-        profilePic: {
-            id: myCloud.public_id,
-            url: myCloud.secure_url
+    let user;
+    try {
+        user = await User.create({
+            name,
+            email,
+            password: hashPassword,
+            gender,
+            username: username || null,
+            profilePic: {
+                id: myCloud.public_id,
+                url: myCloud.secure_url
+            }
+        })
+    } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({
+                message: "Username already taken. Please choose another one.",
+            });
         }
-    })
+        throw error; // Let tryCatch middleware handle other errors
+    }
 
     // Send welcome email
     try {
