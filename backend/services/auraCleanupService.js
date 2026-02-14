@@ -45,7 +45,7 @@ export const archiveExpiredAuras = async () => {
                         auraAvatar: aura.auraAvatar,
                         auraAvatarType: aura.auraAvatarType,
                         caption: aura.caption,
-                        media: aura.media || undefined,
+                        media: aura.media || null,
                         type: aura.type,
                         vibesUpCount: vibesUpCount,
                         vibesKilledCount: vibesKilledCount,

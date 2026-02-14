@@ -190,7 +190,6 @@ server.listen(port, async () => {
   await initializeRedis(); // Explicitly init Redis after env vars are ready
   await migrateUsernames();
 
-
   // Start monitoring system after server starts
   setTimeout(() => {
     monitoringService.start();

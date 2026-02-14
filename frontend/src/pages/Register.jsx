@@ -228,15 +228,15 @@ const Register = () => {
 
         {/* Step Indicator */}
         <div className="flex items-center justify-center mt-6 space-x-2">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 1 ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 1 ? 'bg-[var(--accent)] text-[var(--text-on-accent)]' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
             1
           </div>
           <div className={`w-12 h-0.5 ${step >= 2 ? 'bg-[var(--accent)]' : 'bg-[var(--bg-secondary)]'}`}></div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 2 ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 2 ? 'bg-[var(--accent)] text-[var(--text-on-accent)]' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
             2
           </div>
           <div className={`w-12 h-0.5 ${step >= 3 ? 'bg-[var(--accent)]' : 'bg-[var(--bg-secondary)]'}`}></div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 3 ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 3 ? 'bg-[var(--accent)] text-[var(--text-on-accent)]' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
             3
           </div>
         </div>
@@ -266,7 +266,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl text-white font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
+              className="w-full py-3 rounded-xl text-[var(--text-on-accent)] font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
             >
               {loading ? "Sending..." : "Send Verification Code"}
             </button>
@@ -295,7 +295,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading || otp.length !== 4}
-              className="w-full py-3 rounded-xl text-white font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
+              className="w-full py-3 rounded-xl text-[var(--text-on-accent)] font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
             >
               {loading ? "Verifying..." : "Verify Code"}
             </button>
@@ -430,7 +430,7 @@ const Register = () => {
 
             <button
               type="submit"
-              className="w-full py-3 rounded-xl text-white font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition"
+              className="w-full py-3 rounded-xl text-[var(--text-on-accent)] font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition"
             >
               Create Account
             </button>

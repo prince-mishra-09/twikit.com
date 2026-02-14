@@ -94,7 +94,7 @@ export const createAuraX = async (req, res) => {
                 auraAvatar: user.auraAvatar || '👻',
                 auraAvatarType: user.auraAvatarType || 'emoji',
                 caption: caption.trim(),
-                media: mediaData,
+                media: mediaData || null,
                 type: postType,
                 vibesUpCount: 0,
                 vibesKilledCount: 0,

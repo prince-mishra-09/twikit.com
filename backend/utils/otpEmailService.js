@@ -38,9 +38,9 @@ class OTPEmailService {
         throw error;
       }
 
-      // 2. If threshold reached, send alert (async, don't block)
+      // 2. If threshold reached, send alert
       if (shouldAlert) {
-        this.sendAlertEmail(count);
+        await this.sendAlertEmail(count);
       }
 
       return { success: true, messageId: data.id };
