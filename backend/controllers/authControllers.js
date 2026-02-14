@@ -90,8 +90,11 @@ const registerUser = tryCatch(async (req, res) => {
         })
     } catch (error) {
         if (error.code === 11000) {
+            console.error("DUPLICATE KEY ERROR DETAILS:", error.keyValue);
+            const field = Object.keys(error.keyValue)[0];
+            const displayField = field.charAt(0).toUpperCase() + field.slice(1);
             return res.status(400).json({
-                message: "Username already taken. Please choose another one.",
+                message: `${displayField} already taken. Please choose another one.`,
             });
         }
         throw error; // Let tryCatch middleware handle other errors
@@ -380,7 +383,8 @@ export const checkUsername = tryCatch(async (req, res) => {
 
     if (!username) {
         return res.status(400).json({
-            message: "Username is required"
+            message: "Username is required",
+            available: false
         });
     }
 
@@ -388,8 +392,9 @@ export const checkUsername = tryCatch(async (req, res) => {
     const usernameRegex = /^[a-zA-Z0-9_\.]{3,20}$/;
     if (!usernameRegex.test(username)) {
         return res.status(400).json({
-            message: "Username must be 3-20 characters (alphanumeric, underscore, and dot only)",
-            available: false
+            message: "Invalid format (3-20 chars, alphanumeric/./_ only)",
+            available: false,
+            errorType: "invalid_format"
         });
     }
 
@@ -399,7 +404,8 @@ export const checkUsername = tryCatch(async (req, res) => {
     if (existingUser) {
         return res.json({
             available: false,
-            message: "Username already taken"
+            message: "Username already taken",
+            errorType: "already_taken"
         });
     }
 
