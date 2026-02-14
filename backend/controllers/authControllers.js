@@ -211,7 +211,7 @@ export const loginUser = tryCatch(async (req, res) => {
 })
 
 export const logoutUser = tryCatch(async (req, res) => {
-    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+    const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
     if (refreshToken) {
         await Session.deleteOne({ refreshToken });
@@ -235,7 +235,7 @@ export const logoutUser = tryCatch(async (req, res) => {
 });
 
 export const refreshAccessToken = tryCatch(async (req, res) => {
-    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+    const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
     if (!refreshToken) {
         return res.status(401).json({ message: "Refresh token missing" });
