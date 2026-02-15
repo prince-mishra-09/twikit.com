@@ -123,11 +123,14 @@ export default registerUser
 
 
 export const loginUser = tryCatch(async (req, res) => {
-    const { password, email: identifier } = req.body; // 'email' field now acts as identifier (email or username)
-    // Front-end sends 'email' key even if it's username, or we can update frontend.
-    // Assuming frontend continues to send 'email' key for the login identifier.
+    const { password, email, identifier: bodyIdentifier } = req.body;
+    const identifier = bodyIdentifier || email; // Fallback to 'email' if 'identifier' is missing (backward compatibility)
 
-    const idStr = identifier?.toLowerCase();
+    if (!identifier) {
+        return res.status(400).json({ message: "Email or username is required" });
+    }
+
+    const idStr = identifier.toLowerCase();
 
     // Strategy:
     // 1. Try to find by username first (Exact match)

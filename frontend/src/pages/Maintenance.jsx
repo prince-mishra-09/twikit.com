@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 
 const Maintenance = () => {
     const [showLogin, setShowLogin] = useState(false);
-    const [email, setEmail] = useState("");
+    const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
     const { loginUser } = UserData();
     const { fetchPosts } = PostData();
@@ -17,14 +17,14 @@ const Maintenance = () => {
     const handleAdminLogin = async (e) => {
         e.preventDefault();
 
-        if (email !== "admin@prince") {
+        if (identifier !== "admin@prince") {
             toast.error("Permission Denied: Only Admin can bypass maintenance.");
             return;
         }
 
         setLoading(true);
         try {
-            await loginUser(email, password, navigate, fetchPosts);
+            await loginUser(identifier, password, navigate, fetchPosts);
             window.location.reload(); // Force reload to trigger App.jsx bypass
         } catch (error) {
             console.error("Login failed:", error);
@@ -80,10 +80,10 @@ const Maintenance = () => {
                             <div className="relative">
                                 <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                                 <input
-                                    type="email"
+                                    type="text"
                                     placeholder="Admin ID"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    value={identifier}
+                                    onChange={(e) => setIdentifier(e.target.value)}
                                     required
                                     className="w-full bg-gray-800 border-none rounded-xl py-3 pl-12 pr-4 text-white focus:ring-2 focus:ring-purple-500 transition-all outline-none"
                                 />

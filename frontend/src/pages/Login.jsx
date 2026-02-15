@@ -7,7 +7,7 @@ import axios from "axios";
 import { createPortal } from "react-dom";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -27,7 +27,7 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    loginUser(email, password, navigate, fetchPosts);
+    loginUser(identifier, password, navigate, fetchPosts);
   };
 
   // Forgot Password: Send OTP
@@ -125,8 +125,8 @@ const Login = () => {
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <input
             type="text"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
             placeholder="Email or Username"
             className="w-full px-4 py-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition"
             required
