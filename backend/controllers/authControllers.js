@@ -108,7 +108,7 @@ const registerUser = tryCatch(async (req, res) => {
         // Don't fail registration if email fails
     }
 
-    await generateToken(user._id, req, res)
+    const { accessToken, refreshToken } = await generateToken(user._id, req, res)
 
     // Revoke temporary verification record (single-use)
     await VerifiedEmail.deleteOne({ email });
@@ -116,6 +116,8 @@ const registerUser = tryCatch(async (req, res) => {
     res.status(201).json({
         message: "user registered",
         user,
+        accessToken,
+        refreshToken
     })
 })
 
