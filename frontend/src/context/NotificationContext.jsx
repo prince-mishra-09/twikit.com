@@ -48,6 +48,8 @@ export const NotificationProvider = ({ children }) => {
             socket.on("notification:new", (newNotification) => {
                 setNotifications((prev) => [newNotification, ...prev]);
                 setUnreadCount((prev) => prev + 1);
+                if (newNotification.receiver && newNotification.receiver !== user?._id) return;
+
                 let toastMessage = "New Notification";
                 if (newNotification.type === "vibeUp") toastMessage = "vibed up your post! ✨";
                 else if (newNotification.type === "vibeDown") return; // Silence VibeDown (private)

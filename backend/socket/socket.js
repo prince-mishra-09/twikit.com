@@ -10,7 +10,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ["https://twikit-com.vercel.app", "https://twiikit-com.vercel.app", "http://localhost:5173", "https://twikit.online", "https://www.twikit.online", "*"],
+    origin: ["https://twikit-com.vercel.app", "https://twiikit-com.vercel.app", "http://localhost:5173", "https://twikit.online", "https://www.twikit.online", "https://twikit-6lhw6lbeg-prince-mishras-projects-eb04834b.vercel.app", "*"],
     methods: ["GET", "POST"],
     credentials: true,
   },
