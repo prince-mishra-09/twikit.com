@@ -53,13 +53,13 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => { // Accept props
             icon: (props) => <ReelsIcon {...props} />,
             activeIcon: (props) => <ReelsIcon {...props} />,
         },
-        {
-            name: "Aura X",
-            path: "/aurax",
-            icon: () => <AuraXIcon size={24} />,
-            activeIcon: () => <AuraXIcon size={24} className="active-aura-icon" />,
-            isAuraX: true, // Special styling
-        },
+        // {
+        //     name: "Aura X",
+        //     path: "/aurax",
+        //     icon: () => <AuraXIcon size={24} />,
+        //     activeIcon: () => <AuraXIcon size={24} className="active-aura-icon" />,
+        //     isAuraX: true, // Special styling
+        // },
         {
             name: "Messages",
             path: "/chat",
