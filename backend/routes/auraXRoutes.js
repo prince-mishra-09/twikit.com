@@ -11,6 +11,9 @@ import {
     deleteAuraX,
     getUserAuraIdentity,
     saveAuraAvatar,
+    getUserAuraStats,
+    getTopAuraPersonalities,
+    getTrendingAuras,
 } from "../controllers/auraXController.js";
 
 const router = e.Router();
@@ -35,6 +38,15 @@ router.get("/identity", isAuth, getUserAuraIdentity);
 
 // Save user's aura avatar (onboarding)
 router.post("/avatar", isAuth, saveAuraAvatar);
+
+// Get User Aura Stats
+router.get("/stats", isAuth, getUserAuraStats);
+
+// Get Top Personalities
+router.get("/personalities", optionalAuth, getTopAuraPersonalities);
+
+// Get Trending Auras
+router.get("/trending", optionalAuth, getTrendingAuras);
 
 // Delete Aura
 router.delete("/:id", isAuth, deleteAuraX);

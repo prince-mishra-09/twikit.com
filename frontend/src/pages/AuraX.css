@@ -1,456 +1,539 @@
-/* AuraX Page Container */
+/* AuraX Page Container - Three Column Layout */
 .aurax-page-container {
   min-height: 100vh;
-  /* background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);  <-- REMOVED: Now handled by GalaxyBackground */
-  background: transparent;
-  padding-bottom: 100px;
-  /* Space for floating button */
-}
-
-/* Top Sticky Navbar */
-/* Desktop Sidebar */
-.aurax-sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 260px;
-  height: 100vh;
-  background: rgba(26, 26, 46, 0.6);
-  /* Glassmorphism */
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.6);
+  /* Deep dark overlay */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 30px 20px;
-  z-index: 100;
-}
-
-.sidebar-top {
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-}
-
-.sidebar-logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-left: 10px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  width: 100%;
-}
-
-.sidebar-title {
-  font-size: 2rem;
-  font-weight: 800;
-  background: linear-gradient(90deg, #00F5FF, #FF1493);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0;
-  letter-spacing: 1px;
-}
-
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-top: 10px;
-}
-
-.sidebar-btn {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 16px 20px;
-  border-radius: 12px;
-  border: none;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: left;
-  width: 100%;
-  /* Ensure full width */
-}
-
-.sidebar-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  transform: translateX(5px);
-}
-
-.sidebar-icon {
-  font-size: 1.4rem;
-}
-
-.sidebar-btn.create-btn {
-  background: linear-gradient(90deg, #8B00FF, #0066FF);
-  color: #fff;
-  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
-}
-
-.sidebar-btn.create-btn:hover {
-  box-shadow: 0 6px 20px rgba(138, 43, 226, 0.5);
-  transform: translateY(-2px);
-}
-
-.sidebar-bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 20px;
-}
-
-.sidebar-btn.exit-btn {
-  color: #ff4444;
-}
-
-.sidebar-btn.exit-btn:hover {
-  background: rgba(255, 0, 0, 0.1);
-}
-
-/* Hide Top Navbar on Desktop */
-.aurax-top-navbar {
-  display: none;
-}
-
-/* Feed Content Adjustment for Desktop Sidebar */
-.aurax-feed-content {
-  margin-left: 260px;
-  /* Offset for Sidebar */
-  width: auto;
-  /* Let block layout consume remaining space */
-  padding: 30px 80px 30px 30px;
-  /* Extra right padding to prevent clipping */
-  max-width: 100%;
+  justify-content: center;
+  align-items: flex-start;
+  /* Crucial for position: sticky to work in flex */
+  padding: 0 20px 40px 20px;
+  /* Removed top padding */
+  gap: 30px;
   box-sizing: border-box;
 }
 
-.aurax-navbar-title {
-  font-size: 1.8rem;
-  font-weight: bold;
-  background: linear-gradient(90deg, #00F5FF, #FF1493);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0;
-  text-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
+/* Sidebar General Styles */
+.aurax-column-sidebar {
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding-top: 40px;
+  /* Move page top padding inside sidebar */
+  overflow-y: auto;
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE/Edge */
 }
 
-.navbar-actions {
+.aurax-column-sidebar::-webkit-scrollbar {
+  display: none;
+  /* Chrome/Safari */
+}
+
+/* Glassmorphic Card Style */
+.aurax-glass-card {
+  background: rgba(15, 15, 25, 0.8);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 24px;
+  color: #fff;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Left Sidebar - Profile & Stats */
+.aurax-profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  height: 100%;
+  position: relative;
+}
+
+.profile-avatar-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.profile-avatar-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.profile-avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-handle-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.profile-handle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+}
+
+.edit-identity-trigger {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.edit-identity-trigger:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.profile-stats-grid {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.stat-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stat-icon {
+  color: #00F5FF;
+  /* Cyan icons */
+  display: flex;
+  align-items: center;
+  opacity: 0.8;
+}
+
+.stat-label {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.stat-value {
+  font-weight: 700;
+  color: #fff;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.aurax-privacy-disclaimer {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 20px;
+}
+
+.aurax-privacy-disclaimer p {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.disclaimer-icon {
+  color: #00F5FF;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.exit-btn-wrapper {
+  margin-top: 25px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.aurax-exit-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 24px;
+  border-radius: 30px;
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  color: #ff4444;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  width: fit-content;
+}
+
+.aurax-exit-button:hover {
+  background: #ff4444;
+  color: white;
+  box-shadow: 0 0 20px rgba(255, 68, 68, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Main Feed Column */
+.aurax-main-feed {
+  flex-grow: 1;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  margin-top: 40px;
+  /* Align with sidebars' top padding */
+}
+
+/* Search Bar */
+.aurax-search-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+}
+
+.aurax-search-bar {
+  flex-grow: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 12px 20px;
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.aurax-nav-btn {
-  height: 40px;
-  min-width: 40px;
-  border-radius: 12px;
-  border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(5px);
-  padding: 0 12px;
-}
-
-.aurax-nav-btn:hover {
-  transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.aurax-nav-btn.theme-toggle {
-  font-size: 1.4rem;
+.search-input {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.aurax-nav-btn.create-btn {
-  background: linear-gradient(135deg, #8B00FF, #0066FF);
-  box-shadow: 0 0 10px rgba(138, 43, 226, 0.4);
-}
-
-.aurax-nav-btn.create-btn:hover {
-  box-shadow: 0 0 20px rgba(138, 43, 226, 0.6);
-}
-
-.aurax-nav-btn.rename-btn {
-  background: rgba(138, 43, 226, 0.2);
-  border: 1px solid rgba(138, 43, 226, 0.4);
-}
-
-.aurax-nav-btn.exit-btn {
-  background: linear-gradient(90deg, #FF1493, #FF4500);
-  gap: 8px;
+  border: none;
+  color: #fff;
+  width: 100%;
   font-size: 1rem;
-  font-weight: 600;
-  padding: 0 16px;
 }
 
-.btn-icon {
+.search-input:focus {
+  outline: none;
+}
+
+.search-icon {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.search-actions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.7);
   font-size: 1.2rem;
 }
 
-/* Hide text on mobile for exit button to save space */
-@media (max-width: 480px) {
-  .aurax-nav-btn.exit-btn .btn-text {
-    display: none;
-  }
+.search-action-icon {
+  cursor: pointer;
+  transition: color 0.2s;
 }
 
-/* Feed Content */
-/* Old feed content block removed */
-
-/* Feed Grid (Masonry) */
-.aurax-feed-grid {
-  column-count: 4;
-  /* Reduced from 5 to 4 to increase card width */
-  column-gap: 30px;
-  /* Increased gap */
-  position: relative;
-  z-index: 10;
+.search-action-icon:hover {
+  color: #fff;
 }
 
-/* Removed old .aurax-create-nav-btn styles */
-
-@media (min-width: 1100px) {
-  .aurax-feed-grid {
-    column-count: 3;
-  }
-}
-
-/* @media (max-width: 1100px) {
-  .aurax-feed-grid {
-    column-count: 3;
-  }
-} */
-
-@media (max-width: 1100px) {
-  .aurax-feed-grid {
-    column-count: 1;
-  }
-}
-
-/* Mobile Responsive - Redundant block removed */
-
-/* Empty State */
-.aurax-empty-state {
+/* Feed List */
+.aurax-feed-list {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Right Sidebar - Ranking & Trends */
+.aurax-ranking-card h3 {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.personality-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.personality-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #333;
+  display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
-  text-align: center;
-}
-
-.empty-ghost-animation {
-  margin-bottom: 20px;
-}
-
-.empty-ghost {
-  font-size: 5rem;
-  display: block;
-  filter: drop-shadow(0 0 20px rgba(0, 245, 255, 0.6));
-}
-
-.empty-title {
-  font-size: 2rem;
-  color: #00F5FF;
-  margin: 0 0 10px 0;
-  text-shadow: 0 0 20px rgba(0, 245, 255, 0.8);
-}
-
-.empty-subtitle {
   font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.6);
-  margin: 0 0 30px 0;
-  font-family: 'Permanent Marker', cursive;
 }
 
-.empty-create-btn {
-  padding: 15px 30px;
-  background: linear-gradient(90deg, #8B00FF, #0066FF);
-  border: none;
-  border-radius: 12px;
-  color: #fff;
-  font-size: 1.1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 0 25px rgba(138, 43, 226, 0.6);
+.personality-info {
+  flex-grow: 1;
 }
 
-.empty-create-btn:hover {
-  box-shadow: 0 0 40px rgba(138, 43, 226, 0.9);
-  transform: translateY(-3px);
+.personality-name {
+  font-weight: 600;
+  display: block;
 }
 
-/* Loading More */
-.aurax-loading-more {
-  text-align: center;
-  padding: 20px;
-  color: rgba(255, 255, 255, 0.6);
+.personality-level {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.personality-score {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.trending-section {
+  margin-top: 30px;
+}
+
+.trending-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.trending-tag {
+  color: rgba(255, 255, 255, 0.7);
   font-size: 0.95rem;
 }
 
-/* Floating Create Button */
-.aurax-floating-create-btn {
-  position: fixed;
-  bottom: 20px;
-  right: 4px;
-  width: 60px;
-  height: 60px;
+/* Mobile Profile Trigger (Hidden on Desktop) */
+.mobile-profile-trigger {
+  display: none;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #8B00FF, #0066FF);
-  border: none;
-  color: #fff;
-  font-size: 2rem;
+  overflow: hidden;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
   cursor: pointer;
+  flex-shrink: 0;
+}
+
+.mobile-profile-trigger img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mobile-profile-trigger span {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  z-index: 90;
-  transition: all 0.3s ease;
+  font-size: 1.4rem;
 }
 
-.aurax-floating-create-btn:hover {
-  box-shadow: 0 6px 20px rgba(138, 43, 226, 0.5);
-  transform: translateY(-2px);
+/* Sidebar Overlay */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1000;
 }
 
-.create-plus-icon {
-  font-size: 2rem;
+/* Desktop Only Utility - Refined */
+@media (min-width: 769px) {
+  .aurax-column-sidebar {
+    position: sticky;
+    top: 40px;
+  }
 }
 
-/* Mobile Responsive */
+/* Mobile Responsive Overhaul */
 @media (max-width: 768px) {
+  .aurax-page-container {
+    padding: 0;
+    /* Remove container padding so navbar hits edges */
+  }
 
-  /* Show Top Navbar */
-  .aurax-top-navbar {
-    display: flex;
+  /* Sticky Top Navbar for Mobile - Refined */
+  .aurax-search-container {
     position: sticky;
     top: 0;
-    z-index: 100;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 15px;
-    background: rgba(26, 26, 46, 0.95);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  /* Hide Sidebar */
-  .aurax-sidebar {
-    display: none;
-  }
-
-  .aurax-navbar-title {
-    font-size: 1.5rem;
-  }
-
-  .navbar-actions {
-    gap: 8px;
-  }
-
-  .aurax-nav-btn {
-    height: 36px;
-    min-width: 36px;
-    font-size: 1.1rem;
-    padding: 0 8px;
-  }
-
-  .aurax-feed-content {
-    padding: 15px;
-    max-width: 100%;
-    margin: 0 auto;
-    /* Reset margin */
-    padding-left: 15px;
-    /* Reset padding-left */
-  }
-
-  .aurax-feed-grid {
-    column-count: 1;
+    z-index: 1000;
+    background: rgba(13, 13, 22, 0.98);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    padding: 14px 16px;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
-    flex-direction: column;
-    gap: 20px;
+    align-items: center;
   }
 
+  .mobile-profile-trigger {
+    display: flex;
+    width: 36px;
+    height: 36px;
+  }
 
-  .aurax-nav-btn.exit-btn {
-    padding: 0 10px;
+  .aurax-search-bar {
+    flex: 1;
+    /* Take all available space */
+    min-width: 0;
+    /* Prevent overflow */
+    padding: 8px 14px;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+  }
+
+  .search-input {
     font-size: 0.9rem;
   }
 
-  /* Hide text on mobile for exit button to save space */
-  .aurax-nav-btn.exit-btn .btn-text {
-    display: none;
-  }
-
-  .aurax-feed-content {
-    padding: 15px;
-    max-width: 100%;
-    /* Use full width */
-  }
-
-  .aurax-feed-grid {
-    column-count: 1;
-    /* Single column on mobile */
+  .search-actions {
+    gap: 12px;
+    flex-shrink: 0;
+    /* Don't squash icons */
     display: flex;
-    flex-direction: column;
-    gap: 20px;
+    align-items: center;
   }
 
-  .empty-ghost {
-    font-size: 4rem;
+  .search-action-icon {
+    width: 22px;
+    height: 22px;
+    opacity: 0.8;
   }
 
-  .empty-title {
-    font-size: 1.6rem;
+  /* Hide Right Sidebar completely on mobile */
+  .aurax-sidebar {
+    display: none !important;
   }
 
-  .empty-subtitle {
-    font-size: 1rem;
+  /* Left Sidebar as Drawer */
+  .aurax-column-sidebar.aurax-desktop-only {
+    display: flex !important;
+    /* Force display instead of desktop-only hiding */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    z-index: 2000;
+    background: rgba(15, 15, 25, 0.95);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    padding: 24px 20px;
+    box-sizing: border-box;
+    transform: translateX(-100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  .aurax-floating-create-btn {
-    bottom: 16px;
-    right: 16px;
-    /* Give some spacing from edge */
-    width: 56px;
-    height: 56px;
+  .aurax-column-sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.8);
   }
 
-  .create-plus-icon {
-    font-size: 1.8rem;
+  .aurax-profile-card {
+    height: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Main Feed adjustments */
+  .aurax-main-feed {
+    width: 100%;
+    max-width: 100%;
+    gap: 0;
+  }
+
+  .aurax-feed-list {
+    gap: 0;
+    /* Continuous stream on mobile */
   }
 }
 
-@media (max-width: 480px) {
-  .aurax-feed-content {
-    padding: 10px;
+/* Media Query for Large Screens to prevent sidebar squash */
+@media (max-width: 1100px) and (min-width: 769px) {
+  .aurax-column-sidebar {
+    width: 260px;
   }
+}
 
-  .aurax-floating-create-btn {
-    width: 52px;
-    height: 52px;
-    bottom: 12px;
-    right: 12px;
-  }
+/* Existing Card Overrides for Feed */
+.aurax-satellite-wrapper {
+  width: 100%;
+}
 
-  .aurax-navbar-title {
-    font-size: 1.3rem;
-    /* Smaller title on very small screens */
+.aurax-card {
+  width: 100% !important;
+  max-width: none !important;
+  margin-bottom: 24px !important;
+}
+
+/* Desktop Only Utility */
+@media (max-width: 1024px) {
+  .aurax-desktop-only {
+    display: none !important;
   }
 }

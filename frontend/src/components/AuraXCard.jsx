@@ -3,7 +3,7 @@ import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-mo
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
-import { Clock, Eye } from 'lucide-react';
+import { Clock, BarChart3 } from 'lucide-react';
 import './AuraXCard.css';
 
 const AuraXCard = ({ aura, theme, onBurned }) => {
@@ -87,34 +87,6 @@ const AuraXCard = ({ aura, theme, onBurned }) => {
         }
     };
 
-    // Floating / Space Debris Effect (Randomized)
-    const [randomSeed] = useState(Math.random());
-    const [floatDuration] = useState(3 + Math.random() * 4); // 3-7s duration
-    const [rotationRange] = useState(-2 + Math.random() * 4); // -2 to +2 deg rotation
-
-    // 3D Tilt Logic
-    const x = useMotionValue(0);
-    const y = useMotionValue(0);
-    const rotateX = useTransform(y, [-100, 100], [10, -10]); // Reverse direction for natural tilt
-    const rotateY = useTransform(x, [-100, 100], [-10, 10]);
-
-    const handleMouseMove = (event) => {
-        const rect = event.currentTarget.getBoundingClientRect();
-        const width = rect.width;
-        const height = rect.height;
-        const mouseX = event.clientX - rect.left;
-        const mouseY = event.clientY - rect.top;
-        const xPct = mouseX / width - 0.5;
-        const yPct = mouseY / height - 0.5;
-        x.set(xPct * 200); // Amplify effect
-        y.set(yPct * 200);
-    };
-
-    const handleMouseLeave = () => {
-        x.set(0);
-        y.set(0);
-    };
-
     // Dynamic Time Updates (Every Minute)
     const [timeAgo, setTimeAgo] = useState(formatDistanceToNow(new Date(aura.createdAt), { addSuffix: true }));
     const [timeLeft, setTimeLeft] = useState('');
@@ -162,121 +134,97 @@ const AuraXCard = ({ aura, theme, onBurned }) => {
                 )}
             </AnimatePresence>
 
-            {/* Floating Wrapper */}
             <motion.div
-                className="aurax-satellite-wrapper"
-                animate={{
-                    y: [0, -10 * randomSeed, 0], // Gentle bobbing
-                    rotate: [0, rotationRange, 0] // Gentle rotation
-                }}
-                transition={{
-                    duration: floatDuration,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                }}
-                style={{ perspective: 1000 }} // Needed for 3D tilt
+                className={`aurax-card paper-texture-${paperTexture} ${isBurning ? 'burning' : ''}`}
+                variants={burnVariants}
+                initial="initial"
+                animate={isBurning ? 'burning' : 'initial'}
+                layout // For smooth layout changes in masonry
             >
-                {/* 3D Tilt Card */}
-                <motion.div
-                    className={`aurax-card paper-texture-${paperTexture} ${isBurning ? 'burning' : ''}`}
-                    variants={burnVariants}
-                    initial="initial"
-                    animate={isBurning ? 'burning' : 'initial'}
-                    style={{
-                        // // rotateX: rotateX,
-                        rotateY: rotateY,
-                        x: 0,
-                        y: 0
-                    }}
-                    onMouseMove={handleMouseMove}
-                    onMouseLeave={handleMouseLeave}
-                    layout // For smooth layout changes in masonry
-                >
-                    {/* Header */}
-                    <div className="aurax-card-header">
-                        <div className="aurax-identity">
-                            <div
-                                className="aurax-avatar"
-                                style={{
-                                    backgroundColor: aura.auraColor
-                                }}
-                            >
-                                <span className="aurax-avatar-icon">{aura.auraAvatar || '👻'}</span>
-                            </div>
-                            <div className="aurax-info">
-                                <h3 className="aurax-name">
-                                    {aura.auraName}
-                                </h3>
-                                <p className="aurax-time">
-                                    {timeAgo}
-                                </p>
-                            </div>
+                {/* Header */}
+                <div className="aurax-card-header">
+                    <div className="aurax-identity">
+                        <div
+                            className="aurax-avatar"
+                            style={{
+                                backgroundColor: aura.auraColor
+                            }}
+                        >
+                            <span className="aurax-avatar-icon">{aura.auraAvatar || '👻'}</span>
                         </div>
-
-                        {/* Expiry Timer */}
-                        <div className="aurax-expiry">
-                            <span className="expiry-icon"><Clock size={14} /></span>
-                            <span>
-                                {timeLeft}
-                            </span>
+                        <div className="aurax-info">
+                            <h3 className="aurax-name">
+                                {aura.auraName}
+                            </h3>
+                            <p className="aurax-time">
+                                {timeAgo}
+                            </p>
                         </div>
                     </div>
 
-                    {/* Caption */}
-                    <div className="aurax-caption">
-                        <p className={`aurax-caption-text ${!isExpanded && isLongCaption ? 'truncated' : ''}`}>
-                            {aura.caption}
-                        </p>
-                        {isLongCaption && (
-                            <button
-                                className="caption-toggle-btn"
-                                onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
-                            >
-                                {isExpanded ? 'Show Less' : 'Show More'}
-                            </button>
-                        )}
+                    {/* Expiry Timer */}
+                    <div className="aurax-expiry">
+                        <span className="expiry-icon"><Clock size={14} /></span>
+                        <span>
+                            {timeLeft}
+                        </span>
                     </div>
+                </div>
 
-                    {/* Media (only if exists) */}
-                    {aura.media && (
-                        <div className="aurax-media">
-                            {aura.type === 'video' ? (
-                                <video src={aura.media.url} controls className="aurax-video" />
-                            ) : aura.type === 'image' ? (
-                                <img src={aura.media.url} alt="Aura" className="aurax-image" />
-                            ) : null}
-                        </div>
+                {/* Caption */}
+                <div className="aurax-caption">
+                    <p className={`aurax-caption-text ${!isExpanded && isLongCaption ? 'truncated' : ''}`}>
+                        {aura.caption}
+                    </p>
+                    {isLongCaption && (
+                        <button
+                            className="caption-toggle-btn"
+                            onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
+                        >
+                            {isExpanded ? 'Show Less' : 'Show More'}
+                        </button>
                     )}
+                </div>
 
-                    {/* Interaction Bar */}
-                    <div className="aurax-interactions">
-                        {/* Vibe Up */}
-                        <motion.button
-                            className={`aurax-vibe-btn vibe-up ${userVibedUp ? 'active' : ''}`}
-                            onClick={(e) => { e.stopPropagation(); handleVibe('vibeUp'); }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            <span className="vibe-icon">▲</span>
-                            <span className="vibe-count">{vibesUp}</span>
-                        </motion.button>
-
-                        {/* Vibe Kill */}
-                        <motion.button
-                            className={`aurax-vibe-btn vibe-kill ${userVibeKilled ? 'active' : ''}`}
-                            onClick={(e) => { e.stopPropagation(); handleVibe('vibeKill'); }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            <span className="vibe-icon">▼</span>
-                            <span className="vibe-count">{vibesKilled}</span>
-                        </motion.button>
-
-                        {/* Views */}
-                        <div className="aurax-views">
-                            <span className="views-icon"><Eye size={16} /></span>
-                            <span className="views-count">{aura.views}</span>
-                        </div>
+                {/* Media (only if exists) */}
+                {aura.media && (
+                    <div className="aurax-media">
+                        {aura.type === 'video' ? (
+                            <video src={aura.media.url} controls className="aurax-video" />
+                        ) : aura.type === 'image' ? (
+                            <img src={aura.media.url} alt="Aura" className="aurax-image" />
+                        ) : null}
                     </div>
-                </motion.div>
+                )}
+
+                {/* Interaction Bar */}
+                <div className="aurax-interactions">
+                    {/* Vibe Up */}
+                    <motion.button
+                        className={`aurax-vibe-btn vibe-up ${userVibedUp ? 'active' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); handleVibe('vibeUp'); }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        <span className="vibe-icon">▲</span>
+                        <span className="vibe-count">{vibesUp}</span>
+                    </motion.button>
+
+                    {/* Vibe Kill */}
+                    <motion.button
+                        className={`aurax-vibe-btn vibe-kill ${userVibeKilled ? 'active' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); handleVibe('vibeKill'); }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        <span className="vibe-icon">▼</span>
+                        <span className="vibe-count">{vibesKilled}</span>
+                    </motion.button>
+
+                    {/* Views */}
+                    <div className="aurax-views">
+                        <span className="views-icon"><BarChart3 size={16} /></span>
+                        <span className="views-count">{aura.views}</span>
+                    </div>
+                </div>
             </motion.div>
         </>
     );

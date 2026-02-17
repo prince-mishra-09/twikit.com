@@ -82,14 +82,14 @@ const NavigationBar = () => {
             <AiOutlinePlus className="w-7 h-7" />
           </button>
 
-          {/* Aura X
+          {/* Aura X*/}
           <Link
             to="/aurax"
             className={`transition-all duration-200 ${tab === "/aurax" ? activeStyle : inactiveStyle
               }`}
           >
             {theme === 'paper' ? <AuraXIcon size={28} /> : <span className="text-2xl">👻</span>}
-          </Link> */}
+          </Link> 
 
           {/* Reels */}
           <Link
