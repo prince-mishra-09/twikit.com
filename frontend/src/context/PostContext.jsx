@@ -25,17 +25,23 @@ export const PostContextProvider = ({ children }) => {
 
       if (page === 1) {
         setPosts(data.posts);
-        setReels(data.reels);
+        setReels(data.posts.filter(p => p.type === 'reel')); // Deriving reels from main feed for UI consistency
       } else {
-        // Append new posts for pagination
-        setPosts(prev => [...prev, ...data.posts]);
-        setReels(prev => [...prev, ...data.reels]);
+        setPosts(prev => {
+          const newPosts = data.posts.filter(post => !prev.some(p => p._id === post._id));
+          return [...prev, ...newPosts];
+        });
+        setReels(prev => {
+          const freshReels = data.posts.filter(p => p.type === 'reel');
+          const newReels = freshReels.filter(reel => !prev.some(r => r._id === reel._id));
+          return [...prev, ...newReels];
+        });
       }
 
       setPagination({
         page: data.pagination.page,
         hasMorePosts: data.pagination.hasMorePosts,
-        hasMoreReels: data.pagination.hasMoreReels
+        hasMoreReels: data.pagination.hasMorePosts // Reuse as they are consolidated
       });
 
       setLoading(false);
@@ -236,7 +242,9 @@ export const PostContextProvider = ({ children }) => {
 
     socket.on("post:ready", (newPost) => {
       toast.success("Your post is ready!");
+      // Always add to main feed (posts) regardless of type
       setPosts((prev) => [newPost, ...prev]);
+      // If it's a reel, also add to reels specifically if UI sections need it
       if (newPost.type === "reel") {
         setReels((prev) => [newPost, ...prev]);
       }

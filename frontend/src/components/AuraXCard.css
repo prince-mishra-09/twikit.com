@@ -45,7 +45,18 @@
     justify-content: center;
     font-size: 1.5rem;
     flex-shrink: 0;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    position: relative;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+    padding: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.aurax-card:hover .aurax-avatar {
+    transform: scale(1.05);
+    border-color: rgba(0, 245, 255, 0.5);
+    box-shadow: 0 0 15px rgba(0, 245, 255, 0.3);
 }
 
 .aurax-avatar-icon {

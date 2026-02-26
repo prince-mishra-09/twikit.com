@@ -512,6 +512,14 @@ const UserAccount = ({ user: loggedInUser }) => {
           <p className="text-[var(--text-secondary)] text-center py-4">No reels yet</p>
         ))}
 
+      {/* End of Feed Message for Profile */}
+      {(myPosts?.length > 0 || myReels?.length > 0) && (
+        <div className="w-full py-12 flex flex-col items-center justify-center opacity-50">
+          <div className="h-[1px] w-20 bg-gradient-to-r from-transparent via-[var(--text-secondary)] to-transparent mb-4" />
+          <p className="text-[var(--text-secondary)] text-sm font-medium tracking-wide">End of Profile Feed</p>
+        </div>
+      )}
+
       {/* Story Viewer Overlay */}
       {showStoryViewer && activeStory && (
         <StoryViewer
