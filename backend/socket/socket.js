@@ -27,20 +27,26 @@ setIO(io);
 
 
 // 🔒 MANDATORY JWT AUTHENTICATION MIDDLEWARE
+// Supports both: auth object (React Native) AND cookies (Web)
 io.use(async (socket, next) => {
   try {
-    const cookieString = socket.request.headers.cookie;
-    if (!cookieString) return next(new Error("Authentication error: No cookies"));
+    // 1️⃣ First, check auth object (React Native sends token here)
+    let token = socket.handshake.auth?.token;
 
-    // Extract token from cookie (handle multiple cookies)
-    const cookies = Object.fromEntries(
-      cookieString.split(';').map(c => {
-        const [key, ...v] = c.split('=');
-        return [key.trim(), v.join('=')];
-      })
-    );
+    // 2️⃣ Fallback: check cookies (Web browsers send token here)
+    if (!token) {
+      const cookieString = socket.request.headers.cookie;
+      if (cookieString) {
+        const cookies = Object.fromEntries(
+          cookieString.split(';').map(c => {
+            const [key, ...v] = c.split('=');
+            return [key.trim(), v.join('=')];
+          })
+        );
+        token = cookies.token;
+      }
+    }
 
-    const token = cookies.token;
     if (!token) return next(new Error("Authentication error: Token missing"));
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);

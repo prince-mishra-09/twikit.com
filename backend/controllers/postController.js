@@ -342,7 +342,7 @@ export const handleFeedback = TryCatch(async (req, res) => {
         }
 
         // Private update (Vibe Down info for owner)
-        io.to("user:" + updatedPost.owner.toString()).emit("postVibeDownUpdated", {
+        io.to("user:" + updatedPost.owner._id.toString()).emit("postVibeDownUpdated", {
             postId: updatedPost._id,
             vibesDown: updatedPost.vibesDown,
             message: `${feedbackType} ${action}`,
@@ -359,6 +359,7 @@ export const handleFeedback = TryCatch(async (req, res) => {
         action,
         post: updatedPost, // Return the full post object as 'post'
         vibesUpCount: updatedPost.vibesUp.length,
+        vibesDownCount: updatedPost.vibesDown.length,
         isVibedUp: updatedPost.vibesUp.some(id => id && id.toString() === userId.toString()),
         isVibedDown: updatedPost.vibesDown.some(id => id && id.toString() === userId.toString())
     });
@@ -373,7 +374,7 @@ export const handleFeedback = TryCatch(async (req, res) => {
                     postId: updatedPost._id,
                     type: feedbackType
                 });
-            } else if (updatedPost.owner.toString() !== userId.toString()) {
+            } else if (updatedPost.owner._id.toString() !== userId.toString()) {
                 const notification = await Notification.create({
                     receiver: updatedPost.owner,
                     sender: userId,
@@ -385,14 +386,14 @@ export const handleFeedback = TryCatch(async (req, res) => {
                 await notification.populate("postId", "post");
 
                 try {
-                    getIO().to("user:" + updatedPost.owner.toString()).emit("notification:new", notification);
+                    getIO().to("user:" + updatedPost.owner._id.toString()).emit("notification:new", notification);
                 } catch (e) { }
 
                 if (feedbackType === "vibeUp") {
-                    const ownerUser = await User.findById(updatedPost.owner).select("name");
+                    const ownerUser = await User.findById(updatedPost.owner._id).select("name");
                     const ownerName = ownerUser ? ownerUser.name : "Twikit";
 
-                    await sendPushNotification(updatedPost.owner, {
+                    await sendPushNotification(updatedPost.owner._id, {
                         title: `${ownerName} • Vibe Check`,
                         body: `${req.user.name} vibed up your post! ✨`,
                         url: `/post/${updatedPost._id.toString()}`,

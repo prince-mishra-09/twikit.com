@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { createPortal } from "react-dom";
@@ -136,13 +136,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
     }
   }, [show, value._id]);
 
-  // Sync state with props (Important for Feed Refresh / Socket Updates)
-  useEffect(() => {
-    setIsVibeUp(includesId(value.vibesUp, user?._id));
-    setVibeUpCount(value.vibesUp?.length || 0);
-    setIsVibeDown(includesId(value.vibesDown, user?._id));
-    setVibeDownCount(value.vibesDown?.length || 0);
-  }, [value, user?._id]);
+  // NOTE: Duplicate sync effect removed (Bug #1). Individual effects below handle this.
 
   // --- Handlers for Optimistic Updates ---
 
@@ -349,7 +343,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
   useEffect(() => {
     // Only update VibeUp state when vibesUp array changes
     if (value.vibesUp) {
-      setIsVibeUp(value.vibesUp.includes(user?._id));
+      setIsVibeUp(includesId(value.vibesUp, user?._id));
       setVibeUpCount(value.vibesUp.length);
     }
   }, [value.vibesUp, user?._id]);
@@ -357,7 +351,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
   useEffect(() => {
     // Only update VibeDown state when vibesDown array changes
     if (value.vibesDown) {
-      setIsVibeDown(value.vibesDown.includes(user?._id));
+      setIsVibeDown(includesId(value.vibesDown, user?._id));
       setVibeDownCount(value.vibesDown.length);
     }
   }, [value.vibesDown, user?._id]);
@@ -403,11 +397,17 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
 
 
 
+  const feedbackProcessingRef = useRef(false);
+
   const feedbackHandler = (feedbackType) => {
     if (!isAuth) {
       setShowLoginPrompt(true);
       return;
     }
+    // Bug #6 fix: Prevent rapid clicks from causing race conditions
+    if (feedbackProcessingRef.current) return;
+    feedbackProcessingRef.current = true;
+
     // Optimistic UI update with Mutual Exclusivity
     if (feedbackType === "vibeUp") {
       const newState = !isVibeUp;
@@ -435,11 +435,13 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
     sendFeedback(value._id, feedbackType).catch((error) => {
       console.error("Feedback error, reverting:", error);
       toast.error("Failed to update. Please try again.");
-      // Revert to original state from props if error occurs
-      setIsVibeUp(value.vibesUp?.includes(user?._id));
+      // Revert to original state from props if error occurs (Bug #5 fix: use includesId)
+      setIsVibeUp(includesId(value.vibesUp, user?._id));
       setVibeUpCount(value.vibesUp?.length || 0);
-      setIsVibeDown(value.vibesDown?.includes(user?._id));
+      setIsVibeDown(includesId(value.vibesDown, user?._id));
       setVibeDownCount(value.vibesDown?.length || 0);
+    }).finally(() => {
+      feedbackProcessingRef.current = false;
     });
   };
 
