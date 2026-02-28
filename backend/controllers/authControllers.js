@@ -75,17 +75,30 @@ const registerUser = tryCatch(async (req, res) => {
 
     const myCloud = await cloudinary.v2.uploader.upload(fileUrl.content)
 
-    const user = await User.create({
-        name,
-        email,
-        password: hashPassword,
-        gender,
-        username: username || null,
-        profilePic: {
-            id: myCloud.public_id,
-            url: myCloud.secure_url
+    let user;
+    try {
+        user = await User.create({
+            name,
+            email,
+            password: hashPassword,
+            gender,
+            username: username || null,
+            profilePic: {
+                id: myCloud.public_id,
+                url: myCloud.secure_url
+            }
+        })
+    } catch (error) {
+        if (error.code === 11000) {
+            console.error("DUPLICATE KEY ERROR DETAILS:", error.keyValue);
+            const field = Object.keys(error.keyValue)[0];
+            const displayField = field.charAt(0).toUpperCase() + field.slice(1);
+            return res.status(400).json({
+                message: `${displayField} already taken. Please choose another one.`,
+            });
         }
-    })
+        throw error; // Let tryCatch middleware handle other errors
+    }
 
     // Send welcome email
     try {
@@ -95,7 +108,7 @@ const registerUser = tryCatch(async (req, res) => {
         // Don't fail registration if email fails
     }
 
-    await generateToken(user._id, req, res)
+    const { accessToken, refreshToken } = await generateToken(user._id, req, res)
 
     // Revoke temporary verification record (single-use)
     await VerifiedEmail.deleteOne({ email });
@@ -103,6 +116,8 @@ const registerUser = tryCatch(async (req, res) => {
     res.status(201).json({
         message: "user registered",
         user,
+        accessToken,
+        refreshToken
     })
 })
 
@@ -110,11 +125,14 @@ export default registerUser
 
 
 export const loginUser = tryCatch(async (req, res) => {
-    const { password, email: identifier } = req.body; // 'email' field now acts as identifier (email or username)
-    // Front-end sends 'email' key even if it's username, or we can update frontend.
-    // Assuming frontend continues to send 'email' key for the login identifier.
+    const { password, email, identifier: bodyIdentifier } = req.body;
+    const identifier = bodyIdentifier || email; // Fallback to 'email' if 'identifier' is missing (backward compatibility)
 
-    const idStr = identifier?.toLowerCase();
+    if (!identifier) {
+        return res.status(400).json({ message: "Email or username is required" });
+    }
+
+    const idStr = identifier.toLowerCase();
 
     // Strategy:
     // 1. Try to find by username first (Exact match)
@@ -198,7 +216,7 @@ export const loginUser = tryCatch(async (req, res) => {
 })
 
 export const logoutUser = tryCatch(async (req, res) => {
-    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+    const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
     if (refreshToken) {
         await Session.deleteOne({ refreshToken });
@@ -222,7 +240,7 @@ export const logoutUser = tryCatch(async (req, res) => {
 });
 
 export const refreshAccessToken = tryCatch(async (req, res) => {
-    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+    const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
     if (!refreshToken) {
         return res.status(401).json({ message: "Refresh token missing" });
@@ -370,7 +388,8 @@ export const checkUsername = tryCatch(async (req, res) => {
 
     if (!username) {
         return res.status(400).json({
-            message: "Username is required"
+            message: "Username is required",
+            available: false
         });
     }
 
@@ -378,8 +397,9 @@ export const checkUsername = tryCatch(async (req, res) => {
     const usernameRegex = /^[a-zA-Z0-9_\.]{3,20}$/;
     if (!usernameRegex.test(username)) {
         return res.status(400).json({
-            message: "Username must be 3-20 characters (alphanumeric, underscore, and dot only)",
-            available: false
+            message: "Invalid format (3-20 chars, alphanumeric/./_ only)",
+            available: false,
+            errorType: "invalid_format"
         });
     }
 
@@ -389,7 +409,8 @@ export const checkUsername = tryCatch(async (req, res) => {
     if (existingUser) {
         return res.json({
             available: false,
-            message: "Username already taken"
+            message: "Username already taken",
+            errorType: "already_taken"
         });
     }
 

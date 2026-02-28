@@ -7,7 +7,7 @@ import axios from "axios";
 import { createPortal } from "react-dom";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -27,7 +27,7 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    loginUser(email, password, navigate, fetchPosts);
+    loginUser(identifier, password, navigate, fetchPosts);
   };
 
   // Forgot Password: Send OTP
@@ -125,8 +125,8 @@ const Login = () => {
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <input
             type="text"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
             placeholder="Email or Username"
             className="w-full px-4 py-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition"
             required
@@ -162,7 +162,7 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full py-3 rounded-xl text-white font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition"
+            className="w-full py-3 rounded-xl text-[var(--text-on-accent)] font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition"
           >
             Log In
           </button>
@@ -194,11 +194,11 @@ const Login = () => {
 
             {/* Step Indicator */}
             <div className="flex items-center justify-center mb-6 space-x-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${forgotStep >= 1 ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${forgotStep >= 1 ? 'bg-[var(--accent)] text-[var(--text-on-accent)]' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
                 1
               </div>
               <div className={`w-12 h-0.5 ${forgotStep >= 2 ? 'bg-[var(--accent)]' : 'bg-[var(--bg-secondary)]'}`}></div>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${forgotStep >= 2 ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${forgotStep >= 2 ? 'bg-[var(--accent)] text-[var(--text-on-accent)]' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
                 2
               </div>
             </div>
@@ -228,7 +228,7 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={forgotLoading}
-                  className="w-full py-3 rounded-xl text-white font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
+                  className="w-full py-3 rounded-xl text-[var(--text-on-accent)] font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
                 >
                   {forgotLoading ? "Sending..." : "Send Reset Code"}
                 </button>
@@ -277,7 +277,7 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={forgotLoading || forgotOTP.length !== 4}
-                  className="w-full py-3 rounded-xl text-white font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
+                  className="w-full py-3 rounded-xl text-[var(--text-on-accent)] font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
                 >
                   {forgotLoading ? "Resetting..." : "Reset Password"}
                 </button>

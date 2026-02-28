@@ -90,6 +90,10 @@ const userSchema = new mongoose.Schema({
     auraName: String,
     auraColor: String,
   },
+  lastAuraIdentityChange: {
+    type: Date,
+    default: null
+  },
   auraAvatar: {
     type: String,
     default: '👻' // Default ghost emoji

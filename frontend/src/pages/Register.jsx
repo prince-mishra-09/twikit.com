@@ -97,38 +97,54 @@ const Register = () => {
   };
 
   // Step 3: Check username availability (debounced)
-  const checkUsernameAvailability = async (usernameValue) => {
-    if (!usernameValue || usernameValue.length < 3) {
+  // Debounce username check using useEffect
+  React.useEffect(() => {
+    if (!username) {
+      setUsernameAvailable(null);
+      setError("");
+      return;
+    }
+
+    if (username.length < 3) {
       setUsernameAvailable(null);
       return;
     }
 
-    setCheckingUsername(true);
-
-    try {
-      const { data } = await axios.post("/api/auth/check-username", { username: usernameValue });
-      setUsernameAvailable(data.available);
-    } catch (error) {
+    // Simple frontend validation before reaching out to API
+    const usernameRegex = /^[a-zA-Z0-9_\.]{3,20}$/;
+    if (!usernameRegex.test(username)) {
       setUsernameAvailable(false);
-    } finally {
-      setCheckingUsername(false);
-    }
-  };
-
-  // Debounce username check
-  const handleUsernameChange = (e) => {
-    const value = e.target.value;
-    setUsername(value);
-
-    // Clear previous timeout
-    if (window.usernameTimeout) {
-      clearTimeout(window.usernameTimeout);
+      // We don't set the main 'error' state here yet to avoid flickering, 
+      // but we could if we wanted immediate feedback.
+      return;
     }
 
-    // Set new timeout
-    window.usernameTimeout = setTimeout(() => {
-      checkUsernameAvailability(value);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(async () => {
+      setCheckingUsername(true);
+      try {
+        const { data } = await axios.post("/api/auth/check-username",
+          { username },
+          { signal: controller.signal }
+        );
+        setUsernameAvailable(data.available);
+      } catch (err) {
+        if (axios.isCancel(err)) return;
+        setUsernameAvailable(false);
+      } finally {
+        setCheckingUsername(false);
+      }
     }, 500);
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [username]);
+
+  const handleUsernameChange = (e) => {
+    const value = e.target.value.toLowerCase().replace(/\s/g, ""); // No spaces allowed
+    setUsername(value);
   };
 
   // File handler
@@ -228,15 +244,15 @@ const Register = () => {
 
         {/* Step Indicator */}
         <div className="flex items-center justify-center mt-6 space-x-2">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 1 ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 1 ? 'bg-[var(--accent)] text-[var(--text-on-accent)]' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
             1
           </div>
           <div className={`w-12 h-0.5 ${step >= 2 ? 'bg-[var(--accent)]' : 'bg-[var(--bg-secondary)]'}`}></div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 2 ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 2 ? 'bg-[var(--accent)] text-[var(--text-on-accent)]' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
             2
           </div>
           <div className={`w-12 h-0.5 ${step >= 3 ? 'bg-[var(--accent)]' : 'bg-[var(--bg-secondary)]'}`}></div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 3 ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= 3 ? 'bg-[var(--accent)] text-[var(--text-on-accent)]' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}`}>
             3
           </div>
         </div>
@@ -266,7 +282,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl text-white font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
+              className="w-full py-3 rounded-xl text-[var(--text-on-accent)] font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
             >
               {loading ? "Sending..." : "Send Verification Code"}
             </button>
@@ -295,7 +311,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading || otp.length !== 4}
-              className="w-full py-3 rounded-xl text-white font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
+              className="w-full py-3 rounded-xl text-[var(--text-on-accent)] font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
             >
               {loading ? "Verifying..." : "Verify Code"}
             </button>
@@ -383,10 +399,15 @@ const Register = () => {
                 )}
                 {!checkingUsername && usernameAvailable === false && (
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-red-400 text-sm">
-                    ✗ Taken
+                    {username.length < 3 ? "" : /^[a-zA-Z0-9_\.]{3,20}$/.test(username) ? "✗ Taken" : "✗ Invalid"}
                   </span>
                 )}
               </div>
+              {username.length >= 3 && !/^[a-zA-Z0-9_\.]{3,20}$/.test(username) && (
+                <p className="text-red-400 text-[10px] mt-1 ml-1">
+                  Use only letters, numbers, dots, or underscores (3-20 chars).
+                </p>
+              )}
             </div>
 
             <input
@@ -430,9 +451,10 @@ const Register = () => {
 
             <button
               type="submit"
-              className="w-full py-3 rounded-xl text-white font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition"
+              disabled={loading || checkingUsername || usernameAvailable === false}
+              className="w-full py-3 rounded-xl text-[var(--text-on-accent)] font-medium bg-[var(--accent)] hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Create Account
+              {checkingUsername ? "Checking Username..." : "Create Account"}
             </button>
           </form>
         )}

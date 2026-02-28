@@ -17,8 +17,8 @@ const deadAuraXSchema = new mongoose.Schema({
     // Content Snapshot
     caption: String,
     media: {
-        id: String,
-        url: String,
+        type: Object,
+        default: null,
     },
     type: String,
 

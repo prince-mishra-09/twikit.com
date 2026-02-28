@@ -179,8 +179,8 @@ const Home = () => {
                 ))}
               </div>
 
-              {/* Load More Button */}
-              {pagination.hasMorePosts && (
+              {/* Load More Button or End of Feed Message */}
+              {pagination.hasMorePosts ? (
                 <div className="flex justify-center mt-6">
                   <button
                     onClick={fetchNextPage}
@@ -189,6 +189,26 @@ const Home = () => {
                   >
                     {loadingMore ? "Loading..." : "Load More"}
                   </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 px-4 transition-all animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  <div className="h-[1px] w-12 bg-gradient-to-r from-transparent via-[var(--text-secondary)]/30 to-transparent mb-6" />
+                  <div className="bg-[var(--card-bg)] p-3 rounded-2xl mb-4 shadow-sm border border-[var(--border)]/10">
+                    <span className="text-2xl">✨</span>
+                  </div>
+                  <h4 className="text-[var(--text-primary)] font-bold text-lg mb-1">
+                    You're all caught up
+                  </h4>
+                  <p className="text-[var(--text-secondary)] text-sm text-center max-w-[250px]">
+                    You've seen all the latest posts from the people you follow.
+                  </p>
+                  <button
+                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                    className="mt-6 text-[var(--accent)] text-xs font-bold uppercase tracking-widest hover:opacity-70 transition-opacity"
+                  >
+                    Back to top
+                  </button>
+                  <div className="h-[1px] w-12 bg-gradient-to-r from-transparent via-[var(--text-secondary)]/30 to-transparent mt-8" />
                 </div>
               )}
             </>

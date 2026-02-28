@@ -83,6 +83,26 @@ const Reels = () => {
               </div>
             </div>
           ))}
+
+          {/* End of Reels Message */}
+          <div className="h-[100dvh] w-full snap-start snap-always flex flex-col items-center justify-center p-8 text-center bg-black">
+            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/10">
+              <span className="text-4xl animate-bounce">🎬</span>
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-2">That's all for now!</h3>
+            <p className="text-white/50 text-base max-w-[280px] mb-8">
+              You've reached the end of the spotlight. Come back later for more!
+            </p>
+            <button
+              onClick={() => {
+                const firstReel = document.querySelector('.reel-container');
+                if (firstReel) firstReel.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="px-8 py-3 bg-white text-black font-bold rounded-full hover:bg-white/90 transition-all active:scale-95"
+            >
+              Replay Feed
+            </button>
+          </div>
         </div>
       ) : (
         <div className="h-screen flex items-center justify-center text-[var(--text-secondary)]">

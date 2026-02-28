@@ -63,6 +63,7 @@ const allowedOrigins = [
   "https://twiikit-com.vercel.app",
   "https://twikit.online",
   "https://www.twikit.online",
+  "https://twikit-6lhw6lbeg-prince-mishras-projects-eb04834b.vercel.app",
   "http://localhost:5173",
   "http://127.0.0.1:5173",
 ];
@@ -189,7 +190,6 @@ server.listen(port, async () => {
   await connectDB();
   await initializeRedis(); // Explicitly init Redis after env vars are ready
   await migrateUsernames();
-
 
   // Start monitoring system after server starts
   setTimeout(() => {

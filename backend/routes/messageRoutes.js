@@ -6,6 +6,7 @@ import {
   sendMessage,
   markMessageAsRead,
   deleteMessage,
+  toggleReaction,
 } from "../controllers/messageController.js";
 
 const router = express.Router();
@@ -15,6 +16,7 @@ router.get("/chats", isAuth, getAllChats);
 router.post("/", isAuth, sendMessage);
 router.put("/read/:chatId", isAuth, markMessageAsRead); // New Route
 router.delete("/:id", isAuth, deleteMessage);
+router.post("/react/:id", isAuth, toggleReaction);
 router.get("/:id", isAuth, getAllMessages);
 
 export default router;

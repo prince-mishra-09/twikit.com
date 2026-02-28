@@ -204,21 +204,11 @@ export const getAllPosts = TryCatch(async (req, res) => {
         }
     ];
 
-    // Fetch Posts
+    // Unified Fetch (Posts + Reels)
     const postsPromise = Post.aggregate([
-        { $match: { type: "post", ...initialMatch } },
+        { $match: { type: { $in: ["post", "reel"] }, ...initialMatch } },
         ...commonPipeline,
-        { $sort: { createdAt: -1 } },
-        { $skip: skip },
-        { $limit: limit },
-        { $project: projectStage }
-    ]);
-
-    // Fetch Reels
-    const reelsPromise = Post.aggregate([
-        { $match: { type: "reel", ...initialMatch } },
-        ...commonPipeline,
-        { $sort: { createdAt: -1 } },
+        { $sort: { createdAt: -1, _id: -1 } },
         { $skip: skip },
         { $limit: limit },
         { $project: projectStage }
@@ -234,23 +224,31 @@ export const getAllPosts = TryCatch(async (req, res) => {
     // This ignores privacy filter for count but is much faster.
     // Or we just accept the cost for now. Use $count stage.
 
-    // Actually, let's execute query.
-    const [posts, reels] = await Promise.all([postsPromise, reelsPromise]);
+    // Unified Count (Accurate with Privacy Filters)
+    const countPipeline = [
+        { $match: { type: { $in: ["post", "reel"] }, ...initialMatch } },
+        ...commonPipeline,
+        { $count: "total" }
+    ];
 
-    // Hack: Client side expects hasMore. We can just return if array length == limit
+    const countPromise = Post.aggregate(countPipeline);
+
+    const [posts, countResult] = await Promise.all([
+        postsPromise,
+        countPromise
+    ]);
+
+    const totalPosts = countResult.length > 0 ? countResult[0].total : 0;
 
     res.json({
         posts,
-        reels,
+        reels: [], // Legacy empty array
         pagination: {
             page,
             limit,
-            // Total counts are expensive. Deprecating exact count for performance?
-            // Sending large number for now to prevent frontend breaking, or implement separate count endpoint.
-            totalPosts: 1000,
-            totalReels: 1000,
+            totalPosts,
+            totalReels: totalPosts, // Legacy keep
             hasMorePosts: posts.length === limit,
-            hasMoreReels: reels.length === limit
         }
     });
 });
@@ -322,6 +320,9 @@ export const handleFeedback = TryCatch(async (req, res) => {
     }
 
     const action = isRemoving ? "removed" : "added";
+
+    // Populate owner before sending to client to prevent "Deleted User" bug
+    await updatedPost.populate("owner", "name username profilePic isPrivate");
 
     // 🔥 REAL-TIME EMIT (SAFE)
     try {

@@ -407,3 +407,51 @@ export const deleteMessage = TryCatch(async (req, res) => {
 
   res.json({ message: "Message deleted" });
 });
+
+export const toggleReaction = TryCatch(async (req, res) => {
+  const { id } = req.params;
+  const { emoji } = req.body;
+  const userId = req.user._id;
+
+  const message = await Messages.findById(id);
+  if (!message) return res.status(404).json({ message: "Message not found" });
+
+  const existingReactionIndex = message.reactions.findIndex(
+    (r) => r.user.toString() === userId.toString()
+  );
+
+  if (existingReactionIndex !== -1) {
+    if (message.reactions[existingReactionIndex].emoji === emoji) {
+      // Remove reaction if same emoji
+      message.reactions.splice(existingReactionIndex, 1);
+    } else {
+      // Update reaction if different emoji
+      message.reactions[existingReactionIndex].emoji = emoji;
+    }
+  } else {
+    // Add new reaction
+    message.reactions.push({ user: userId, emoji });
+  }
+
+  await message.save();
+
+  // Populate reactions for socket update
+  await message.populate("reactions.user", "name username profilePic");
+
+  // Notify participants via Socket
+  const chat = await Chat.findById(message.chatId);
+  if (chat) {
+    chat.users.forEach((uId) => {
+      const socketId = getReceiverSocketId(uId);
+      if (socketId) {
+        getIO().to(socketId).emit("messageReactionUpdated", {
+          messageId: id,
+          chatId: message.chatId,
+          reactions: message.reactions,
+        });
+      }
+    });
+  }
+
+  res.json(message.reactions);
+});

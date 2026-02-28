@@ -94,7 +94,7 @@ export const createAuraX = async (req, res) => {
                 auraAvatar: user.auraAvatar || '👻',
                 auraAvatarType: user.auraAvatarType || 'emoji',
                 caption: caption.trim(),
-                media: mediaData,
+                media: mediaData || null,
                 type: postType,
                 vibesUpCount: 0,
                 vibesKilledCount: 0,
@@ -371,6 +371,123 @@ export const deleteAuraX = async (req, res) => {
 };
 
 /**
+ * Get User Aura X Stats (Active + Archived)
+ * GET /api/aurax/stats
+ */
+export const getUserAuraStats = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // 1. Get stats from active Auras
+        const activeStats = await AuraX.aggregate([
+            { $match: { authorId: userId } },
+            {
+                $group: {
+                    _id: null,
+                    postsCount: { $sum: 1 },
+                    vibesUp: { $sum: { $size: { $ifNull: ["$vibesUp", []] } } },
+                    vibesKilled: { $sum: { $size: { $ifNull: ["$vibesKilled", []] } } },
+                    views: { $sum: "$views" }
+                }
+            }
+        ]);
+
+        // 2. Get stats from dead Auras
+        const { DeadAuraX } = await import("../models/DeadAuraX.js");
+        const archivedStats = await DeadAuraX.aggregate([
+            { $match: { authorId: userId } },
+            {
+                $group: {
+                    _id: null,
+                    postsCount: { $sum: 1 },
+                    vibesUp: { $sum: "$vibesUpCount" },
+                    vibesKilled: { $sum: "$vibesKilledCount" },
+                    views: { $sum: "$views" }
+                }
+            }
+        ]);
+
+        const active = activeStats[0] || { postsCount: 0, vibesUp: 0, vibesKilled: 0, views: 0 };
+        const archived = archivedStats[0] || { postsCount: 0, vibesUp: 0, vibesKilled: 0, views: 0 };
+
+        res.json({
+            postsCount: active.postsCount + archived.postsCount,
+            vibesUp: active.vibesUp + archived.vibesUp,
+            vibesKilled: active.vibesKilled + archived.vibesKilled,
+            totalReach: active.views + archived.views,
+        });
+    } catch (error) {
+        console.error("Get User Aura stats error:", error);
+        res.status(500).json({ message: "Server error fetching stats" });
+    }
+};
+
+/**
+ * Get Top AuraX Personalities (Ranking)
+ * GET /api/aurax/personalities
+ */
+export const getTopAuraPersonalities = async (req, res) => {
+    try {
+        // We calculate rank based on net score (vibesUp - vibesKilled) across all posts
+        // Note: For simplicity and performance, we'll rank by vibesUp in active posts + archived
+
+        // This is a complex query. For now, let's just return a few prominent users
+        // to populate the UI, or implement a basic ranking.
+
+        const { DeadAuraX } = await import("../models/DeadAuraX.js");
+
+        const topPersonalities = await DeadAuraX.aggregate([
+            {
+                $group: {
+                    _id: "$authorId",
+                    totalVibesUp: { $sum: "$vibesUpCount" },
+                    auraName: { $first: "$auraName" },
+                    auraAvatar: { $first: "$auraAvatar" },
+                }
+            },
+            { $sort: { totalVibesUp: -1 } },
+            { $limit: 5 }
+        ]);
+
+        res.json({ personalities: topPersonalities });
+    } catch (error) {
+        console.error("Get top personalities error:", error);
+        res.status(500).json({ message: "Server error fetching ranking" });
+    }
+};
+
+/**
+ * Get Trending Auras (Hashtags)
+ * GET /api/aurax/trending
+ */
+export const getTrendingAuras = async (req, res) => {
+    try {
+        // Extract hashtags from recent AuraX posts
+        const recentAuras = await AuraX.find().sort({ createdAt: -1 }).limit(100).select('caption');
+
+        const hashtags = {};
+        recentAuras.forEach(aura => {
+            const matches = aura.caption.match(/#[a-zA-Z0-9_]+/g);
+            if (matches) {
+                matches.forEach(tag => {
+                    hashtags[tag] = (hashtags[tag] || 0) + 1;
+                });
+            }
+        });
+
+        const sortedTags = Object.entries(hashtags)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(entry => entry[0]);
+
+        res.json({ trending: sortedTags });
+    } catch (error) {
+        console.error("Get trending auras error:", error);
+        res.status(500).json({ message: "Server error fetching trending" });
+    }
+};
+
+/**
  * Get user's Aura identity (for display before creating post)
  * GET /api/aurax/identity
  */
@@ -413,41 +530,72 @@ export const getUserAuraIdentity = async (req, res) => {
 // Save user's aura avatar (onboarding)
 export const saveAuraAvatar = async (req, res) => {
     try {
-        const userId = req.user._id; // Corrected to req.user._id
-        const { avatar, avatarType, auraName, auraColor } = req.body;
+        const userId = req.user._id;
+        const { avatar, avatarType, auraName, auraColor, reusePrevious } = req.body;
 
-        // Validate inputs
-        if (!avatar || !avatarType) {
-            return res.status(400).json({ message: "Avatar and avatar type are required" });
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // 1. Check if user is trying to reuse previous identity
+        if (reusePrevious) {
+            if (!user.lastAuraIdentity?.auraName) {
+                return res.status(400).json({ message: "No previous identity found to reuse" });
+            }
+            // If reusing, we just return success without resetting the cooldown
+            return res.json({
+                success: true,
+                message: "Identity reused successfully",
+                avatar: user.auraAvatar,
+                avatarType: user.auraAvatarType,
+                auraName: user.lastAuraIdentity.auraName
+            });
+        }
+
+        // 2. Cooldown Logic: Check if 24 hours have passed since last change
+        const lastChange = user.lastAuraIdentityChange;
+        const now = new Date();
+        const cooldownMs = 24 * 60 * 60 * 1000; // 24 hours
+
+        if (lastChange && (now - lastChange < cooldownMs)) {
+            const remainingMs = cooldownMs - (now - lastChange);
+            const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+            const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+
+            return res.status(403).json({
+                message: `Identity is locked. Change allowed in ${hours}h ${minutes}m`,
+                remainingMs
+            });
+        }
+
+        // 3. Validate inputs for new identity
+        if (!avatar || !avatarType || !auraName) {
+            return res.status(400).json({ message: "Avatar, type, and name are required" });
         }
 
         if (!['emoji', 'custom'].includes(avatarType)) {
             return res.status(400).json({ message: "Invalid avatar type" });
         }
 
-        // Update user's avatar
-        const updateData = {
-            auraAvatar: avatar,
-            auraAvatarType: avatarType,
+        // 4. Update user's identity and timestamp
+        user.auraAvatar = avatar;
+        user.auraAvatarType = avatarType;
+        user.lastAuraIdentity = {
+            auraName: auraName.trim(),
+            auraColor: auraColor || user.lastAuraIdentity?.auraColor || '#00F5FF'
         };
+        user.lastAuraIdentityChange = now;
 
-        // Optionally save aura name to lastAuraIdentity
-        if (auraName) {
-            updateData['lastAuraIdentity.auraName'] = auraName;
-        }
-
-        // Save aura color if provided (fixes "random identity" bug)
-        if (auraColor) {
-            updateData['lastAuraIdentity.auraColor'] = auraColor;
-        }
-
-        await User.findByIdAndUpdate(userId, updateData);
+        await user.save();
 
         res.json({
             success: true,
-            message: "Avatar saved successfully",
-            avatar,
-            avatarType
+            message: "Aura Identity updated! 24h cooldown started.",
+            avatar: user.auraAvatar,
+            avatarType: user.auraAvatarType,
+            auraName: user.lastAuraIdentity.auraName,
+            lastAuraIdentityChange: user.lastAuraIdentityChange
         });
     } catch (error) {
         console.error("Error saving aura avatar:", error);

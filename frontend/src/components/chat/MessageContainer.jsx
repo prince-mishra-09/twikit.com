@@ -81,14 +81,19 @@ const MessageContainer = ({ selectedChat, setChats }) => {
       }
     });
 
-    socket.on("messageDeleted", ({ messageId }) => {
-      setMessages((prev) => prev.filter((msg) => msg._id !== messageId));
+    socket.on("messageReactionUpdated", ({ messageId, chatId, reactions }) => {
+      if (selectedChat._id === chatId) {
+        setMessages((prev) =>
+          prev.map((msg) => (msg._id === messageId ? { ...msg, reactions } : msg))
+        );
+      }
     });
 
     return () => {
       socket.off("newMessage");
       socket.off("messagesRead");
       socket.off("messageDeleted");
+      socket.off("messageReactionUpdated");
     };
   }, [socket, selectedChat, setChats, user._id]);
 
@@ -171,34 +176,36 @@ const MessageContainer = ({ selectedChat, setChats }) => {
     >
 
       {/* HEADER - Sticky at top */}
-      <div className="sticky top-0 w-full flex-none flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] bg-[var(--card-bg)]/100 backdrop-blur-md z-30">
-        <button
-          onClick={() => setSelectedChat(null)}
-          className="md:hidden mr-1 text-[var(--text-primary)] p-2 rounded-full hover:bg-[var(--text-primary)]/10"
-        >
-          <FaArrowLeft />
-        </button>
-        {otherUser && (
-          <>
-            <img
-              src={otherUser.profilePic?.url}
-              className="w-9 h-9 rounded-full object-cover"
-              alt=""
-            />
-            <div>
-              <p className="text-[var(--text-primary)] font-medium">
-                {otherUser.name}
-              </p>
-              <p className="text-xs text-[var(--text-secondary)]">
-                {isOnline ? (
-                  <span className="text-green-400 font-medium">Active now</span>
-                ) : (
-                  formatLastSeen(otherUser.lastSeen)
-                )}
-              </p>
-            </div>
-          </>
-        )}
+      <div className="sticky top-0 w-full flex-none border-b border-[var(--border)] bg-[var(--card-bg)]/100 backdrop-blur-md z-30">
+        <div className="max-w-4xl mx-auto w-full flex items-center gap-3 px-4 py-3">
+          <button
+            onClick={() => setSelectedChat(null)}
+            className="md:hidden mr-1 text-[var(--text-primary)] p-2 rounded-full hover:bg-[var(--text-primary)]/10"
+          >
+            <FaArrowLeft />
+          </button>
+          {otherUser && (
+            <>
+              <img
+                src={otherUser.profilePic?.url}
+                className="w-9 h-9 rounded-full object-cover"
+                alt=""
+              />
+              <div>
+                <p className="text-[var(--text-primary)] font-medium">
+                  {otherUser.name}
+                </p>
+                <p className="text-xs text-[var(--text-secondary)]">
+                  {isOnline ? (
+                    <span className="text-green-400 font-medium">Active now</span>
+                  ) : (
+                    formatLastSeen(otherUser.lastSeen)
+                  )}
+                </p>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* MESSAGES */}
@@ -210,85 +217,89 @@ const MessageContainer = ({ selectedChat, setChats }) => {
         <>
           <div
             ref={messageContainerRef}
-            className="flex-1 overflow-y-auto px-4 pt-4 pb-3 space-y-2 bg-[var(--bg-primary)]"
+            className="flex-1 overflow-y-auto bg-[var(--bg-primary)] pt-4 pb-3"
           >
-            {messages &&
-              messages.map((e, i) => {
-                // Date Separator Logic
-                const currentDateLabel = formatDateLabel(e.createdAt);
-                const prevDateLabel = i > 0 ? formatDateLabel(messages[i - 1].createdAt) : null;
-                const showDateSeparator = currentDateLabel !== prevDateLabel;
+            <div className="max-w-4xl mx-auto w-full px-4 space-y-2">
+              {messages &&
+                messages.map((e, i) => {
+                  // Date Separator Logic
+                  const currentDateLabel = formatDateLabel(e.createdAt);
+                  const prevDateLabel = i > 0 ? formatDateLabel(messages[i - 1].createdAt) : null;
+                  const showDateSeparator = currentDateLabel !== prevDateLabel;
 
-                return (
-                  <React.Fragment key={i}>
-                    {showDateSeparator && (
-                      <div className="flex justify-center my-4">
-                        <span className="bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-xs px-3 py-1 rounded-full border border-[var(--border)]">
-                          {currentDateLabel}
-                        </span>
-                      </div>
-                    )}
-                    <Message
-                      message={e}
-                      ownMessage={e.sender === user._id}
-                      isRead={e.isRead}
-                      deleteHandler={deleteMessageHandler}
-                      activeMessageId={activeMessageId}
-                      setActiveMessageId={setActiveMessageId}
-                      onReply={(msg) => {
-                        // Vibrate if mobile? (Window.navigator.vibrate)
-                        setReplyingTo(msg);
-                      }}
-                      scrollToMessage={scrollToMessage}
-                      highlightedMessageId={highlightedMessageId}
-                    />
-                  </React.Fragment>
-                );
-              })}
+                  return (
+                    <React.Fragment key={i}>
+                      {showDateSeparator && (
+                        <div className="flex justify-center my-4">
+                          <span className="bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-xs px-3 py-1 rounded-full border border-[var(--border)]">
+                            {currentDateLabel}
+                          </span>
+                        </div>
+                      )}
+                      <Message
+                        message={e}
+                        ownMessage={e.sender === user._id}
+                        isRead={e.isRead}
+                        deleteHandler={deleteMessageHandler}
+                        activeMessageId={activeMessageId}
+                        setActiveMessageId={setActiveMessageId}
+                        onReply={(msg) => {
+                          // Vibrate if mobile? (Window.navigator.vibrate)
+                          setReplyingTo(msg);
+                        }}
+                        scrollToMessage={scrollToMessage}
+                        highlightedMessageId={highlightedMessageId}
+                      />
+                    </React.Fragment>
+                  );
+                })}
+            </div>
           </div>
 
           {/* INPUT AREA */}
-          <div className="flex-none  border-[var(--border)] bg-[var(--card-bg)]/80 backdrop-blur-md z-10">
-            {/* Reply Preview */}
-            {replyingTo && (
-              <div className="px-4 py-2  border-[var(--border)] flex items-center justify-between bg-black/5">
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="text-[var(--accent)] shrink-0">
-                    <FaReply size={14} />
+          <div className="flex-none border-t border-[var(--border)] bg-[var(--card-bg)]/80 backdrop-blur-md z-10">
+            <div className="max-w-4xl mx-auto w-full">
+              {/* Reply Preview */}
+              {replyingTo && (
+                <div className="px-4 py-2 border-[var(--border)] flex items-center justify-between bg-black/5">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="text-[var(--accent)] shrink-0">
+                      <FaReply size={14} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold text-[var(--accent)]">
+                        Replying to {replyingTo.sender === user?._id ? "yourself" : `@${replyingTo.sender?.username || "user"}`}
+                      </p>
+                      <p className="text-xs text-[var(--text-secondary)] truncate">
+                        {replyingTo.text || (replyingTo.sharedContent ? "Shared content" : "Attachment")}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-bold text-[var(--accent)]">
-                      Replying to {replyingTo.sender === user?._id ? "yourself" : `@${replyingTo.sender?.username || "user"}`}
-                    </p>
-                    <p className="text-xs text-[var(--text-secondary)] truncate">
-                      {replyingTo.text || (replyingTo.sharedContent ? "Shared content" : "Attachment")}
-                    </p>
-                  </div>
+                  <button
+                    onClick={() => setReplyingTo(null)}
+                    className="p-1.5 hover:bg-[var(--bg-secondary)] rounded-full transition-colors shrink-0"
+                  >
+                    <IoClose size={18} className="text-[var(--text-secondary)]" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setReplyingTo(null)}
-                  className="p-1.5 hover:bg-[var(--bg-secondary)] rounded-full transition-colors shrink-0"
-                >
-                  <IoClose size={18} className="text-[var(--text-secondary)]" />
-                </button>
-              </div>
-            )}
-
-            <div className="p-2 pb-2 md:pb-2">
-              {otherUser?.isPrivate && !user?.followings?.includes(otherUser._id) ? (
-                <div className="flex justify-center items-center py-4 bg-[var(--bg-secondary)]/30 rounded-lg mx-2 my-1 border border-[var(--border)]">
-                  <p className="text-[var(--text-secondary)] text-sm">
-                    Follow <span className="font-bold text-[var(--text-primary)]">@{otherUser.username}</span> to message them
-                  </p>
-                </div>
-              ) : (
-                <MessageInput
-                  setMessages={setMessages}
-                  selectedChat={selectedChat}
-                  replyingTo={replyingTo}
-                  setReplyingTo={setReplyingTo}
-                />
               )}
+
+              <div className="p-2 pb-2 md:pb-2">
+                {otherUser?.isPrivate && !user?.followings?.includes(otherUser._id) ? (
+                  <div className="flex justify-center items-center py-4 bg-[var(--bg-secondary)]/30 rounded-lg mx-2 my-1 border border-[var(--border)]">
+                    <p className="text-[var(--text-secondary)] text-sm">
+                      Follow <span className="font-bold text-[var(--text-primary)]">@{otherUser.username}</span> to message them
+                    </p>
+                  </div>
+                ) : (
+                  <MessageInput
+                    setMessages={setMessages}
+                    selectedChat={selectedChat}
+                    replyingTo={replyingTo}
+                    setReplyingTo={setReplyingTo}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </>

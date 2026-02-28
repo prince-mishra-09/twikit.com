@@ -28,4 +28,8 @@ test_*.js
 check_*.js
 expire_*.js
 diagnose*.js
+trigger_*.js
+stress_*.js
+verify_*.js
+*_output.txt
 *.diff

@@ -37,3 +37,12 @@ self.addEventListener("notificationclick", function (event) {
         })
     );
 });
+
+// Fetch handler (required for PWA installability)
+self.addEventListener("fetch", (event) => {
+    // Basic network-only strategy for now
+    event.respondWith(fetch(event.request).catch(() => {
+        // Fallback for offline if we had a cache
+        return;
+    }));
+});

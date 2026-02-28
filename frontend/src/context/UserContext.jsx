@@ -36,11 +36,11 @@ export const UserContextProvider = ({ children }) => {
     }
   }, []);
 
-  const loginUser = useCallback(async (email, password, navigate, fetchPosts) => {
+  const loginUser = useCallback(async (identifier, password, navigate, fetchPosts) => {
     setLoading(true);
     try {
       const { data } = await axios.post("/api/auth/login", {
-        email,
+        identifier,
         password,
       });
 
