@@ -337,6 +337,7 @@ export const handleFeedback = TryCatch(async (req, res) => {
                 postId: updatedPost._id,
                 vibesUp: updatedPost.vibesUp,
                 vibesUpCount: updatedPost.vibesUp.length,
+                vibesDownCount: updatedPost.vibesDown.length,  // here i am sagar added this line to get count of down 
                 action: feedbackType === "vibeUp" ? action : "removed",
             });
         }
