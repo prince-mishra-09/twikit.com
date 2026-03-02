@@ -1,5 +1,5 @@
-// Email Service - Sends alert emails using the Resend-based OTPEmailService
-import otpEmailService from '../utils/otpEmailService.js';
+// Email Service - Sends alert emails using Nodemailer (SMTP)
+import nodemailerService from '../utils/nodemailerService.js';
 
 class EmailService {
   // Send alert email
@@ -60,12 +60,12 @@ class EmailService {
     `;
 
     try {
-      const info = await otpEmailService.sendEmail({
+      const info = await nodemailerService.sendAlertEmail({
         to: process.env.ADMIN_EMAIL || 'mrprimi91@gmail.com',
         subject: subject,
         html: html
       });
-      console.log('✅ Alert email sent:', info.messageId);
+      console.log('✅ Alert email sent via SMTP:', info.messageId);
       return info;
     } catch (error) {
       console.error('❌ Failed to send alert email:', error);
@@ -73,9 +73,9 @@ class EmailService {
     }
   }
 
-  // Test connection (Using otpEmailService's test)
+  // Test SMTP connection
   async testConnection() {
-    return otpEmailService.testConnection();
+    return nodemailerService.testConnection();
   }
 }
 

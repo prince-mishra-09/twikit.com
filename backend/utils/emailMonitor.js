@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import nodemailerService from './nodemailerService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,7 +59,8 @@ class EmailMonitor {
     async sendAlert(service, currentCount) {
         // console.log(`⚠️ EMAIL LIMIT ALERT: Usage at ${currentCount}/${DAILY_LIMIT}`);
         try {
-            await service.sendEmail({
+            // Use Nodemailer (SMTP) instead of Resend to save Resend quota
+            await nodemailerService.sendAlertEmail({
                 to: process.env.ADMIN_EMAIL || process.env.SMTP_USER,
                 subject: "⚠️ Twikit Email Limit Alert",
                 html: `
