@@ -4,7 +4,7 @@ import nodemailerService from '../utils/nodemailerService.js';
 class EmailService {
   // Send alert email
   async sendAlert(data) {
-    const subject = `⚠️ Twikit Warning: ${data.name} at ${data.percentage}`;
+    const subject = `⚠️ xwaked Warning: ${data.name} at ${data.percentage}`;
 
     const html = `
       <!DOCTYPE html>
@@ -25,7 +25,7 @@ class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <h2 style="margin: 0;">⚠️ Twikit Alert</h2>
+            <h2 style="margin: 0;">⚠️ xwaked Alert</h2>
             <p style="margin: 5px 0 0 0;">Threshold Breach Detected</p>
           </div>
           
@@ -51,7 +51,7 @@ class EmailService {
           </div>
 
           <div class="footer">
-            <p>This is an automated alert from Twikit Monitoring System.</p>
+            <p>This is an automated alert from xwaked Monitoring System.</p>
             <p>Server: ${process.env.NODE_ENV || 'development'} | Time: ${new Date().toLocaleString()}</p>
           </div>
         </div>

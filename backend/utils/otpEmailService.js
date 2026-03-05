@@ -27,7 +27,7 @@ class OTPEmailService {
       // console.log(`📤 Sending email to ${to} (Daily count: ${count})...`);
 
       const { data, error } = await this.getResend().emails.send({
-        from: `Twikit <${this.fromEmail}>`,
+        from: `xwaked <${this.fromEmail}>`,
         to: to,
         subject: subject,
         html: html,
@@ -57,14 +57,14 @@ class OTPEmailService {
 
   // Send OTP email
   async sendOTP(email, otp) {
-    const subject = "Verification Code for Twikit";
+    const subject = "Verification Code for xwaked";
     const html = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 480px; margin: 40px auto; padding: 20px; color: #4b5563; line-height: 1.5;">
         <div style="margin-bottom: 32px;">
-          <h1 style="font-size: 16px; font-weight: 500; color: #9ca3af; margin: 0;">Twikit</h1>
+          <h1 style="font-size: 16px; font-weight: 500; color: #9ca3af; margin: 0;">xwaked</h1>
         </div>
         
-        <p style="margin-bottom: 24px;">This code lets you sign in to Twikit.</p>
+        <p style="margin-bottom: 24px;">This code lets you sign in to xwaked.</p>
         
         <div style="font-size: 32px; font-weight: 400; letter-spacing: 0.2em; color: #1f2937; margin: 32px 0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">
           ${otp}
@@ -78,7 +78,7 @@ class OTPEmailService {
         </p>
         
         <div style="border-top: 1px solid #f3f4f6; padding-top: 24px; font-size: 12px; color: #9ca3af;">
-          This is an automated transactional email from Twikit.
+          This is an automated transactional email from xwaked.
         </div>
       </div>
     `;
@@ -101,7 +101,7 @@ class OTPEmailService {
   }
 
   async sendWelcomeEmail(email, name, username) {
-    const subject = "Welcome to Twikit — A quiet place to be real";
+    const subject = "Welcome to xwaked — A quiet place to be real";
     const html = `
       <!DOCTYPE html>
       <html>
@@ -222,18 +222,18 @@ class OTPEmailService {
       <body>
           <div class="container">
               <div class="logo">
-                  <span class="logo-gradient">TWIKIT</span>
+                  <span class="logo-gradient">XWAKED</span>
               </div>
               
               <h1 class="greeting">Hi ${name},</h1>
               
               <p class="hero-text">
-                  Welcome to <strong>Twikit</strong>. <br><br>
+                  Welcome to <strong>xwaked</strong>. <br><br>
                   You didn’t just sign up for another social app. You stepped into a quieter place on the internet.
               </p>
               
               <div class="card">
-                  <p style="margin-top: 0; color: #CBD5E1; font-size: 15px; margin-bottom: 24px;">Twikit was built for people who are tired of performing. Tired of pretending. Tired of measuring themselves with likes.</p>
+                  <p style="margin-top: 0; color: #CBD5E1; font-size: 15px; margin-bottom: 24px;">xwaked was built for people who are tired of performing. Tired of pretending. Tired of measuring themselves with likes.</p>
                   
                   <div class="feature-label label-real">✨ Vibe Up</div>
                   <p class="feature-text">When someone genuinely vibes with what you shared. It’s a signal of appreciation, not a performance metric.</p>
@@ -247,7 +247,7 @@ class OTPEmailService {
               </p>
               
               <div class="manifesto">
-                  “You don’t need to post perfectly here. You don’t need to post often. Twikit works best when you use it slowly and honestly.”
+                  “You don’t need to post perfectly here. You don’t need to post often. xwaked works best when you use it slowly and honestly.”
               </div>
               
               <p class="hero-text" style="margin-bottom: 0;">
@@ -256,7 +256,7 @@ class OTPEmailService {
               </p>
               
               <div class="signature">
-                  <p class="signature-name">— Twikit</p>
+                  <p class="signature-name">— xwaked</p>
                   <p class="signature-sub">A quiet place to be real</p>
               </div>
               
@@ -268,9 +268,9 @@ class OTPEmailService {
                       <span>&bull;</span>
                       <a href="https://twikit.online/help">Help</a>
                   </div>
-                  <p>&copy; 2026 Twikit. All rights reserved. <br>
+                  <p>&copy; 2026 xwaked. All rights reserved. <br>
                   This is a transactional email for your account @${username}. <br>
-                  Twikit HQ — A calmer corner of the web.</p>
+                  xwaked HQ — A calmer corner of the web.</p>
               </div>
           </div>
       </body>
@@ -283,7 +283,7 @@ class OTPEmailService {
   async sendTestEmail() {
     const email = process.env.ADMIN_EMAIL;
     if (!email) throw new Error("ADMIN_EMAIL env var is missing");
-    const subject = "Twikit - Resend Diagnostic Test";
+    const subject = "xwaked - Resend Diagnostic Test";
     const html = `<h1>Resend Success!</h1><p>Your API integration is working perfectly.</p><p>Timestamp: ${new Date().toISOString()}</p>`;
     return this.sendEmail({ to: email, subject, html });
   }

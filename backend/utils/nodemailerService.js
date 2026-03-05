@@ -26,7 +26,7 @@ class NodemailerService {
     async sendAlertEmail({ to, subject, html }) {
         try {
             const info = await this.getTransporter().sendMail({
-                from: `"Twikit Alerts" <${process.env.SMTP_USER}>`,
+                from: `"xwaked Alerts" <${process.env.SMTP_USER}>`,
                 to: to || process.env.ADMIN_EMAIL,
                 subject: subject,
                 html: html,

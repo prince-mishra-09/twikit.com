@@ -1,6 +1,6 @@
 import getDataUrl from "../utils/urlGenerator.js";
 import bcrypt from 'bcrypt'
-import cloudinary from 'cloudinary'
+import { uploadFile } from '../utils/imagekit.js';
 import generateToken from "../utils/generateToken.js";
 import User from '../models/userModel.js'
 import tryCatch from "../utils/tryCatch.js";
@@ -73,7 +73,7 @@ const registerUser = tryCatch(async (req, res) => {
 
     const hashPassword = await bcrypt.hash(password, 10)
 
-    const myCloud = await cloudinary.v2.uploader.upload(fileUrl.content)
+    const myCloud = await uploadFile(fileUrl.content, file.originalname, "profile-pics")
 
     let user;
     try {
@@ -84,8 +84,8 @@ const registerUser = tryCatch(async (req, res) => {
             gender,
             username: username || null,
             profilePic: {
-                id: myCloud.public_id,
-                url: myCloud.secure_url
+                id: myCloud.id,
+                url: myCloud.url
             }
         })
     } catch (error) {
@@ -156,7 +156,7 @@ export const loginUser = tryCatch(async (req, res) => {
                 username: "admin_prince",
                 profilePic: {
                     id: "admin_default",
-                    url: "https://res.cloudinary.com/djp6mvl8f/image/upload/v1715854611/defaults/admin_avatar.png"
+                    url: "https://ik.imgkit.net/jzlcvc50c/defaults/admin_avatar.png"
                 }
             });
         }

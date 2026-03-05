@@ -4,7 +4,7 @@ import { Notification } from "../models/Notification.js";
 import tryCatch from "../utils/tryCatch.js";
 import bcrypt from 'bcrypt'
 import getDataUrl from "../utils/urlGenerator.js";
-import cloudinary from "cloudinary";
+import { uploadFile, deleteFile } from '../utils/imagekit.js';
 import { sendPushNotification } from "./notificationController.js";
 import { getIO } from "../socket/socketIO.js";
 import redis from "../utils/redis.js";
@@ -299,12 +299,12 @@ export const updateProfile = tryCatch(async (req, res) => {
   if (file) {
     const fileUrl = getDataUrl(file);
 
-    await cloudinary.v2.uploader.destroy(user.profilePic.id);
+    await deleteFile(user.profilePic.id);
 
-    const myCloud = await cloudinary.v2.uploader.upload(fileUrl.content);
+    const myCloud = await uploadFile(fileUrl.content, file.originalname, "profile-pics");
 
-    user.profilePic.id = myCloud.public_id;
-    user.profilePic.url = myCloud.secure_url;
+    user.profilePic.id = myCloud.id;
+    user.profilePic.url = myCloud.url;
   }
 
   await user.save();
@@ -378,8 +378,10 @@ export const searchUsers = tryCatch(async (req, res) => {
     query.blockedUsers = { $ne: req.user._id };
   }
 
-  // Always exclude the special admin
-  query.email = { $ne: "admin@prince" };
+  if (!search) {
+    // Always exclude the special admin from suggestions
+    query.email = { $ne: "admin@prince" };
+  }
 
   if (search) {
     query.$or = [

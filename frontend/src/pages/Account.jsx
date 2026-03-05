@@ -23,7 +23,7 @@ import StoryAvatar from "../components/StoryAvatar";
 import { AiOutlinePlus } from "react-icons/ai";
 import ShareModal from "../components/ShareModal";
 import ThemeModal from "../components/ThemeModal";
-import { getOptimizedImg } from "../utils/cloudinary";
+import { getOptimizedImg } from "../utils/imagekit";
 import { RiRecordCircleFill } from "react-icons/ri";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { useTheme } from "../context/ThemeContext";

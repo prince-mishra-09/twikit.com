@@ -1,5 +1,5 @@
 /* BgAnimation.css */
-.twikit-text {
+.xwaked-text {
   position: absolute;
   font-weight: bold;
   pointer-events: none;
@@ -15,9 +15,11 @@
     transform: translateY(-400px) rotate(0deg);
     opacity: 0;
   }
+
   10% {
     opacity: 1;
   }
+
   100% {
     transform: translateY(110vh) rotate(360deg);
     opacity: 0;

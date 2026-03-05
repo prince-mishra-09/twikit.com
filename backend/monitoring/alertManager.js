@@ -172,7 +172,7 @@ class AlertManager {
                     actions: [
                         'Check server logs for error patterns',
                         'Verify database connection stability',
-                        'Check for failing external services (Cloudinary)',
+                        'Check for failing external services (ImageKit)',
                         `Errors: ${metrics.errors}, Requests: ${metrics.requests}`
                     ]
                 });

@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import User from "../models/userModel.js";
 import TryCatch from "../utils/tryCatch.js";
 import getDataUrl from "../utils/urlGenerator.js";
-import cloudinary from "cloudinary";
+import { uploadFile, deleteFile } from '../utils/imagekit.js';
 import { getIO } from "../socket/socketIO.js";
 import { Notification } from "../models/Notification.js";
 import { sendPushNotification } from "./notificationController.js";
@@ -34,21 +34,25 @@ export const newPost = TryCatch(async (req, res) => {
         status: "processing",
     });
 
+    const ownerIdStr = req.user._id.toString();
+
     // 2. Process in Background (Non-blocking)
     setImmediate(async () => {
         try {
+            logToFile(`[BACKGROUND UPLOAD] Starting upload for user ${ownerIdStr}, type: ${type}`);
             const fileUrl = getDataUrl(file);
             const option = type === "reel" ? { resource_type: "video" } : {};
 
-            // Heavy: Cloudinary Upload
-            const myCloud = await cloudinary.v2.uploader.upload(fileUrl.content, option);
+            // Heavy: ImageKit Upload
+            const myCloud = await uploadFile(fileUrl.content, file.originalname, type === "reel" ? "reels" : "posts");
+            logToFile(`[BACKGROUND UPLOAD] ImageKit upload success for user ${ownerIdStr}`);
 
             // Heavy: DB Creation
             const post = await Post.create({
                 caption,
                 post: {
-                    id: myCloud.public_id,
-                    url: myCloud.secure_url,
+                    id: myCloud.id,
+                    url: myCloud.url,
                 },
                 owner: ownerId,
                 type,
@@ -58,16 +62,26 @@ export const newPost = TryCatch(async (req, res) => {
             await post.populate("owner", "name username profilePic isPrivate");
 
             // 3. Emit "Ready" Event to User
-            getIO().to("user:" + ownerId.toString()).emit("post:ready", post);
+            try {
+                getIO().to("user:" + ownerIdStr).emit("post:ready", post);
+                logToFile(`[BACKGROUND UPLOAD] Socket emit 'post:ready' success for user ${ownerIdStr}`);
+            } catch (socketErr) {
+                logToFile(`[BACKGROUND UPLOAD] Socket emit failed: ${socketErr.message}`);
+            }
 
         } catch (error) {
             console.error("Background Upload Error:", error);
+            logToFile(`[BACKGROUND UPLOAD] Failure: ${error.message}`);
 
             // Emit "Failed" Event
-            getIO().to("user:" + ownerId.toString()).emit("post:failed", {
-                message: "Post upload failed",
-                error: error.message || "Unknown error"
-            });
+            try {
+                getIO().to("user:" + ownerIdStr).emit("post:failed", {
+                    message: "Post upload failed",
+                    error: error.message || "Unknown error"
+                });
+            } catch (socketErr) {
+                logToFile(`[BACKGROUND UPLOAD] Error socket emit failed: ${socketErr.message}`);
+            }
         }
     });
 });
@@ -85,7 +99,7 @@ export const deletePost = TryCatch(async (req, res) => {
             message: "Unauthorized",
         });
 
-    await cloudinary.v2.uploader.destroy(post.post.id);
+    await deleteFile(post.post.id);
 
     // CLEANUP RELATED DATA
     await Notification.deleteMany({ postId: post._id });

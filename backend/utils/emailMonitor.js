@@ -62,7 +62,7 @@ class EmailMonitor {
             // Use Nodemailer (SMTP) instead of Resend to save Resend quota
             await nodemailerService.sendAlertEmail({
                 to: process.env.ADMIN_EMAIL || process.env.SMTP_USER,
-                subject: "⚠️ Twikit Email Limit Alert",
+                subject: "⚠️ xwaked Email Limit Alert",
                 html: `
                     <div style="font-family: Arial, sans-serif; padding: 20px; border: 2px solid #ff0000; border-radius: 10px;">
                         <h2 style="color: #ff0000;">Email Limit Alert</h2>

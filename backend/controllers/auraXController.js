@@ -1,7 +1,7 @@
 import { AuraX } from "../models/AuraX.js";
 import User from "../models/userModel.js";
 import getDataUrl from "../utils/urlGenerator.js";
-import cloudinary from "cloudinary";
+import { uploadFile, deleteFile } from '../utils/imagekit.js';
 import { getAuraIdentity } from "../utils/auraIdentity.js";
 import {
     checkAuraRateLimit,
@@ -45,22 +45,19 @@ export const createAuraX = async (req, res) => {
         let postType = 'text';
 
         if (req.file) {
-            // 4. Upload media to Cloudinary if file exists
+            // 4. Upload media to ImageKit if file exists
             const fileUri = getDataUrl(req.file);
             const isVideo = req.file.mimetype.startsWith("video");
 
-            const uploadOptions = {
-                resource_type: isVideo ? "video" : "image",
-            };
-
-            const myCloud = await cloudinary.v2.uploader.upload(
+            const myCloud = await uploadFile(
                 fileUri.content,
-                uploadOptions
+                req.file.originalname,
+                "aurax"
             );
 
             mediaData = {
-                id: myCloud.public_id,
-                url: myCloud.secure_url,
+                id: myCloud.id,
+                url: myCloud.url,
             };
             postType = isVideo ? "video" : "image";
         }
@@ -259,11 +256,9 @@ export const handleAuraVibe = async (req, res) => {
         const VIBE_KILL_THRESHOLD = 50;
         if (aura.vibesKilled.length >= VIBE_KILL_THRESHOLD) {
             // Delete the Aura (burn effect on frontend)
-            // Only delete from Cloudinary if media exists (text-only posts don't have media)
+            // Only delete from ImageKit if media exists (text-only posts don't have media)
             if (aura.media && aura.media.id) {
-                await cloudinary.v2.uploader.destroy(aura.media.id, {
-                    resource_type: aura.type === "video" ? "video" : "image",
-                });
+                await deleteFile(aura.media.id);
             }
             await AuraX.findByIdAndDelete(id);
 
@@ -355,10 +350,8 @@ export const deleteAuraX = async (req, res) => {
             return res.status(403).json({ message: "Not authorized to delete this Aura" });
         }
 
-        // Delete from Cloudinary
-        await cloudinary.v2.uploader.destroy(aura.media.id, {
-            resource_type: aura.type === "video" ? "video" : "image",
-        });
+        // Delete from ImageKit
+        await deleteFile(aura.media.id);
 
         // Delete from database
         await AuraX.findByIdAndDelete(id);

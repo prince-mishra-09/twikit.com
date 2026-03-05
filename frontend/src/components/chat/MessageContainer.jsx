@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { UserData } from "../../context/UserContext";
 import axios from "axios";
 import { LoadingAnimation } from "../Loading";
@@ -8,7 +9,7 @@ import { SocketData } from "../../context/SocketContext";
 import { ChatData } from "../../context/ChatContext";
 
 import { FaArrowLeft, FaTimes, FaReply } from "react-icons/fa";
-import { IoClose } from "react-icons/io5";
+import { IoClose, IoBugOutline } from "react-icons/io5";
 
 const MessageContainer = ({ selectedChat, setChats }) => {
   const [messages, setMessages] = useState([]);
@@ -16,6 +17,9 @@ const MessageContainer = ({ selectedChat, setChats }) => {
   const [loading, setLoading] = useState(false);
   const { socket, onlineUsers } = SocketData();
   const { setSelectedChat } = ChatData();
+  const location = useLocation();
+
+  const isBugReport = location.state?.isBugReport && selectedChat?.users?.[0]?.username === "admin_prince";
 
   const otherUser = selectedChat?.users?.[0];
   const isOnline = otherUser ? onlineUsers.includes(otherUser._id) : false;
@@ -220,6 +224,21 @@ const MessageContainer = ({ selectedChat, setChats }) => {
             className="flex-1 overflow-y-auto bg-[var(--bg-primary)] pt-4 pb-3"
           >
             <div className="max-w-4xl mx-auto w-full px-4 space-y-2">
+              {/* Bug Report Guideline Banner */}
+              {isBugReport && (
+                <div className="mb-6 p-5 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-center animate-in fade-in slide-in-from-top duration-700">
+                  <div className="flex justify-center mb-3">
+                    <div className="p-3 rounded-full bg-orange-500/20 text-orange-500 shadow-lg shadow-orange-500/10">
+                      <IoBugOutline className="text-3xl" />
+                    </div>
+                  </div>
+                  <h3 className="text-[var(--text-primary)] font-black text-lg mb-1 tracking-tight">Bug Report Mode</h3>
+                  <p className="text-[var(--text-secondary)] text-sm max-w-xs mx-auto leading-relaxed">
+                    Bhai, please bug ke bare me acche se bataye. Screensots bhi share kar sakte hain!
+                  </p>
+                </div>
+              )}
+
               {messages &&
                 messages.map((e, i) => {
                   // Date Separator Logic

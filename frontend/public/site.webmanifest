@@ -1,15 +1,15 @@
 {
-    "name": "Viby",
-    "short_name": "Viby",
+    "name": "xwaked",
+    "short_name": "xwaked",
     "icons": [
         {
-            "src": "/images/viby-fev.png",
+            "src": "/images/xwaked-fev.png",
             "sizes": "1024x1024",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "/images/viby-fev.png",
+            "src": "/images/xwaked-fev.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any"

@@ -23,13 +23,17 @@ today_changes.diff
 temp_*
 
 # Debug, Test and Diagnostic Scripts
-debug_*.js
-test_*.js
-check_*.js
-expire_*.js
-diagnose*.js
-trigger_*.js
-stress_*.js
-verify_*.js
-*_output.txt
+**/debug_*.js
+**/test_*.js
+**/check_*.js
+**/expire_*.js
+**/diagnose*.js
+**/trigger_*.js
+**/stress_*.js
+**/verify_*.js
+**/transfer.js
+**/migrate_to_imagekit.js
+**/update_db_domains.js
+**/comment_logs.js
 *.diff
+*.log

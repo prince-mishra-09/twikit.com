@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Link } from "react-router-dom";
-import { IoChatbubbleEllipsesOutline, IoNotificationsOutline } from "react-icons/io5";
+import { toast } from "react-hot-toast";
+import { Link, useNavigate } from "react-router-dom";
+import { IoChatbubbleEllipsesOutline, IoNotificationsOutline, IoBugOutline } from "react-icons/io5";
 import AddPost from "../components/AddPost";
 import StoryRow from "../components/StoryRow"; // Import StoryRow
 import PostCard from "../components/PostCard";
@@ -10,21 +11,55 @@ import { ChatData } from "../context/ChatContext";
 import { SkeletonPost } from "../components/Skeleton";
 import { UserData } from "../context/UserContext";
 import { useTheme } from "../context/ThemeContext";
+import BugReportTooltip from "../components/BugReportTooltip";
 
 
 const Home = () => {
-  const { isAuth } = UserData();
-  const { posts, reels, loading, fetchNextPage, loadingMore, pagination, addLoading, uploadProgress } = PostData();
+  const { isAuth, searchUser, setShowLoginPrompt } = UserData();
+  const { posts, reels, loading, fetchNextPage, loadingMore, pagination, addLoading, uploadProgress, uploadPreview, uploadType } = PostData();
   const { unreadCount } = NotificationData();
-  const { totalUnreadMessages } = ChatData();
-  const { cycleTheme } = useTheme();
+  const { createChat, setSelectedChat, totalUnreadMessages } = ChatData();
+  const { theme, cycleTheme } = useTheme();
+
+  const navigate = useNavigate();
+
+  const handleReportBug = async () => {
+    if (!isAuth) return setShowLoginPrompt(true);
+    const toastId = toast.loading("Connecting to support...");
+    try {
+      const users = await searchUser("admin_prince");
+      const admin = users.find(u => u.username === "admin_prince");
+      if (admin) {
+        const chat = await createChat(admin._id);
+        if (chat) {
+          setSelectedChat(chat);
+          navigate("/chat", { state: { isBugReport: true } });
+          toast.success("Chat opened", { id: toastId });
+        } else {
+          throw new Error("Could not create chat");
+        }
+      } else {
+        toast.error("Admin user not found", { id: toastId });
+        navigate("/chat");
+      }
+    } catch (error) {
+      toast.error("Something went wrong", { id: toastId });
+      navigate("/chat");
+    }
+  };
 
   const [showComposer, setShowComposer] = useState(true);
   const lastScrollY = useRef(0); // Use ref to avoid re-binding listener
 
   // Merge and sort posts and reels by date, then mix to avoid consecutive posts from same user
   const allContent = React.useMemo(() => {
-    let combined = [...(posts || []), ...(reels || [])].sort(
+    // Deduplicate items by _id in case a reel appears in both arrays
+    const combinedMap = new Map();
+    [...(posts || []), ...(reels || [])].forEach(item => {
+      combinedMap.set(item._id, item);
+    });
+
+    let combined = Array.from(combinedMap.values()).sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
 
@@ -95,19 +130,31 @@ const Home = () => {
         >
           {/* Top Header */}
           <div className="flex justify-between items-center py-2 px-3">
-            <Link to="/" className="flex items-center gap-2">
-              <img
-                src="/images/viby-removed-bg.png"
-                alt="Twikit Logo"
-                className="h-8 w-auto"
-              />
-              <span className="text-xl font-bold text-[var(--text-primary)] tracking-wide">
-                viby
+            <Link to="/" className="flex items-center gap-3">
+              <div className="flex items-center justify-center">
+                <img
+                  src={theme === "matcha" || theme === "retro" ? "/images/xwaked-black.png" : "/images/xwaked-white.png"}
+                  alt="xwaked Logo"
+                  className="h-12 w-auto"
+                />
+              </div>
+              <span className="text-3xl font-black text-[var(--text-primary)] tracking-tighter leading-none">
+                {/* xwaked */}
               </span>
             </Link>
             <div className="flex items-center gap-3">
               {isAuth && (
                 <>
+                  <div className="relative">
+                    <button
+                      onClick={handleReportBug}
+                      className="bg-orange-500/10 p-2 text-orange-500 rounded-full hover:bg-orange-500/20 transition-all"
+                      title="Report a Bug"
+                    >
+                      <IoBugOutline className="text-xl" />
+                    </button>
+                    <BugReportTooltip position="bottom" />
+                  </div>
                   <Link
                     to="/notifications"
                     className="relative bg-[var(--text-primary)]/10 p-2 text-[var(--text-primary)] rounded-full hover:bg-[var(--text-primary)]/20 transition-all"
@@ -154,12 +201,34 @@ const Home = () => {
 
           {/* Global Upload Progress */}
           {addLoading && uploadProgress > 0 && (
-            <div className="w-full px-0 md:px-0  mt-2 relative z-50 animate-in fade-in slide-in-from-top-2 duration-300">
-              <div className="h-1.5 w-full bg-gray-800/50 overflow-hidden border-y border-white/5 shadow-lg">
-                <div
-                  className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 bg-[length:200%_100%] animate-[shimmer_2s_infinite] shadow-[0_0_12px_rgba(99,102,241,0.8)] transition-all duration-300 ease-out"
-                  style={{ width: `${uploadProgress}%` }}
-                />
+            <div className="w-full px-4 md:px-0 mt-2 mb-4 relative z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center gap-4 py-2">
+                {uploadPreview && (
+                  <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border)]">
+                    {uploadType === "reel" ? (
+                      <video src={uploadPreview} className="w-full h-full object-cover" />
+                    ) : (
+                      <img src={uploadPreview} alt="uploading" className="w-full h-full object-cover" />
+                    )}
+                  </div>
+                )}
+
+                <div className="flex-1 flex flex-col justify-center gap-1.5 min-w-0">
+                  <div className="flex justify-between items-center text-sm font-medium">
+                    <span className="text-[var(--text-primary)] truncate font-semibold capitalize">
+                      {uploadProgress === 100 ? "Finishing up..." : `Uploading ${uploadType}...`}
+                    </span>
+                    <span className="text-[var(--text-secondary)] font-bold">{uploadProgress}%</span>
+                  </div>
+                  <div className="h-2 w-full bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[var(--accent)] transition-all duration-300 ease-out relative"
+                      style={{ width: `${uploadProgress}%` }}
+                    >
+                      <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}

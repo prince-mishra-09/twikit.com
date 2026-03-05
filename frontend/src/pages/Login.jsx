@@ -3,6 +3,7 @@ import "./bgAnimation.css";
 import { Link, useNavigate } from "react-router-dom";
 import { UserData } from "../context/UserContext";
 import { PostData } from "../context/PostContext";
+import { useTheme } from "../context/ThemeContext";
 import axios from "axios";
 import { createPortal } from "react-dom";
 
@@ -24,6 +25,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { loginUser, loading } = UserData();
   const { fetchPosts } = PostData();
+  const { theme } = useTheme();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -114,11 +116,18 @@ const Login = () => {
 
       {/* Login Card */}
       <div className="relative z-10 w-full max-w-md bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--border)] rounded-2xl shadow-2xl p-8">
+        <div className="flex justify-center mb-6">
+          <img
+            src={theme === "matcha" || theme === "retro" ? "/images/xwaked-black.png" : "/images/xwaked-white.png"}
+            alt="xwaked"
+            className="h-12 w-auto"
+          />
+        </div>
         <h1 className="text-3xl font-semibold text-[var(--text-primary)] text-center">
           Welcome back
         </h1>
         <p className="text-[var(--text-secondary)] text-sm text-center mt-2">
-          Log in to continue on <span className="text-[var(--accent)]">Twikit</span>
+          Log in to continue on <span className="text-[var(--accent)]">xwaked</span>
         </p>
 
         {/* Form */}
@@ -169,7 +178,7 @@ const Login = () => {
         </form>
 
         <p className="text-sm text-[var(--text-secondary)] text-center mt-6">
-          New on Twikit?{" "}
+          New on xwaked?{" "}
           <Link
             to="/register"
             className="text-[var(--accent)] hover:opacity-80 transition"

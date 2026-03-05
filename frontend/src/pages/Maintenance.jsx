@@ -51,7 +51,7 @@ const Maintenance = () => {
                         </h1>
 
                         <p className="text-gray-400 mb-8 text-lg leading-relaxed">
-                            We're currently polishing the experience. Twikit will be back and better than ever in a bit!
+                            We're currently polishing the experience. xwaked will be back and better than ever in a bit!
                         </p>
 
                         <div className="w-full bg-gray-800 rounded-full h-1.5 mb-8 overflow-hidden">

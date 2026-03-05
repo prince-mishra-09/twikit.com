@@ -132,9 +132,9 @@ const RightBar = () => {
             {/* Footer Links - Fixed to bottom */}
             <div className="fixed bottom-0 right-0 w-[320px] pr-8 pl-4 pb-4 bg-[var(--bg-primary)]">
                 <div className="flex flex-wrap gap-x-2 gap-y-1 text-xs text-[var(--text-secondary)]/50">
-                    <a href="https://www.twikit.online/" className="hover:underline">About</a>
+                    <a href="#" className="hover:underline">About</a>
                     <span>•</span>
-                    <a href="https://www.twikit.online/" className="hover:underline">Help</a>
+                    <a href="#" className="hover:underline">Help</a>
                     <span>•</span>
                     <a href="#" className="hover:underline">API</a>
                     <span>•</span>
@@ -144,7 +144,7 @@ const RightBar = () => {
                 </div>
 
                 <div className="mt-2 text-xs text-[var(--text-secondary)]/50 uppercase">
-                    © 2026 Twikit from INDIA
+                    © 2026 xwaked from INDIA
                 </div>
             </div>
 

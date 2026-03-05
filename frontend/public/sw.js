@@ -14,7 +14,7 @@ self.addEventListener("message", (event) => {
 
 self.addEventListener("push", function (event) {
     const data = event.data.json();
-    const title = data.title || "Twikit Notification";
+    const title = data.title || "xwaked Notification";
     const options = {
         body: data.body || "You have a new notification",
         icon: "/icon.png", // Ensure you have an icon here or use default

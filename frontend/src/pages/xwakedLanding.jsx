@@ -38,7 +38,7 @@ const FeaturePost = ({ title, subtitle, color = "bg-[var(--accent)]" }) => (
 );
 
 /* ---------------- PAGE ---------------- */
-export default function TwikitLanding() {
+export default function xwakedLanding() {
     const [activeIndex, setActiveIndex] = useState(0);
 
     useEffect(() => {
@@ -74,7 +74,13 @@ export default function TwikitLanding() {
             {/* HEADER */}
             <header className="fixed top-0 w-full z-50 bg-[var(--bg-primary)]/80 backdrop-blur-md border-b border-[var(--border)]">
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <Link to="/" className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Twikit</Link>
+                    <Link to="/" className="flex items-center gap-2">
+                        <img
+                            src="/images/xwaked-white.png"
+                            alt="xwaked"
+                            className="w-12 h-auto"
+                        />
+                    </Link>
                     <div className="flex items-center gap-6">
                         <Link to="/login" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Log in</Link>
                         <Link to="/register" className="text-sm px-5 py-2 rounded-full bg-[var(--text-primary)] text-[var(--bg-primary)] font-medium hover:bg-[var(--text-secondary)] transition-colors">Sign up</Link>
@@ -112,7 +118,7 @@ export default function TwikitLanding() {
                             to="/feed"
                             className="px-8 py-4 rounded-full bg-[var(--text-primary)] text-[var(--bg-primary)] font-medium hover:bg-[var(--text-secondary)] transition-all active:scale-95 text-base"
                         >
-                            Enter Twikit
+                            Enter xwaked
                         </Link>
                         <button
                             onClick={(e) => {
@@ -135,7 +141,7 @@ export default function TwikitLanding() {
                     className="mt-20 max-w-xs mx-auto p-2 bg-[var(--card-bg)] rounded-[2.5rem] border border-[var(--border)] shadow-2xl relative overflow-hidden"
                 >
                     <div className="bg-[var(--bg-primary)] rounded-[2rem] overflow-hidden leading-none border border-[var(--border)] relative">
-                        <img src="/landing/feed.webp" alt="Twikit Feed" className="w-full h-auto object-cover opacity-90" />
+                        <img src="/landing/feed.webp" alt="xwaked Feed" className="w-full h-auto object-cover opacity-90" />
 
                         {/* Gradient Overlay for seamless blending */}
                         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[var(--bg-primary)] to-transparent z-10" />
@@ -166,10 +172,10 @@ export default function TwikitLanding() {
                 </div>
             </Section>
 
-            {/* 3. THE TWIKIT WAY */}
+            {/* 3. THE XWAKED WAY */}
             <Section id="philosophy" className="bg-[var(--bg-secondary)]">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl font-semibold text-[var(--text-primary)]">Twikit is calm by design, not by promise.</h2>
+                    <h2 className="text-3xl font-semibold text-[var(--text-primary)]">xwaked is calm by design, not by promise.</h2>
                 </div>
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -253,7 +259,7 @@ export default function TwikitLanding() {
                         <div className="order-1 md:order-2 space-y-6 text-center md:text-left">
                             <h3 className="text-2xl font-semibold text-[var(--text-primary)]">Private Conversations</h3>
                             <p className="text-[var(--text-secondary)] text-lg font-light leading-relaxed">
-                                No snooping. Just you and your friends. Twikit encrypts your messages so your personal life stays personal.
+                                No snooping. Just you and your friends. xwaked encrypts your messages so your personal life stays personal.
                             </p>
                             <ul className="space-y-3 text-[var(--text-secondary)] inline-block text-left">
                                 <li className="flex items-center gap-3">
@@ -382,7 +388,7 @@ export default function TwikitLanding() {
             {/* 7. FOOTER */}
             <footer className="border-t border-[var(--border)] bg-[var(--bg-primary)] py-12 px-6">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Twikit</div>
+                    <div className="text-xl font-bold text-[var(--text-primary)] tracking-tight">xwaked</div>
 
                     <div className="flex gap-8 text-sm text-[var(--text-secondary)]">
                         <button
@@ -406,7 +412,7 @@ export default function TwikitLanding() {
                     </div>
 
                     <div className="text-xs text-[var(--text-secondary)]">
-                        © 2026 Twikit. All rights reserved.
+                        © 2026 xwaked. All rights reserved.
                     </div>
                 </div>
             </footer>

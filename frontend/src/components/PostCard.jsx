@@ -14,7 +14,7 @@ import { MdDelete } from "react-icons/md";
 import { SocketData } from "../context/SocketContext";
 import StoryAvatar from "./StoryAvatar";
 import { Suspense } from "react";
-import { getOptimizedImg } from "../utils/cloudinary";
+import { getOptimizedImg } from "../utils/imagekit";
 import { isSameId, includesId } from "../utils/idUtils";
 
 const CommentItem = React.lazy(() => import("./CommentItem"));
@@ -395,6 +395,39 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
     }
   }, [isActive, type]);
 
+  // Auto-play for Feed Reels using IntersectionObserver
+  useEffect(() => {
+    if (!isFeed || type !== "reel" || !videoRef.current) return;
+
+    const options = {
+      root: null,
+      rootMargin: "0px",
+      threshold: 0.6, // Play when 60% visible
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!videoRef.current) return;
+
+        if (entry.isIntersecting) {
+          const playPromise = videoRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise.then(() => setIsPlaying(true)).catch(() => { });
+          }
+        } else {
+          videoRef.current.pause();
+          setIsPlaying(false);
+        }
+      });
+    }, options);
+
+    observer.observe(videoRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isFeed, type]);
+
 
 
   const feedbackProcessingRef = useRef(false);
@@ -663,7 +696,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
               className="w-full h-full object-contain"
               loop
               playsInline
-              muted={false}
+              muted={isFeed ? true : false}
               onTimeUpdate={(e) => {
                 handleTimeUpdate(); // Trigger view count check
                 if (videoRef.current) {

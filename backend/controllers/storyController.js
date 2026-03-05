@@ -1,7 +1,7 @@
 import { Story } from "../models/storyModel.js";
 import User from "../models/userModel.js";
 import getDataUrl from "../utils/urlGenerator.js";
-import cloudinary from "cloudinary";
+import { uploadFile } from '../utils/imagekit.js';
 import { getReceiverSocketId, getIO } from "../socket/socketIO.js";
 
 export const createStory = async (req, res) => {
@@ -13,11 +13,8 @@ export const createStory = async (req, res) => {
 
         if (file) {
             const fileUrl = getDataUrl(file);
-            const myCloud = await cloudinary.v2.uploader.upload(fileUrl.content, {
-                folder: "stories",
-                resource_type: "auto",
-            });
-            mediaUrl = myCloud.secure_url;
+            const myCloud = await uploadFile(fileUrl.content, file.originalname, "stories");
+            mediaUrl = myCloud.url;
         }
 
         if (!text && !mediaUrl) {

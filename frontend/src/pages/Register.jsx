@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UserData } from "../context/UserContext";
 import { PostData } from "../context/PostContext";
+import { useTheme } from "../context/ThemeContext";
 import axios from "axios";
 
 const Register = () => {
@@ -34,6 +35,7 @@ const Register = () => {
 
   const { registerUser, loading: registerLoading } = UserData();
   const { fetchPosts } = PostData();
+  const { theme } = useTheme();
   const navigate = useNavigate();
 
   // Step 1: Send OTP
@@ -235,11 +237,18 @@ const Register = () => {
 
       {/* Register Card */}
       <div className="relative z-10 w-full max-w-md bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--border)] rounded-2xl shadow-2xl p-8">
+        <div className="flex justify-center mb-6">
+          <img
+            src={theme === "matcha" || theme === "retro" ? "/images/xwaked-black.png" : "/images/xwaked-white.png"}
+            alt="xwaked"
+            className="h-12 w-auto"
+          />
+        </div>
         <h1 className="text-3xl font-semibold text-[var(--text-primary)] text-center">
           Create your account
         </h1>
         <p className="text-[var(--text-secondary)] text-sm text-center mt-2">
-          Join <span className="text-[var(--accent)]">Twikit</span> and start sharing
+          Join <span className="text-[var(--accent)]">xwaked</span> and start sharing
         </p>
 
         {/* Step Indicator */}
@@ -460,7 +469,7 @@ const Register = () => {
         )}
 
         <p className="text-sm text-[var(--text-secondary)] text-center mt-6">
-          Already on Twikit?{" "}
+          Already on xwaked?{" "}
           <Link
             to="/login"
             className="text-[var(--accent)] hover:opacity-80 transition"

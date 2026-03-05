@@ -24,7 +24,7 @@ class MonitoringService {
             console.warn('⚠️ Email service not ready, but monitoring will continue');
         }
 
-        // console.log('🚀 Starting Twikit Monitoring System...');
+        // console.log('🚀 Starting xwaked Monitoring System...');
         // console.log(`📧 Alerts will be sent to: ${process.env.ADMIN_EMAIL}`);
         // console.log(`⏰ Cooldown period: ${process.env.ALERT_COOLDOWN_MINUTES} minutes`);
 

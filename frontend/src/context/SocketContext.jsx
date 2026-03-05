@@ -16,12 +16,27 @@ export const SocketContextProvider = ({ children }) => {
   useEffect(() => {
     if (!user?._id) return;
 
+    // Retrieve token from cookies if possible to ensure it's sent
+    const getCookie = (name) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    };
+    const token = getCookie("token");
+
     const socket = io(EndPoint, {
       query: { userId: user._id },
+      auth: { token }, // explicitly pass the token since cross-port local IPs drop cookies
       withCredentials: true,
+      transports: ["websocket", "polling"], // Allow polling fallback if websocket is blocked
     });
 
     setSocket(socket);
+
+    socket.on("connect", () => {
+      console.log(`[FRONTEND SOCKET] Connected with ID: ${socket.id} for user: ${user._id}`);
+    });
 
     // Initial online users list
     socket.on("getOnlineUser", setOnlineUsers);

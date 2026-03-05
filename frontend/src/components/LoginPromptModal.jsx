@@ -43,10 +43,8 @@ const LoginPromptModal = () => {
                     </button>
 
                     <div className="mb-6">
-                        <div className="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-indigo-500/30">
-                            <span className="text-3xl text-indigo-400 font-bold">T</span>
-                        </div>
-                        <h2 className="text-2xl font-bold text-white mb-2">Join Twikit</h2>
+                        <img src="/images/xwaked-white.png" alt="xwaked" className="w-10 h-auto" />
+                        <h2 className="text-2xl font-bold text-white mb-2">Join xwaked</h2>
                         <p className="text-gray-400 text-sm">
                             Capture your moments and connect with the community. Login or signup to interact!
                         </p>

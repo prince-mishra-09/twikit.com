@@ -16,6 +16,8 @@ export const PostContextProvider = ({ children }) => {
     hasMoreReels: true
   });
   const [uploadProgress, setUploadProgress] = useState(0); // Add upload progress state
+  const [uploadPreview, setUploadPreview] = useState(null);
+  const [uploadType, setUploadType] = useState('post');
   const { socket } = SocketData();
 
 
@@ -66,24 +68,30 @@ export const PostContextProvider = ({ children }) => {
   const addPost = useCallback(async (formdata, setFile, setFilePrev, setCaption, type) => {
     setAddLoading(true);
     setUploadProgress(0);
+    setUploadType(type);
+
+    const fileBlob = formdata.get("file");
+    if (fileBlob instanceof Blob) {
+      setUploadPreview(URL.createObjectURL(fileBlob));
+    } else {
+      setUploadPreview(null);
+    }
+
     try {
       const { data } = await axios.post("/api/post/new?type=" + type, formdata, {
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percentCompleted);
+          // Scale client upload progress to 90% to leave room for background ImageKit processing
+          setUploadProgress(Math.floor(percentCompleted * 0.9));
         }
       });
 
-      toast.success(data.message);
-      // fetchPosts(); // Don't fetch immediately, wait for socket or optimistic update? 
-      // The server returns 202 Accepted, so the post isn't ready yet.
-      // We rely on socket "post:ready" to add it to the feed.
+      toast.success(data.message); // Should say "Post upload started"
 
       setFile("");
       setFilePrev("");
       setCaption("");
-      setAddLoading(false);
-      setUploadProgress(0);
+      // Don't setAddLoading(false) here — wait for socket `post:ready` or `post:failed`.
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");
       setAddLoading(false);
@@ -241,6 +249,7 @@ export const PostContextProvider = ({ children }) => {
     });
 
     socket.on("post:ready", (newPost) => {
+      console.log("[SOCKET EVENT RECEIVED] post:ready ->", newPost);
       toast.success("Your post is ready!");
       // Always add to main feed (posts) regardless of type
       setPosts((prev) => [newPost, ...prev]);
@@ -248,10 +257,25 @@ export const PostContextProvider = ({ children }) => {
       if (newPost.type === "reel") {
         setReels((prev) => [newPost, ...prev]);
       }
+      setUploadProgress(100);
+      setTimeout(() => {
+        setAddLoading(false);
+        setUploadProgress(0);
+        setUploadPreview((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return null;
+        });
+      }, 500);
     });
 
     socket.on("post:failed", (data) => {
       toast.error(data.message || "Post processing failed");
+      setAddLoading(false);
+      setUploadProgress(0);
+      setUploadPreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
     });
 
     return () => {
@@ -282,8 +306,10 @@ export const PostContextProvider = ({ children }) => {
     loadingMore,
     pagination,
     uploadProgress,
+    uploadPreview,
+    uploadType,
     updatePost
-  }), [reels, posts, addPost, sendFeedback, addComment, loading, addLoading, fetchPosts, deletePost, deleteComment, fetchNextPage, loadingMore, pagination, uploadProgress, updatePost]);
+  }), [reels, posts, addPost, sendFeedback, addComment, loading, addLoading, fetchPosts, deletePost, deleteComment, fetchNextPage, loadingMore, pagination, uploadProgress, uploadPreview, uploadType, updatePost]);
 
   return (
     <PostContext.Provider value={value}>

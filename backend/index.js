@@ -23,7 +23,7 @@ if (fs.existsSync(envPath)) {
 
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import cloudinary from "cloudinary";
+
 import express from "express";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
@@ -50,12 +50,7 @@ import metricsMiddleware from "./middleware/metricsMiddleware.js";
 // trust proxy - required for secure cookies behind reverse proxies (Render, Vercel, etc.)
 app.set("trust proxy", 1);
 
-// cloudinary config
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_NAME,
-  api_key: process.env.CLOUDINARY_API,
-  api_secret: process.env.CLOUDINARY_SECRET_KEY,
-});
+
 
 // middlewares
 const allowedOrigins = [
@@ -217,3 +212,5 @@ server.listen(port, async () => {
     }, 840000);
   }
 });
+
+// Trigger nodemon restart
