@@ -36,7 +36,7 @@ function App() {
   const { socket } = SocketData();
 
   // Maintenance Mode (Toggle this to true to enable)
-  const isMaintenanceMode = false; // Set to true when needed
+  const isMaintenanceMode = true; // Set to true when needed
 
   // Only allow bypass if user is already logged in as admin
   const isBypass = user?.email === "admin@prince";
