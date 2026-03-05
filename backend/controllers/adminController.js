@@ -6,6 +6,7 @@ import { AuraX } from "../models/AuraX.js";
 import { Notification } from "../models/Notification.js";
 import TryCatch from "../utils/tryCatch.js";
 import { getIO } from "../socket/socketIO.js";
+import redis from "../utils/redis.js";
 
 // --- Shared helper: log admin action ---
 const logAction = async (adminId, action, targetType, targetId, details = {}) => {
@@ -213,4 +214,105 @@ export const getAuditLogs = TryCatch(async (req, res) => {
     ]);
 
     res.json({ logs, total, page: parseInt(page), hasMore: skip + logs.length < total });
+});
+
+// ============================================================
+// GET /api/admin/posts?page=1&limit=20  (Content Moderation view)
+// ============================================================
+export const getAdminPosts = TryCatch(async (req, res) => {
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [posts, total] = await Promise.all([
+        Post.find()
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit))
+            .populate("owner", "name username profilePic isShadowBanned"),
+        Post.countDocuments(),
+    ]);
+
+    res.json({ posts, total, page: parseInt(page), hasMore: skip + posts.length < total });
+});
+
+// ============================================================
+// GET /api/admin/aurax?page=1&limit=20  (Content Moderation view)
+// ============================================================
+export const getAdminAuraX = TryCatch(async (req, res) => {
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [auras, total] = await Promise.all([
+        AuraX.find().select("+authorId")
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit))
+            .populate("authorId", "name username profilePic isShadowBanned"),
+        AuraX.countDocuments(),
+    ]);
+
+    res.json({ auras, total, page: parseInt(page), hasMore: skip + auras.length < total });
+});
+
+// ============================================================
+// POST /api/admin/maintenance  { enabled: true|false }
+// Global Kill Switch — stored in Redis
+// ============================================================
+export const toggleMaintenance = TryCatch(async (req, res) => {
+    const { enabled } = req.body;
+    const value = enabled ? "true" : "false";
+
+    // Store in Redis with no expiry (permanent until changed)
+    await redis.set("maintenance:mode", value);
+
+    await logAction(req.user._id, enabled ? "MAINTENANCE_ON" : "MAINTENANCE_OFF", "user", req.user._id, {});
+
+    res.json({
+        message: enabled ? "⚠️ Maintenance mode ENABLED. Site is locked." : "✅ Maintenance mode DISABLED. Site is live.",
+        enabled,
+    });
+});
+
+// ============================================================
+// GET /api/admin/maintenance
+// ============================================================
+export const getMaintenanceStatus = TryCatch(async (req, res) => {
+    const value = await redis.get("maintenance:mode");
+    res.json({ enabled: value === "true" });
+});
+
+// ============================================================
+// GET /api/admin/system-health
+// ============================================================
+export const getSystemHealth = TryCatch(async (req, res) => {
+    const start = Date.now();
+
+    // DB ping
+    const [userCount, postCount, auraCount, bugCount] = await Promise.all([
+        User.countDocuments(),
+        Post.countDocuments(),
+        AuraX.countDocuments(),
+        BugTicket.countDocuments(),
+    ]);
+
+    const dbLatency = Date.now() - start;
+
+    // Redis ping
+    let redisLatency = null;
+    try {
+        const redisStart = Date.now();
+        await redis.get("health:ping");
+        redisLatency = Date.now() - redisStart;
+    } catch (e) { /* Redis might be down */ }
+
+    res.json({
+        dbLatency,
+        redisLatency,
+        counts: { users: userCount, posts: postCount, auras: auraCount, bugs: bugCount },
+        uptime: Math.floor(process.uptime()),
+        memory: process.memoryUsage(),
+        nodeVersion: process.version,
+        env: process.env.NODE_ENV,
+        timestamp: new Date().toISOString(),
+    });
 });

@@ -11,6 +11,11 @@ import {
     updatePostStatus,
     updateAuraXStatus,
     getAuditLogs,
+    getAdminPosts,
+    getAdminAuraX,
+    toggleMaintenance,
+    getMaintenanceStatus,
+    getSystemHealth,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -38,5 +43,16 @@ router.patch("/aurax/:id/status", updateAuraXStatus);
 
 // Audit Logs
 router.get("/audit-logs", getAuditLogs);
+
+// Content Moderation — List views
+router.get("/posts", getAdminPosts);
+router.get("/aurax", getAdminAuraX);
+
+// Maintenance (Global Kill Switch)
+router.get("/maintenance", getMaintenanceStatus);
+router.post("/maintenance", toggleMaintenance);
+
+// System Health
+router.get("/system-health", getSystemHealth);
 
 export default router;
