@@ -12,17 +12,20 @@ export const isAuth = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // req.user = await User.findById(decoded.id).select("-password");
-    req.user = await User.findById(decoded._id).select("-password");
+    // Support both decoded._id and decoded.id (different JWT sign formats)
+    const userId = decoded._id || decoded.id;
+    // SELECT email + role explicitly — isAdmin middleware needs them
+    req.user = await User.findById(userId).select("-password +email +role +isShadowBanned");
+
     if (!req.user) {
       return res.status(401).json({ message: "User not found" });
     }
 
-    // --- MAINTENANCE MODE BYPASS ---
+    // --- MAINTENANCE MODE BYPASS (env-var based) ---
     if (process.env.MAINTENANCE_MODE === "true" && req.user.email !== "admin@prince") {
       return res.status(503).json({
         message: "Website is under maintenance. Please try again later.",
-        maintenance: true
+        maintenance: true,
       });
     }
 

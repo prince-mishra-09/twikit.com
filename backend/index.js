@@ -43,6 +43,7 @@ import commentRoutes from "./routes/commentRoutes.js";
 import auraXRoutes from "./routes/auraXRoutes.js";
 import bugRoutes from "./routes/bugRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import testRoutes from "./routes/testRoutes.js";
 import { migrateUsernames } from "./utils/migration.js";
 
 // Import monitoring system
@@ -138,7 +139,6 @@ app.use("/api/comment", commentRoutes);
 app.use("/api/aurax", auraXRoutes);
 app.use("/api/bugs", bugRoutes);
 app.use("/api/admin", adminRoutes);
-import testRoutes from "./routes/testRoutes.js";
 app.use("/api/test", testRoutes);
 // Monitoring metrics endpoint (protected - briefly checks key or similar if needed)
 app.get("/api/metrics", async (req, res) => {
