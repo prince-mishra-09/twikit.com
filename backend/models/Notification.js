@@ -14,8 +14,16 @@ const notificationSchema = new mongoose.Schema(
         },
         type: {
             type: String,
-            enum: ["vibeUp", "vibeDown", "comment", "follow", "message", "follow_request", "request_accepted", "comment_reply"],
+            enum: ["vibeUp", "vibeDown", "comment", "follow", "message", "follow_request", "request_accepted", "comment_reply", "bug_receipt", "bug_fixed"],
             required: true,
+        },
+        message: {
+            type: String,
+            default: "",
+        },
+        ticketId: {
+            type: String,
+            default: "",
         },
         postId: {
             type: mongoose.Schema.Types.ObjectId,

@@ -143,8 +143,18 @@ export const getAllAuraX = async (req, res) => {
         const skipNum = parseInt(skip) || (parseInt(page) - 1) * limitNum;
         const userId = req.user ? req.user._id : null;
 
+        // Build shadow-ban exclusion list
+        const shadowBannedIds = await User.find({ isShadowBanned: true }).distinct("_id");
+
         // Aggregation pipeline for sorting and user status
         let pipeline = [
+            // 0. Filter active-only posts and exclude shadow-banned authors
+            {
+                $match: {
+                    status: "active",
+                    ...(shadowBannedIds.length > 0 ? { authorId: { $nin: shadowBannedIds } } : {}),
+                }
+            },
             // 1. Calculate net score
             {
                 $addFields: {

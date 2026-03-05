@@ -2,21 +2,21 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AiFillHome, AiOutlineHome, AiOutlinePlusSquare, AiFillPlusSquare } from "react-icons/ai";
-import { IoSearch, IoSearchOutline, IoChatbubbleEllipses, IoChatbubbleEllipsesOutline, IoNotifications, IoNotificationsOutline, IoLogOutOutline, IoSparklesOutline, IoBugOutline } from "react-icons/io5";
+import { IoSearch, IoSearchOutline, IoChatbubbleEllipses, IoChatbubbleEllipsesOutline, IoNotifications, IoNotificationsOutline, IoLogOutOutline, IoSparklesOutline, IoBugOutline, IoShieldCheckmarkOutline } from "react-icons/io5";
 import { RiAccountCircleFill, RiAccountCircleLine, RiRecordCircleFill } from "react-icons/ri";
 import ReelsIcon from "./ReelsIcon";
-import { FaBars } from "react-icons/fa"; // Import FaBars
+import { FaBars } from "react-icons/fa";
 import { UserData } from "../context/UserContext";
 import CreatePostModal from "./CreatePostModal";
 import { ChatData } from "../context/ChatContext";
 import { NotificationData } from "../context/NotificationContext";
 import { useTheme } from "../context/ThemeContext";
-
-import AuraXIcon from "./AuraXIcon"; // Import the new icon
+import AuraXIcon from "./AuraXIcon";
 import BugReportTooltip from "./BugReportTooltip";
+import BugReportModal from "./BugReportModal";
 
 
-const Sidebar = ({ isCollapsed, toggleSidebar }) => { // Accept props
+const Sidebar = ({ isCollapsed, toggleSidebar }) => {
     const { user, isAuth, logoutUser, setShowLoginPrompt, searchUser } = UserData();
     const { unreadCount } = NotificationData();
     const { createChat, setSelectedChat, totalUnreadMessages } = ChatData();
@@ -24,6 +24,9 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => { // Accept props
     const location = useLocation();
     const navigate = useNavigate();
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showBugModal, setShowBugModal] = useState(false);
+
+    const isAdminUser = user?.role === "admin" || user?.email === "admin@prince";
 
     // ... (rest of helper functions)
 
@@ -35,30 +38,9 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => { // Accept props
         }
     };
 
-    const handleReportBug = async () => {
+    const handleReportBug = () => {
         if (!isAuth) return setShowLoginPrompt(true);
-        const toastId = toast.loading("Connecting to support...");
-        try {
-            const users = await searchUser("admin_prince");
-            const admin = users.find(u => u.username === "admin_prince");
-
-            if (admin) {
-                const chat = await createChat(admin._id);
-                if (chat) {
-                    setSelectedChat(chat);
-                    navigate("/chat", { state: { isBugReport: true } });
-                    toast.success("Chat opened", { id: toastId });
-                } else {
-                    throw new Error("Could not create chat");
-                }
-            } else {
-                toast.error("Admin user not found. Please try again later.", { id: toastId });
-                navigate("/chat");
-            }
-        } catch (error) {
-            toast.error("Something went wrong", { id: toastId });
-            navigate("/chat");
-        }
+        setShowBugModal(true);
     };
 
     const navItems = [
@@ -123,6 +105,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => { // Accept props
     return (
         <>
             {showCreateModal && <CreatePostModal setShow={setShowCreateModal} />}
+            {showBugModal && <BugReportModal onClose={() => setShowBugModal(false)} />}
 
             <div
                 className={`hidden md:flex flex-col h-screen fixed left-0 top-0 border-r border-[var(--border)] bg-[var(--bg-primary)] z-50 pt-8 pb-5 justify-between transition-all duration-300 ${isCollapsed ? "w-[80px] px-2 items-center" : "w-[244px] px-3"
@@ -213,6 +196,21 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => { // Accept props
                     </button>
                     {!isCollapsed && <BugReportTooltip position="right" />}
                 </div>
+
+                {/* Admin Panel — only shown to admins */}
+                {isAdminUser && (
+                    <Link
+                        to={`/admin-control-center-prince?key=WAKED_SECRET_99`}
+                        title={isCollapsed ? "Admin Panel" : ""}
+                        className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-purple-500/10 text-purple-400 mb-1 ${isCollapsed ? "justify-center gap-0" : "gap-4"
+                            }`}
+                    >
+                        <div className="relative group-hover:scale-110 transition-transform duration-200">
+                            <IoShieldCheckmarkOutline className="text-2xl" />
+                        </div>
+                        {!isCollapsed && <span className="text-base font-normal whitespace-nowrap">Admin Panel</span>}
+                    </Link>
+                )}
 
                 {/* Theme Toggle Button */}
                 <button

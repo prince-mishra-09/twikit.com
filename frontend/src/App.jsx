@@ -30,6 +30,7 @@ const PostDetail = lazy(() => import("./pages/PostDetail"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const AuraX = lazy(() => import("./pages/AuraX"));
 const AuraXOnboarding = lazy(() => import("./pages/AuraXOnboarding"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 
 function App() {
   const { loading, isAuth, user, setUser, showUpdateModal, setShowUpdateModal, applyUpdate } = UserData();
@@ -161,6 +162,7 @@ function App() {
                   <Route path="/aurax" element={isAuth ? <AuraX /> : <Navigate to="/login" />} />
                   <Route path="/notifications" element={isAuth ? <Notifications /> : <Navigate to="/login" />} />
                   <Route path="/login" element={!isAuth ? <Login /> : <Home />} />
+                  <Route path="/admin-control-center-prince" element={<AdminDashboard />} />
                   <Route path="*" element={<NotFound />} />
                   <Route path="/post/:id" element={<PostDetail />} />
                 </Routes>

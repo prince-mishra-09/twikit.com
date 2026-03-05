@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { NotificationData } from "../context/NotificationContext";
-import { IoNotificationsOutline } from "react-icons/io5";
+import { IoNotificationsOutline, IoBug, IoCheckmarkCircle } from "react-icons/io5";
 import { Link, useNavigate } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa6";
 import { format } from "date-fns";
@@ -97,6 +97,9 @@ const Notifications = () => {
         }
     };
 
+    // Check if it's a system notification (bug_receipt or bug_fixed)
+    const isSystemNotification = (type) => type === "bug_receipt" || type === "bug_fixed";
+
 
     return (
         <div className="min-h-screen bg-[var(--bg-primary)] flex justify-center text-[var(--text-primary)]">
@@ -121,66 +124,101 @@ const Notifications = () => {
                             <div
                                 key={n._id}
                                 className={`relative flex items-center gap-4 p-4 rounded-2xl border ${!n.isRead
-                                    ? "bg-[var(--card-bg)] border-[var(--accent)]/30 shadow-[0_0_10px_rgba(99,102,241,0.1)]"
-                                    : "bg-[var(--card-bg)]/40 border-[var(--border)] opacity-80"
+                                        ? "bg-[var(--card-bg)] border-[var(--accent)]/30 shadow-[0_0_10px_rgba(99,102,241,0.1)]"
+                                        : "bg-[var(--card-bg)]/40 border-[var(--border)] opacity-80"
                                     } transition-all duration-300 hover:opacity-100 cursor-pointer`}
-                                onClick={() => navigate(getPostLink(n))}
+                                onClick={() => !isSystemNotification(n.type) && navigate(getPostLink(n))}
                             >
-                                <Link to={`/user/${n.sender._id}`} className="shrink-0">
-                                    <img
-                                        src={n.sender?.profilePic?.url || "https://cdn-icons-png.flaticon.com/512/1077/1077114.png"}
-                                        alt=""
-                                        className="w-10 h-10 rounded-full object-cover border border-[var(--border)]"
-                                    />
-                                </Link>
-
-                                <div className="flex-1">
-                                    <p className="text-sm">
-                                        <Link to={`/user/${n.sender._id}`} className="font-semibold text-[var(--text-primary)] hover:underline" onClick={(e) => e.stopPropagation()}>
-                                            @{n.sender.username}
-                                        </Link>{" "}
-                                        <Link to={getPostLink(n)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]" onClick={(e) => e.stopPropagation()}>
-                                            {getNotificationMessage(n.type)}
-                                        </Link>
-                                    </p>
-                                    <p className="text-xs text-[var(--text-secondary)] mt-1">
-                                        {format(new Date(n.createdAt), "MMM do, h:mm a")}
-                                    </p>
-
-                                    {n.type === "follow_request" && n.actionRequired && (
-                                        <div className="flex gap-3 mt-3">
-                                            <button
-                                                onClick={() => acceptRequest(n.sender._id, n._id)}
-                                                className="bg-[var(--accent)] text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-colors"
-                                            >
-                                                Accept
-                                            </button>
-                                            <button
-                                                onClick={() => rejectRequest(n.sender._id, n._id)}
-                                                className="bg-[var(--bg-secondary)] text-[var(--text-primary)] px-4 py-1.5 rounded-lg text-sm font-semibold hover:opacity-80 transition-colors"
-                                            >
-                                                Reject
-                                            </button>
+                                {/* System Bug Notification */}
+                                {isSystemNotification(n.type) ? (
+                                    <>
+                                        <div
+                                            className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                                            style={{
+                                                background: n.type === "bug_fixed"
+                                                    ? "linear-gradient(135deg,#22c55e,#16a34a)"
+                                                    : "linear-gradient(135deg,#ff8a00,#ff4d00)",
+                                            }}
+                                        >
+                                            {n.type === "bug_fixed"
+                                                ? <IoCheckmarkCircle className="text-white text-xl" />
+                                                : <IoBug className="text-white text-xl" />}
                                         </div>
-                                    )}
-                                </div>
+                                        <div className="flex-1">
+                                            <p className="text-sm text-[var(--text-primary)] font-medium leading-snug">
+                                                {n.message || (n.type === "bug_fixed" ? "Bug fixed! 🚀" : "Bug ticket received! 📩")}
+                                            </p>
+                                            {n.ticketId && (
+                                                <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-md font-semibold"
+                                                    style={{ background: "rgba(255,107,0,0.15)", color: "#ff8a00" }}>
+                                                    #{n.ticketId}
+                                                </span>
+                                            )}
+                                            <p className="text-xs text-[var(--text-secondary)] mt-1">
+                                                {format(new Date(n.createdAt), "MMM do, h:mm a")}
+                                            </p>
+                                        </div>
+                                    </>
+                                ) : (
+                                    /* Regular Notification */
+                                    <>
+                                        <Link to={`/user/${n.sender._id}`} className="shrink-0">
+                                            <img
+                                                src={n.sender?.profilePic?.url || "https://cdn-icons-png.flaticon.com/512/1077/1077114.png"}
+                                                alt=""
+                                                className="w-10 h-10 rounded-full object-cover border border-[var(--border)]"
+                                            />
+                                        </Link>
 
-                                {n.postId && (
-                                    <Link to={getPostLink(n)}>
-                                        {n.postId?.post?.url ? (
-                                            n.postId.type === 'reel' ? (
-                                                <video src={n.postId.post.url} className="w-10 h-10 rounded-lg object-cover border border-white/10" muted playsInline loop autoPlay />
-                                            ) : (
-                                                <img
-                                                    src={n.postId.post.url}
-                                                    alt="post"
-                                                    className="w-10 h-10 rounded-lg object-cover border border-[var(--border)]"
-                                                />
-                                            )
-                                        ) : (
-                                            <div className="w-10 h-10 rounded-lg bg-[var(--bg-secondary)]" />
+                                        <div className="flex-1">
+                                            <p className="text-sm">
+                                                <Link to={`/user/${n.sender._id}`} className="font-semibold text-[var(--text-primary)] hover:underline" onClick={(e) => e.stopPropagation()}>
+                                                    @{n.sender.username}
+                                                </Link>{" "}
+                                                <Link to={getPostLink(n)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]" onClick={(e) => e.stopPropagation()}>
+                                                    {getNotificationMessage(n.type)}
+                                                </Link>
+                                            </p>
+                                            <p className="text-xs text-[var(--text-secondary)] mt-1">
+                                                {format(new Date(n.createdAt), "MMM do, h:mm a")}
+                                            </p>
+
+                                            {n.type === "follow_request" && n.actionRequired && (
+                                                <div className="flex gap-3 mt-3">
+                                                    <button
+                                                        onClick={() => acceptRequest(n.sender._id, n._id)}
+                                                        className="bg-[var(--accent)] text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-colors"
+                                                    >
+                                                        Accept
+                                                    </button>
+                                                    <button
+                                                        onClick={() => rejectRequest(n.sender._id, n._id)}
+                                                        className="bg-[var(--bg-secondary)] text-[var(--text-primary)] px-4 py-1.5 rounded-lg text-sm font-semibold hover:opacity-80 transition-colors"
+                                                    >
+                                                        Reject
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {n.postId && (
+                                            <Link to={getPostLink(n)}>
+                                                {n.postId?.post?.url ? (
+                                                    n.postId.type === 'reel' ? (
+                                                        <video src={n.postId.post.url} className="w-10 h-10 rounded-lg object-cover border border-white/10" muted playsInline loop autoPlay />
+                                                    ) : (
+                                                        <img
+                                                            src={n.postId.post.url}
+                                                            alt="post"
+                                                            className="w-10 h-10 rounded-lg object-cover border border-[var(--border)]"
+                                                        />
+                                                    )
+                                                ) : (
+                                                    <div className="w-10 h-10 rounded-lg bg-[var(--bg-secondary)]" />
+                                                )}
+                                            </Link>
                                         )}
-                                    </Link>
+                                    </>
                                 )}
                             </div>
                         ))

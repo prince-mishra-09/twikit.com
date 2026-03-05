@@ -141,10 +141,17 @@ export const getAllPosts = TryCatch(async (req, res) => {
 
     const userObjectId = userId ? new mongoose.Types.ObjectId(userId) : null;
 
-    // 1. Initial Document Filter (Blocking & Muting & Hidden Posts)
-    const initialMatch = {};
+    // 1. Initial Document Filter (Blocking & Muting & Hidden Posts & Shadow Ban & Status)
+    const initialMatch = { status: "active" }; // Only show active posts
     if (!isGuest) {
         const excludedOwners = [...hiddenUserObjectIds, ...mutedUserObjectIds];
+
+        // Shadow-banned users — exclude their posts from feed silently
+        const shadowBannedUsers = await User.find({ isShadowBanned: true }).distinct("_id");
+        if (shadowBannedUsers.length > 0) {
+            excludedOwners.push(...shadowBannedUsers);
+        }
+
         if (excludedOwners.length > 0) {
             initialMatch.owner = { $nin: excludedOwners };
         }
