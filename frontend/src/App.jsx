@@ -25,7 +25,7 @@ const Reels = lazy(() => import("./pages/Reels"));
 const UserAccount = lazy(() => import("./pages/UserAccount"));
 const Search = lazy(() => import("./pages/Search"));
 const ChatPage = lazy(() => import("./pages/ChatPage"));
-const xwakedLanding = lazy(() => import("./pages/xwakedLanding"));
+const XwakedLanding = lazy(() => import("./pages/xwakedLanding"));
 const PostDetail = lazy(() => import("./pages/PostDetail"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const AuraX = lazy(() => import("./pages/AuraX"));
@@ -43,7 +43,7 @@ function App() {
   const isBypass = user?.email === "admin@prince";
 
   if (isMaintenanceMode && !isBypass) {
-    return <BrowserRouter><Maintenance /></BrowserRouter>;
+    return <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}><Maintenance /></BrowserRouter>;
   }
 
   useEffect(() => {
@@ -137,7 +137,7 @@ function App() {
       <ErrorBoundary>
         {loading ? (
           <SkeletonFullPage />
-        ) : <BrowserRouter>
+        ) : <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <ScrollToTop />
           <NotificationProvider><StoriesProvider>
             <LoginPromptModal />
@@ -149,8 +149,8 @@ function App() {
             <Layout>
               <Suspense fallback={<RouteAwareSkeleton />}>
                 <Routes>
-                  <Route path="/landing" element={isAuth ? <Home /> : <xwakedLanding />} />
-                  <Route path="/" element={isAuth ? <Home /> : <xwakedLanding />} />
+                  <Route path="/landing" element={isAuth ? <Home /> : <XwakedLanding />} />
+                  <Route path="/" element={isAuth ? <Home /> : <XwakedLanding />} />
                   <Route path="/feed" element={<Home />} />
                   <Route path="/reels" element={<Reels />} />
                   <Route path="/user/:id" element={<UserAccount user={user} />} />

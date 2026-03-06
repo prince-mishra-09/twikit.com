@@ -4,6 +4,16 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { UserData } from "../context/UserContext";
 
+/* ── Google Fonts injection ─────────────────────────────────────────────── */
+const FONT_LINK = document.createElement("link");
+FONT_LINK.rel = "stylesheet";
+FONT_LINK.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap";
+if (!document.head.querySelector('[href*="Plus+Jakarta"]')) document.head.appendChild(FONT_LINK);
+
+const FONT_HEADING = "'Plus Jakarta Sans', 'Inter', sans-serif";
+const FONT_MONO = "'JetBrains Mono', monospace";
+const FONT_BODY = "'Inter', sans-serif";
+
 // ── Icons ──────────────────────────────────────────────────────────────────
 import {
     IoShieldCheckmark, IoBug, IoPeople, IoNewspaper, IoClipboard,
@@ -20,10 +30,11 @@ const SECRET = "WAKED_SECRET_99";
 
 // ── Colour tokens ─────────────────────────────────────────────────────────
 const C = {
-    bg: "#09090b",
-    surface: "#111118",
-    card: "#16161f",
-    border: "rgba(139,92,246,0.15)",
+    bg: "#050505",
+    surface: "rgba(255,255,255,0.03)",
+    card: "rgba(255,255,255,0.04)",
+    border: "rgba(255,255,255,0.08)",
+    borderPurple: "rgba(139,92,246,0.18)",
     purple: "#a855f7",
     red: "#ef4444",
     green: "#22c55e",
@@ -61,24 +72,29 @@ const Sparkline = ({ data = [], color = C.purple }) => {
     );
 };
 
-/** Circular Gauge */
-const Gauge = ({ value = 0, max = 500, color = C.green, label = "" }) => {
+/** Circular Gauge — compact 68×68 with live ms display */
+const Gauge = ({ value = 0, max = 500, label = "" }) => {
     const pct = Math.min(value / max, 1);
-    const r = 36, cx = 44, cy = 44;
+    const r = 26, cx = 34, cy = 34;
     const circ = 2 * Math.PI * r;
     const dash = circ * (1 - pct);
     const gaugeColor = value < 100 ? C.green : value < 300 ? C.yellow : C.red;
     return (
-        <div className="flex flex-col items-center gap-1">
-            <svg width="88" height="88" className="-rotate-90">
-                <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
-                <circle cx={cx} cy={cy} r={r} fill="none" stroke={gaugeColor} strokeWidth="8"
-                    strokeDasharray={circ} strokeDashoffset={dash}
-                    strokeLinecap="round" style={{ transition: "stroke-dashoffset 1s ease" }} />
-            </svg>
-            <div className="text-center -mt-14 mb-6">
-                <p className="text-white font-bold text-lg leading-none" style={{ color: gaugeColor }}>{value}<span className="text-xs text-gray-500">ms</span></p>
-                <p className="text-gray-500 text-[10px]">{label}</p>
+        <div className="flex flex-col items-center gap-2">
+            <div className="relative">
+                <svg width="68" height="68" className="-rotate-90">
+                    <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="6" />
+                    <circle cx={cx} cy={cy} r={r} fill="none" stroke={gaugeColor} strokeWidth="6"
+                        strokeDasharray={circ} strokeDashoffset={dash}
+                        strokeLinecap="round" style={{ transition: "stroke-dashoffset 1s ease", filter: `drop-shadow(0 0 4px ${gaugeColor}90)` }} />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-[10px] font-bold" style={{ color: gaugeColor, fontFamily: FONT_MONO }}>{value}</span>
+                </div>
+            </div>
+            <div className="text-center">
+                <p className="text-[11px] font-semibold" style={{ color: gaugeColor, fontFamily: FONT_MONO }}>{value}<span className="text-[9px] text-gray-500 ml-0.5">ms</span></p>
+                <p className="text-gray-500 text-[9px] mt-0.5">{label}</p>
             </div>
         </div>
     );
@@ -101,24 +117,32 @@ const Badge = ({ s }) => {
     );
 };
 
-/** Stat Card */
-const StatCard = ({ label, value, icon: Icon, color, sub, sparkData }) => (
-    <div className="rounded-2xl p-5 flex flex-col gap-3 relative overflow-hidden"
-        style={{ background: C.card, border: `1px solid ${C.border}`, boxShadow: `0 0 30px ${color}18` }}>
-        <div className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-10 -translate-y-6 translate-x-6"
-            style={{ background: color, filter: "blur(24px)" }} />
-        <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: `${color}22`, boxShadow: `0 0 12px ${color}44` }}>
-                <Icon className="text-lg" style={{ color }} />
-            </div>
-            <div>
-                <p className="text-gray-500 text-xs font-medium tracking-wide uppercase">{label}</p>
-                <p className="text-white font-bold text-2xl leading-none">{value ?? "—"}</p>
-            </div>
+/** Stat Card — icon left · value right · rounded-3xl */
+const StatCard = ({ label, value, icon: Icon, color, sub }) => (
+    <div className="relative overflow-hidden flex items-center gap-4 px-5 py-4"
+        style={{
+            background: C.card,
+            border: "1px solid rgba(255,255,255,0.10)",
+            borderRadius: 24,
+            boxShadow: `0 0 40px ${color}14`,
+            backdropFilter: "blur(12px)",
+        }}>
+        {/* Ambient glow blob */}
+        <div className="absolute top-0 right-0 w-20 h-20 rounded-full pointer-events-none"
+            style={{ background: color, opacity: 0.08, filter: "blur(20px)", transform: "translate(6px,-6px)" }} />
+        {/* Icon */}
+        <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
+            style={{ background: `${color}1a`, boxShadow: `0 0 16px ${color}50` }}>
+            <Icon className="text-xl" style={{ color }} />
         </div>
-        {sparkData && <Sparkline data={sparkData} color={color} />}
-        {sub && <p className="text-gray-600 text-xs">{sub}</p>}
+        {/* Text */}
+        <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-semibold tracking-widest uppercase text-gray-500 mb-0.5"
+                style={{ fontFamily: FONT_BODY }}>{label}</p>
+            <p className="text-white font-bold text-2xl leading-none"
+                style={{ fontFamily: FONT_MONO, color: "#fff" }}>{value ?? "—"}</p>
+            {sub && <p className="text-gray-600 text-[10px] mt-1">{sub}</p>}
+        </div>
     </div>
 );
 
@@ -136,9 +160,15 @@ const TABS = [
 
 const Sidebar = ({ tab, setTab, bugCount }) => (
     <div className="fixed left-0 top-0 h-screen flex flex-col items-center py-6 gap-2 z-50"
-        style={{ width: 64, background: C.surface, borderRight: `1px solid ${C.border}` }}>
+        style={{
+            width: 64,
+            background: "rgba(255,255,255,0.03)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            borderRight: "1px solid rgba(255,255,255,0.07)",
+        }}>
         <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-4"
-            style={{ background: "linear-gradient(135deg,#a855f7,#7c3aed)", boxShadow: "0 0 20px #a855f744" }}>
+            style={{ background: "linear-gradient(135deg,#a855f7,#7c3aed)", boxShadow: "0 0 20px #a855f766, 0 0 40px #a855f733" }}>
             <IoShieldCheckmark className="text-white text-lg" />
         </div>
         {TABS.map(t => (
@@ -147,9 +177,11 @@ const Sidebar = ({ tab, setTab, bugCount }) => (
                     title={t.label}
                     className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 relative"
                     style={{
-                        background: tab === t.id ? "rgba(168,85,247,0.2)" : "transparent",
-                        boxShadow: tab === t.id ? "0 0 15px rgba(168,85,247,0.3)" : "none",
-                        color: tab === t.id ? C.purple : "#6b7280",
+                        background: tab === t.id ? "rgba(168,85,247,0.18)" : "transparent",
+                        boxShadow: tab === t.id
+                            ? "0 0 14px rgba(168,85,247,0.7), 0 0 28px rgba(168,85,247,0.3)"
+                            : "none",
+                        color: tab === t.id ? C.purple : "rgba(255,255,255,0.25)",
                     }}>
                     <t.icon className="text-xl" />
                     {t.id === "bugs" && bugCount > 0 && (
@@ -162,9 +194,9 @@ const Sidebar = ({ tab, setTab, bugCount }) => (
                 {/* Hover label */}
                 <div className="absolute left-14 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg text-xs font-semibold text-white whitespace-nowrap pointer-events-none
                     opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-200 z-50"
-                    style={{ background: "#1e1b2e", border: `1px solid ${C.border}`, boxShadow: "0 4px 20px rgba(0,0,0,0.5)" }}>
+                    style={{ background: "rgba(20,15,35,0.95)", border: "1px solid rgba(168,85,247,0.25)", boxShadow: "0 4px 20px rgba(0,0,0,0.6)", fontFamily: FONT_BODY }}>
                     {t.label}
-                    <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[#1e1b2e]" />
+                    <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[rgba(20,15,35,0.95)]" />
                 </div>
             </div>
         ))}
@@ -172,62 +204,148 @@ const Sidebar = ({ tab, setTab, bugCount }) => (
 );
 
 // ══════════════════════════════════════════════════════════════════════════
-//  OVERVIEW PAGE
+//  LIVE SYSTEM AUDIT FEED
 // ══════════════════════════════════════════════════════════════════════════
-const Overview = ({ stats, health }) => {
-    const sparkMock = [3, 7, 2, 9, 4, 6, 8, 5, 11, 7, 13, 9, 6, 12, 8, 14, 10, 7, 11, 9];
+const ACTION_COLOR_MAP = {
+    SHADOW_BAN_USER: { color: C.red, emoji: "🚫" },
+    UNBAN_USER: { color: C.green, emoji: "✅" },
+    MARK_BUG_FIXED: { color: C.green, emoji: "🐛" },
+    CHANGE_BUG_STATUS: { color: C.yellow, emoji: "🔄" },
+    CHANGE_POST_STATUS: { color: C.blue, emoji: "📄" },
+    CHANGE_AURAX_STATUS: { color: C.purple, emoji: "✨" },
+    MAINTENANCE_ON: { color: C.red, emoji: "⚠️" },
+    MAINTENANCE_OFF: { color: C.green, emoji: "🟢" },
+};
+
+const LiveAuditFeed = ({ api }) => {
+    const [entries, setEntries] = useState([]);
+    const [pulse, setPulse] = useState(false);
+
+    const load = useCallback(async () => {
+        try {
+            const d = await api("get", "/api/admin/audit-logs");
+            setEntries((d.logs || []).slice(0, 8));
+            setPulse(true);
+            setTimeout(() => setPulse(false), 600);
+        } catch { /* silent */ }
+    }, [api]);
+
+    useEffect(() => {
+        load();
+        const id = setInterval(load, 30000);
+        return () => clearInterval(id);
+    }, [load]);
+
+    const fmt = (iso) => new Date(iso).toLocaleTimeString("en-IN", {
+        hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+    });
+
     return (
-        <div className="flex flex-col gap-6">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard label="Open Bugs" value={stats?.open} icon={IoBug} color={C.red}
-                    sub={`${stats?.inProgress || 0} in progress`} sparkData={sparkMock.slice(0, 10)} />
-                <StatCard label="Resolved" value={stats?.resolved} icon={IoCheckmarkCircle} color={C.green}
-                    sub={`Burn rate ${stats?.burnRate || 0}%`} sparkData={sparkMock.slice(5, 15)} />
-                <StatCard label="Total Users" value={stats?.totalUsers} icon={IoPeople} color={C.blue}
-                    sparkData={sparkMock.slice(2, 12)} />
-                <StatCard label="AuraX Posts" value={health?.counts?.auras} icon={HiOutlineSparkles} color={C.purple}
-                    sub="Active in last 24h" sparkData={sparkMock.slice(8, 18)} />
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* DB Latency Gauge */}
-                <div className="rounded-2xl p-5" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-                    <p className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-4 flex items-center gap-2">
-                        <RiDatabase2Line className="text-base text-purple-400" /> Database Latency
-                    </p>
-                    <div className="flex items-center justify-around">
-                        <div className="flex flex-col items-center gap-1">
-                            <Gauge value={health?.dbLatency ?? 0} max={500} label="MongoDB" />
-                            <p className="text-gray-400 text-xs">MongoDB</p>
-                        </div>
-                        <div className="flex flex-col items-center gap-1">
-                            <Gauge value={health?.redisLatency ?? 0} max={100} label="Redis" />
-                            <p className="text-gray-400 text-xs">Redis</p>
-                        </div>
-                    </div>
+        <div className="rounded-3xl p-5 flex flex-col gap-3"
+            style={{ background: C.card, border: "1px solid rgba(255,255,255,0.10)", backdropFilter: "blur(12px)" }}>
+            <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"
+                        style={{ boxShadow: "0 0 6px #22c55e" }} />
+                    <h3 className="text-white text-sm font-bold" style={{ fontFamily: FONT_HEADING }}>Live System Audit</h3>
                 </div>
-                {/* Server Health */}
-                <div className="rounded-2xl p-5 flex flex-col gap-3" style={{ background: C.card, border: `1px solid ${C.border}` }}>
-                    <p className="text-gray-400 text-xs uppercase tracking-wider font-semibold flex items-center gap-2">
-                        <IoServer className="text-base text-purple-400" /> Server Info
-                    </p>
-                    {health && [
-                        ["Uptime", `${Math.floor(health.uptime / 3600)}h ${Math.floor((health.uptime % 3600) / 60)}m`],
-                        ["Node.js", health.nodeVersion],
-                        ["Environment", health.env],
-                        ["Heap Used", `${Math.round(health.memory?.heapUsed / 1024 / 1024)} MB`],
-                        ["Total Posts", health.counts?.posts],
-                        ["Total Bugs", health.counts?.bugs],
-                    ].map(([k, v]) => (
-                        <div key={k} className="flex justify-between items-center text-sm py-1 border-b border-white/5">
-                            <span className="text-gray-500">{k}</span>
-                            <span className="text-white font-medium">{v}</span>
-                        </div>
-                    ))}
-                </div>
+                <button onClick={load} className="text-gray-600 hover:text-purple-400 transition-colors p-1 rounded-lg hover:bg-white/5">
+                    <IoRefresh className={`text-sm ${pulse ? "animate-spin" : ""}`} />
+                </button>
             </div>
+            {entries.length === 0 ? (
+                <p className="text-gray-600 text-xs text-center py-4">No recent actions yet.</p>
+            ) : (
+                <div className="flex flex-col gap-1">
+                    {entries.map((log, i) => {
+                        const meta = ACTION_COLOR_MAP[log.action] || { color: C.purple, emoji: "⚡" };
+                        const label = log.action.replace(/_/g, " ").toLowerCase();
+                        return (
+                            <div key={log._id || i}
+                                className="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors hover:bg-white/5"
+                                style={{ borderLeft: `2px solid ${meta.color}70` }}>
+                                <span className="text-[10px] flex-shrink-0 tabular-nums" style={{ fontFamily: FONT_MONO, color: "#4b5563" }}>{fmt(log.createdAt)}</span>
+                                <span className="text-sm flex-shrink-0">{meta.emoji}</span>
+                                <p className="text-xs text-gray-300 flex-1 min-w-0 truncate">
+                                    <span className="font-semibold" style={{ color: C.purple }}>@{log.adminId?.username || "admin"}</span>
+                                    {" "}<span className="text-gray-500">{label}</span>
+                                    {log.details?.targetUser && (
+                                        <span className="text-gray-400"> · @{log.details.targetUser}</span>
+                                    )}
+                                </p>
+                                <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: meta.color, boxShadow: `0 0 5px ${meta.color}` }} />
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 };
+
+// ══════════════════════════════════════════════════════════════════════════
+//  OVERVIEW PAGE
+// ══════════════════════════════════════════════════════════════════════════
+const Overview = ({ stats, health, api }) => (
+    <div className="flex flex-col gap-6">
+        {/* 4-col stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard label="Open Bugs" value={stats?.open} icon={IoBug} color={C.red}
+                sub={`${stats?.inProgress || 0} in progress`} />
+            <StatCard label="Resolved" value={stats?.resolved} icon={IoCheckmarkCircle} color={C.green}
+                sub={`Burn rate ${stats?.burnRate || 0}%`} />
+            <StatCard label="Total Users" value={stats?.totalUsers} icon={IoPeople} color={C.blue} />
+            <StatCard label="AuraX Posts" value={health?.counts?.auras} icon={HiOutlineSparkles} color={C.purple}
+                sub="Active in last 24h" />
+        </div>
+
+        {/* Monitoring — always side by side */}
+        <div className="grid grid-cols-2 gap-4">
+            {/* DB Latency */}
+            <div className="rounded-3xl p-5" style={{ background: C.card, border: "1px solid rgba(255,255,255,0.10)", backdropFilter: "blur(12px)" }}>
+                <p className="text-gray-400 text-xs uppercase tracking-widest font-semibold mb-5 flex items-center gap-2"
+                    style={{ fontFamily: FONT_BODY }}>
+                    <RiDatabase2Line className="text-base text-purple-400" /> Database Latency
+                </p>
+                <div className="flex items-center justify-around gap-4">
+                    <div className="flex flex-col items-center gap-2">
+                        <Gauge value={health?.dbLatency ?? 0} max={500} label="MongoDB" />
+                        <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-wider">MongoDB</p>
+                    </div>
+                    <div className="w-px h-16 bg-white/5" />
+                    <div className="flex flex-col items-center gap-2">
+                        <Gauge value={health?.redisLatency ?? 0} max={100} label="Redis" />
+                        <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-wider">Redis</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Server Info */}
+            <div className="rounded-3xl p-5 flex flex-col gap-2" style={{ background: C.card, border: "1px solid rgba(255,255,255,0.10)", backdropFilter: "blur(12px)" }}>
+                <p className="text-gray-400 text-xs uppercase tracking-widest font-semibold mb-2 flex items-center gap-2"
+                    style={{ fontFamily: FONT_BODY }}>
+                    <IoServer className="text-base text-purple-400" /> Server Info
+                </p>
+                {health && [
+                    ["Uptime", `${Math.floor(health.uptime / 3600)}h ${Math.floor((health.uptime % 3600) / 60)}m`],
+                    ["Node.js", health.nodeVersion],
+                    ["Environment", health.env],
+                    ["Heap Used", `${Math.round(health.memory?.heapUsed / 1024 / 1024)} MB`],
+                    ["Total Posts", health.counts?.posts],
+                    ["Total Bugs", health.counts?.bugs],
+                ].map(([k, v]) => (
+                    <div key={k} className="flex justify-between items-center py-1.5 border-b border-white/5">
+                        <span className="text-gray-500 text-xs" style={{ fontFamily: FONT_BODY }}>{k}</span>
+                        <span className="text-white text-xs font-semibold" style={{ fontFamily: FONT_MONO }}>{v}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+
+        {/* Live System Audit Feed */}
+        <LiveAuditFeed api={api} />
+    </div>
+);
 
 // ══════════════════════════════════════════════════════════════════════════
 //  BUG TICKETS — Kanban + Table
@@ -808,8 +926,14 @@ const AdminDashboard = () => {
     }, [searchParams, navigate]);
 
     useEffect(() => {
-        if (!userLoading && user && user.role !== "admin" && user.email !== "admin@prince") {
-            navigate("/", { replace: true });
+        if (!userLoading) {
+            if (!user) {
+                // If not logged in, redirect to login page
+                navigate("/login", { replace: true });
+            } else if (user.role !== "admin" && user.email !== "admin@prince") {
+                // If logged in but not an admin, redirect to home
+                navigate("/", { replace: true });
+            }
         }
     }, [user, userLoading, navigate]);
 
@@ -834,7 +958,7 @@ const AdminDashboard = () => {
         loadStats();
         loadHealth();
         loadMaintenance();
-    }, [user]);
+    }, [user, loadStats, loadHealth, loadMaintenance]);
 
     // ── Kill switch ──
     const handleKillSwitch = async () => {
@@ -852,72 +976,76 @@ const AdminDashboard = () => {
     const openBugs = stats?.open || 0;
 
     return (
-        <div className="min-h-screen text-white" style={{ background: C.bg }}>
+        <div className="min-h-screen text-white font-sans" style={{ background: C.bg, fontFamily: FONT_BODY }}>
             {/* ── Sidebar ── */}
             <Sidebar tab={tab} setTab={setTab} bugCount={openBugs} />
 
             {/* ── Main content area ── */}
             <div style={{ marginLeft: 64, minHeight: "100vh" }}>
                 {/* ── Top Navbar ── */}
-                <div className="sticky top-0 z-40 flex items-center gap-4 px-6 py-3"
-                    style={{ background: "rgba(9,9,11,0.9)", backdropFilter: "blur(16px)", borderBottom: `1px solid ${C.border}` }}>
-                    {/* Page title */}
-                    <div>
-                        <h1 className="text-white font-bold text-base leading-none">
-                            {TABS.find(t => t.id === tab)?.label || "Admin"}
-                        </h1>
-                        <p className="text-gray-600 text-xs mt-0.5">xwaked.com Command Center</p>
-                    </div>
-
-                    {/* Spacer */}
-                    <div className="flex-1" />
-
-                    {/* ⚡ Global Kill Switch */}
-                    <div className="flex items-center gap-2">
-                        <div className="flex flex-col items-end">
-                            <span className="text-[10px] font-bold tracking-wider uppercase"
-                                style={{ color: maintenance ? C.red : "#6b7280" }}>
-                                {maintenance ? "⚠ MAINTENANCE ON" : "Kill Switch"}
-                            </span>
-                            <span className="text-gray-600 text-[9px]">Global maintenance mode</span>
-                        </div>
-                        <button onClick={handleKillSwitch} disabled={killLoading}
-                            className="relative w-14 h-7 rounded-full transition-all duration-300 flex items-center px-0.5"
-                            style={{
-                                background: maintenance
-                                    ? "linear-gradient(135deg, #ef4444, #b91c1c)"
-                                    : "rgba(255,255,255,0.08)",
-                                border: maintenance ? "1px solid rgba(239,68,68,0.5)" : `1px solid ${C.border}`,
-                                boxShadow: maintenance ? "0 0 20px rgba(239,68,68,0.4)" : "none",
-                            }}>
-                            <div className="w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 flex items-center justify-center"
-                                style={{ transform: maintenance ? "translateX(28px)" : "translateX(0)" }}>
-                                <IoPower className="text-xs" style={{ color: maintenance ? C.red : "#9ca3af" }} />
-                            </div>
-                        </button>
-                    </div>
-
-                    {/* Admin profile */}
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl"
-                        style={{ background: "rgba(168,85,247,0.1)", border: `1px solid rgba(168,85,247,0.2)` }}>
-                        <img src={user?.profilePic?.url || "https://cdn-icons-png.flaticon.com/512/1077/1077114.png"}
-                            alt="" className="w-7 h-7 rounded-full object-cover" />
+                <div className="sticky top-0 z-40 px-8 py-4"
+                    style={{ background: "rgba(5,5,5,0.8)", backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                    <div className="max-w-7xl w-[95%] mx-auto flex items-center gap-4">
+                        {/* Page title */}
                         <div>
-                            <p className="text-purple-300 text-xs font-bold leading-none">{user?.name}</p>
-                            <p className="text-purple-500 text-[10px]">Master Admin</p>
+                            <h1 className="text-white font-bold text-lg leading-none tracking-tight" style={{ fontFamily: FONT_HEADING }}>
+                                {TABS.find(t => t.id === tab)?.label || "Admin"}
+                            </h1>
+                            <p className="text-gray-500 text-[11px] mt-1 uppercase tracking-widest font-semibold font-mono" style={{ fontFamily: FONT_MONO }}>XWAKED COMMAND CENTER</p>
                         </div>
-                        <IoShieldCheckmark className="text-purple-400 text-sm ml-1" />
+
+                        {/* Spacer */}
+                        <div className="flex-1" />
+
+                        {/* ⚡ Global Kill Switch */}
+                        <div className="flex items-center gap-3 bg-white/[0.02] px-3 py-1.5 rounded-2xl border border-white/5 shadow-sm">
+                            <div className="flex flex-col items-end">
+                                <span className="text-[10px] font-bold tracking-widest uppercase transition-colors"
+                                    style={{ color: maintenance ? C.red : C.green, fontFamily: FONT_BODY }}>
+                                    {maintenance ? "ACTIVE" : "NORMAL"}
+                                </span>
+                                <span className="text-gray-600 text-[9px] font-medium tracking-wide uppercase">Kill Switch</span>
+                            </div>
+                            <button onClick={handleKillSwitch} disabled={killLoading}
+                                className="relative w-12 h-6 rounded-full transition-all duration-300 flex items-center px-0.5"
+                                style={{
+                                    background: maintenance ? "rgba(239,68,68,0.2)" : "rgba(34,197,94,0.15)",
+                                    border: maintenance ? "1px solid rgba(239,68,68,0.4)" : "1px solid rgba(34,197,94,0.3)",
+                                }}>
+                                <div className="w-5 h-5 rounded-full shadow-md transition-all duration-300 flex items-center justify-center transform"
+                                    style={{
+                                        background: maintenance ? C.red : C.green,
+                                        transform: maintenance ? "translateX(24px)" : "translateX(0)",
+                                        boxShadow: maintenance ? `0 0 10px ${C.red}` : `0 0 10px ${C.green}`
+                                    }}>
+                                </div>
+                            </button>
+                        </div>
+
+                        {/* Admin profile */}
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl ml-2"
+                            style={{ background: "rgba(168,85,247,0.12)", border: "1px solid rgba(168,85,247,0.25)" }}>
+                            <img src={user?.profilePic?.url || "https://cdn-icons-png.flaticon.com/512/1077/1077114.png"}
+                                alt="" className="w-7 h-7 rounded-full object-cover" />
+                            <div>
+                                <p className="text-purple-300 text-[11px] font-bold leading-none tracking-wide">{user?.name}</p>
+                                <p className="text-purple-500/70 text-[9px] uppercase tracking-widest font-semibold mt-0.5" style={{ fontFamily: FONT_MONO }}>SYSADMIN</p>
+                            </div>
+                            <IoShieldCheckmark className="text-purple-400 text-sm ml-1" />
+                        </div>
                     </div>
                 </div>
 
-                {/* ── Page content ── */}
-                <div className="p-6">
-                    {tab === "overview" && <Overview stats={stats} health={health} />}
-                    {tab === "bugs" && <BugTickets api={api} />}
-                    {tab === "content" && <ContentModeration api={api} />}
-                    {tab === "users" && <UserGrid api={api} />}
-                    {tab === "audit" && <AuditLogs api={api} />}
-                    {tab === "health" && <SystemHealth health={health} refresh={loadHealth} />}
+                {/* ── Page content wrapped in wider container ── */}
+                <div className="p-8">
+                    <div className="max-w-7xl w-[95%] mx-auto">
+                        {tab === "overview" && <Overview stats={stats} health={health} api={api} />}
+                        {tab === "bugs" && <BugTickets api={api} />}
+                        {tab === "content" && <ContentModeration api={api} />}
+                        {tab === "users" && <UserGrid api={api} />}
+                        {tab === "audit" && <AuditLogs api={api} />}
+                        {tab === "health" && <SystemHealth health={health} refresh={loadHealth} />}
+                    </div>
                 </div>
             </div>
         </div>

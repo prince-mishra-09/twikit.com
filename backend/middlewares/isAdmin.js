@@ -34,6 +34,9 @@ export const isAdmin = (req, res, next) => {
         // Strip IPv6-mapped IPv4 prefix (e.g. ::ffff:192.168.1.5 → 192.168.1.5)
         const clientIP = rawIP.replace(/^::ffff:/, "");
 
+        // --- DEBUG LOG FOR REQ.IP AS REQUESTED ---
+        console.log(`[isAdmin Debug] IP Check: req.ip="${req.ip}", x-forwarded-for="${req.headers["x-forwarded-for"]}", finalClientIP="${clientIP}"`);
+
         if (allowedIPs.length > 0 && !allowedIPs.includes(clientIP)) {
             console.warn(`[isAdmin] IP BLOCKED: ${clientIP} — not in whitelist [${allowedIPs.join(", ")}]`);
             return res.status(403).json({

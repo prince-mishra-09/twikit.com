@@ -11,9 +11,10 @@ const Layout = ({ children }) => {
     const isReels = location.pathname === "/reels";
     const isChat = location.pathname === "/chat";
     const isAuraX = location.pathname === "/aurax"; // Aura X immersive mode
+    const isAdmin = location.pathname.startsWith("/admin-control-center-prince");
 
     // Auth pages where we hide sidebars
-    const isAuthPage = location.pathname === "/login" || location.pathname === "/landing" || location.pathname === "/register";
+    const isAuthPage = location.pathname === "/login" || location.pathname === "/landing" || location.pathname === "/register" || isAdmin;
 
     // Special case: "/" is Landing if NOT auth, Home if auth.
     // If it's "/" and !isAuth, treat as auth page (hide sidebar).
@@ -50,8 +51,8 @@ const Layout = ({ children }) => {
 
             {/* Main Content Area */}
             <div className={`flex-1 flex flex-col h-full relative transition-all duration-300 ${showLeftSidebar
-                    ? (isSidebarCollapsed ? 'md:ml-[80px]' : 'md:ml-[244px]')
-                    : ''
+                ? (isSidebarCollapsed ? 'md:ml-[80px]' : 'md:ml-[244px]')
+                : ''
                 }`}>
 
                 {/* Scrollable Area */}

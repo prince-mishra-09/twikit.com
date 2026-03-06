@@ -30,8 +30,9 @@ const NavigationBar = () => {
   const isLandingPage = (location.pathname === "/" && !isAuth) || location.pathname === "/landing";
   const isAuthPage = location.pathname === "/login" || location.pathname === "/register";
   const isAuraX = location.pathname === "/aurax";
+  const isAdmin = location.pathname.startsWith("/admin-control-center-prince");
 
-  if (location.pathname === "/reels" || location.pathname === "/chat" || isAuraX || isLandingPage || isAuthPage) {
+  if (location.pathname === "/reels" || location.pathname === "/chat" || isAuraX || isLandingPage || isAuthPage || isAdmin) {
     return null;
   }
 

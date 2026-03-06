@@ -12,6 +12,7 @@ import { SkeletonPost } from "../components/Skeleton";
 import { UserData } from "../context/UserContext";
 import { useTheme } from "../context/ThemeContext";
 import BugReportTooltip from "../components/BugReportTooltip";
+import BugReportModal from "../components/BugReportModal";
 
 
 const Home = () => {
@@ -23,29 +24,11 @@ const Home = () => {
 
   const navigate = useNavigate();
 
-  const handleReportBug = async () => {
+  const [showBugModal, setShowBugModal] = useState(false);
+
+  const handleReportBug = () => {
     if (!isAuth) return setShowLoginPrompt(true);
-    const toastId = toast.loading("Connecting to support...");
-    try {
-      const users = await searchUser("admin_prince");
-      const admin = users.find(u => u.username === "admin_prince");
-      if (admin) {
-        const chat = await createChat(admin._id);
-        if (chat) {
-          setSelectedChat(chat);
-          navigate("/chat", { state: { isBugReport: true } });
-          toast.success("Chat opened", { id: toastId });
-        } else {
-          throw new Error("Could not create chat");
-        }
-      } else {
-        toast.error("Admin user not found", { id: toastId });
-        navigate("/chat");
-      }
-    } catch (error) {
-      toast.error("Something went wrong", { id: toastId });
-      navigate("/chat");
-    }
+    setShowBugModal(true);
   };
 
   const [showComposer, setShowComposer] = useState(true);
@@ -117,6 +100,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] flex justify-center">
+      {showBugModal && <BugReportModal onClose={() => setShowBugModal(false)} />}
 
       {/* 2. Main Feed (Center) */}
       <div className="w-full max-w-[630px] flex flex-col items-center"> {/* Margins for sidebars handled by Layout */}
