@@ -43,7 +43,7 @@ io.use(async (socket, next) => {
             return [key.trim(), v.join('=')];
           })
         );
-        token = cookies.token;
+        token = cookies.accessToken;
       }
     }
 
