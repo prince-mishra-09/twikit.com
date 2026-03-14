@@ -15,20 +15,32 @@ import { logToFile } from "../utils/logToFile.js";
 // 1. CREATE POST (Robust Background Handling)
 // ==============================================================================
 export const newPost = TryCatch(async (req, res) => {
+    console.log("----- [NEW POST REQUEST RECEIVED] -----");
+    console.log("req.body:", req.body);
+    console.log("req.query:", req.query);
+    console.log("req.file (metadata):", req.file ? {
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size
+    } : "UNDEFINED/MISSING");
+
     const { caption } = req.body;
     const ownerId = req.user._id;
     const file = req.file;
     const type = req.query.type;
 
     if (type !== 'story' && (!caption || caption.trim() === "")) {
+        console.log("FAILED: Caption is required");
         return res.status(400).json({ message: "Caption is required" });
     }
 
     if (!file) {
+        console.log("FAILED: No file provided");
         return res.status(400).json({ message: "No file provided" });
     }
 
     // 1. Send Immediate Response
+    console.log("SUCCESS: Payload validated. Starting background upload...");
     res.status(202).json({
         message: "Post upload started",
         status: "processing",
