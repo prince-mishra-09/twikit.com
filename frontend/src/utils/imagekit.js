@@ -1,7 +1,8 @@
 export const getOptimizedImg = (url, width, height) => {
     if (!url) return "";
 
-    // Check if it's an ImageKit URL
+    // ImageKit should be the primary provider now.
+    // If it's not an ImageKit URL, we return it as is, but we'll assume most are.
     if (!url.includes("ik.imagekit.io") && !url.includes("ik.imgkit.net")) return url;
 
     // Check if already optimized
@@ -15,13 +16,10 @@ export const getOptimizedImg = (url, width, height) => {
 
     const trString = `tr:${transforms.join(",")}`;
 
-    // ImageKit URL format: https://ik.imagekit.io/your_id/path/image.jpg
-    // Insert transformation after the URL endpoint
-    // Result: https://ik.imagekit.io/your_id/tr:f-auto,q-auto/path/image.jpg
     try {
         const urlObj = new URL(url);
         const pathSegments = urlObj.pathname.split("/").filter(Boolean);
-        // pathSegments[0] is the imagekit_id, rest is the file path
+
         if (pathSegments.length >= 2) {
             const ikId = pathSegments[0];
             const filePath = pathSegments.slice(1).join("/");

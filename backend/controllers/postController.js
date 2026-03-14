@@ -142,7 +142,13 @@ export const getAllPosts = TryCatch(async (req, res) => {
     const userObjectId = userId ? new mongoose.Types.ObjectId(userId) : null;
 
     // 1. Initial Document Filter (Blocking & Muting & Hidden Posts & Shadow Ban & Status)
-    const initialMatch = { status: "active" }; // Only show active posts
+    // Legacy posts might not have a status field, so we default them to active
+    const initialMatch = { 
+        $or: [
+            { status: "active" },
+            { status: { $exists: false } }
+        ]
+    };
     if (!isGuest) {
         const excludedOwners = [...hiddenUserObjectIds, ...mutedUserObjectIds];
 

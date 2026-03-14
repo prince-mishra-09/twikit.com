@@ -151,7 +151,10 @@ export const getAllAuraX = async (req, res) => {
             // 0. Filter active-only posts and exclude shadow-banned authors
             {
                 $match: {
-                    status: "active",
+                    $or: [
+                        { status: "active" },
+                        { status: { $exists: false } }
+                    ],
                     ...(shadowBannedIds.length > 0 ? { authorId: { $nin: shadowBannedIds } } : {}),
                 }
             },

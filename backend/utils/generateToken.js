@@ -24,8 +24,8 @@ const generateToken = async (userId, req, res) => {
   // 4. Set Cookies for Web (HttpOnly for security)
   const cookieOptions = {
     httpOnly: true,
-    sameSite: "none",
-    secure: true,
+    sameSite: "lax",
+    secure: false,
     maxAge: 30 * 24 * 60 * 60 * 1000, // Refresh token duration
   };
 

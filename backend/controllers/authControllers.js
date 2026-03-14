@@ -222,17 +222,14 @@ export const logoutUser = tryCatch(async (req, res) => {
         await Session.deleteOne({ refreshToken });
     }
 
-    res.clearCookie("accessToken", {
+    const cookieOptions = {
         httpOnly: true,
-        sameSite: "none",
-        secure: true,
-    });
+        sameSite: "lax",
+        secure: false,
+    };
 
-    res.clearCookie("refreshToken", {
-        httpOnly: true,
-        sameSite: "none",
-        secure: true,
-    });
+    res.clearCookie("accessToken", cookieOptions);
+    res.clearCookie("refreshToken", cookieOptions);
 
     res.json({
         message: "logout successfully",
@@ -243,13 +240,22 @@ export const refreshAccessToken = tryCatch(async (req, res) => {
     const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
     if (!refreshToken) {
+        console.error("401 FAILED IN REFRESH TOKEN: Refresh token missing from cookies and body");
         return res.status(401).json({ message: "Refresh token missing" });
     }
 
     const session = await Session.findOne({ refreshToken });
 
     if (!session || session.expiresAt < new Date()) {
-        if (session) await Session.deleteOne({ _id: session._id });
+        if (session) {
+            console.error("401 FAILED IN REFRESH TOKEN: Session expired", session.expiresAt);
+            await Session.deleteOne({ _id: session._id });
+        } else {
+            console.error("401 FAILED IN REFRESH TOKEN: Session not found for token:", refreshToken);
+            // Optionally count total sessions to see if DB is disconnected
+            const c = await Session.countDocuments();
+            console.error("Total sessions in DB:", c);
+        }
         return res.status(401).json({ message: "Session expired or invalid" });
     }
 
@@ -268,8 +274,8 @@ export const refreshAccessToken = tryCatch(async (req, res) => {
 
     const cookieOptions = {
         httpOnly: true,
-        sameSite: "none",
-        secure: true,
+        sameSite: "lax",
+        secure: false,
         maxAge: 30 * 24 * 60 * 60 * 1000,
     };
 

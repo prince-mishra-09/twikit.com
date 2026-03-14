@@ -12,6 +12,20 @@ import axios from "axios";
 axios.defaults.baseURL = import.meta.env.MODE === "development" ? "" : import.meta.env.VITE_API_URL;
 axios.defaults.withCredentials = true;
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 // Silent Refresh Interceptor
 axios.interceptors.response.use(
   (response) => response,
@@ -26,13 +40,32 @@ axios.interceptors.response.use(
       !originalRequest.url.includes("/api/auth/register") &&
       !originalRequest.url.includes("/api/auth/refresh-token")
     ) {
+      if (isRefreshing) {
+        // If already refreshing, queue this request and wait for the refresh to complete
+        return new Promise(function(resolve, reject) {
+          failedQueue.push({ resolve, reject });
+        }).then(() => {
+          originalRequest._retry = true;
+          return axios(originalRequest);
+        }).catch(err => {
+          return Promise.reject(err);
+        });
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
+
       try {
         await axios.post("/api/auth/refresh-token");
+        processQueue(null);
         return axios(originalRequest);
       } catch (refreshError) {
-        // If refresh fails, the session is dead
+        processQueue(refreshError, null);
+        // If refresh fails, the session is dead -> force frontend logout
+        window.dispatchEvent(new CustomEvent("force_logout"));
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
     return Promise.reject(error);

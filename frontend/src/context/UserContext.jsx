@@ -335,6 +335,19 @@ export const UserContextProvider = ({ children }) => {
     fetchUser();
   }, [fetchUser]);
 
+  useEffect(() => {
+    const handleForceLogout = () => {
+      setUser(null);
+      setIsAuth(false);
+      const currentPath = window.location.pathname;
+      if (currentPath !== "/login" && currentPath !== "/register" && currentPath !== "/") {
+         window.location.href = "/login";
+      }
+    };
+    window.addEventListener("force_logout", handleForceLogout);
+    return () => window.removeEventListener("force_logout", handleForceLogout);
+  }, []);
+
   const value = useMemo(() => ({
     loginUser, isAuth, setIsAuth, user, setUser, loading,
     logoutUser, registerUser, followUser, updateProfilePic,
