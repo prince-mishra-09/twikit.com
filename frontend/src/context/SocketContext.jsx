@@ -28,14 +28,6 @@ export const SocketContextProvider = ({ children }) => {
       console.log(`[FRONTEND SOCKET] Connected with ID: ${socket.id} for user: ${user._id}`);
     });
 
-    socket.on("disconnect", (reason) => {
-      console.warn(`[FRONTEND SOCKET] Disconnected: ${reason}`);
-    });
-
-    socket.on("connect_error", (error) => {
-      console.error(`[FRONTEND SOCKET] Connection Error:`, error.message);
-    });
-
     // Initial online users list
     socket.on("getOnlineUser", setOnlineUsers);
 

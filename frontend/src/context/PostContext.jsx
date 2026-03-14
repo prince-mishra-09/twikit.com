@@ -78,7 +78,6 @@ export const PostContextProvider = ({ children }) => {
     }
 
     try {
-      console.log(`[FRONTEND UPLOAD] Starting chunked upload to /api/post/new?type=${type}`);
       const { data } = await axios.post("/api/post/new?type=" + type, formdata, {
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -87,7 +86,6 @@ export const PostContextProvider = ({ children }) => {
         }
       });
 
-      console.log(`[FRONTEND UPLOAD] Axios POST succeeded, status: ${data.message}`);
       toast.success(data.message); // Should say "Post upload started"
 
       setFile("");
@@ -95,7 +93,6 @@ export const PostContextProvider = ({ children }) => {
       setCaption("");
       // Don't setAddLoading(false) here — wait for socket `post:ready` or `post:failed`.
     } catch (error) {
-      console.error(`[FRONTEND UPLOAD] Axios error:`, error.message);
       toast.error(error.response?.data?.message || "Something went wrong");
       setAddLoading(false);
       setUploadProgress(0);
