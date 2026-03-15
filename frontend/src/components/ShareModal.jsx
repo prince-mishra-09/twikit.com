@@ -6,7 +6,7 @@ import { UserData } from "../context/UserContext";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-const ShareModal = ({ isOpen, onClose, content }) => {
+const ShareModal = ({ isOpen, onClose, content, onShare }) => {
     const { chats, setChats } = ChatData(); // Uses recent chats
     const { user: myUser } = UserData();
     const [query, setQuery] = useState("");
@@ -86,6 +86,7 @@ const ShareModal = ({ isOpen, onClose, content }) => {
             });
 
             toast.success(`Sent to ${selectedUsers.length} users!`);
+            if (onShare) onShare(selectedUsers.length);
             onClose();
             setMessage("");
             setSelectedUsers([]);

@@ -9,11 +9,16 @@ export const PostContextProvider = ({ children }) => {
   const [posts, setPosts] = useState([]);
   const [reels, setReels] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingReels, setLoadingReels] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [loadingMoreReels, setLoadingMoreReels] = useState(false);
   const [pagination, setPagination] = useState({
     page: 1,
     hasMorePosts: true,
-    hasMoreReels: true
+  });
+  const [reelsPagination, setReelsPagination] = useState({
+    page: 1,
+    hasMoreReels: true,
   });
   const [uploadProgress, setUploadProgress] = useState(0); // Add upload progress state
   const [uploadPreview, setUploadPreview] = useState(null);
@@ -27,23 +32,16 @@ export const PostContextProvider = ({ children }) => {
 
       if (page === 1) {
         setPosts(data.posts);
-        setReels(data.posts.filter(p => p.type === 'reel')); // Deriving reels from main feed for UI consistency
       } else {
         setPosts(prev => {
           const newPosts = data.posts.filter(post => !prev.some(p => p._id === post._id));
           return [...prev, ...newPosts];
-        });
-        setReels(prev => {
-          const freshReels = data.posts.filter(p => p.type === 'reel');
-          const newReels = freshReels.filter(reel => !prev.some(r => r._id === reel._id));
-          return [...prev, ...newReels];
         });
       }
 
       setPagination({
         page: data.pagination.page,
         hasMorePosts: data.pagination.hasMorePosts,
-        hasMoreReels: data.pagination.hasMorePosts // Reuse as they are consolidated
       });
 
       setLoading(false);
@@ -60,6 +58,38 @@ export const PostContextProvider = ({ children }) => {
     setLoadingMore(true);
     await fetchPosts(pagination.page + 1);
   }, [pagination.hasMorePosts, pagination.page, loadingMore, fetchPosts]);
+
+  const fetchReels = useCallback(async (page = 1) => {
+    try {
+      const { data } = await axios.get(`/api/post/reels?page=${page}&limit=20`);
+
+      if (page === 1) {
+        setReels(data.reels);
+      } else {
+        setReels(prev => {
+          const newReels = data.reels.filter(reel => !prev.some(r => r._id === reel._id));
+          return [...prev, ...newReels];
+        });
+      }
+
+      setReelsPagination({
+        page: data.pagination.page,
+        hasMoreReels: data.pagination.hasMoreReels,
+      });
+
+      setLoadingReels(false);
+      setLoadingMoreReels(false);
+    } catch (error) {
+      setLoadingReels(false);
+      setLoadingMoreReels(false);
+    }
+  }, []);
+
+  const fetchNextReelsPage = useCallback(async () => {
+    if (!reelsPagination.hasMoreReels || loadingMoreReels) return;
+    setLoadingMoreReels(true);
+    await fetchReels(reelsPagination.page + 1);
+  }, [reelsPagination.hasMoreReels, reelsPagination.page, loadingMoreReels, fetchReels]);
 
   const [addLoading, setAddLoading] = useState(false);
 
@@ -305,11 +335,15 @@ export const PostContextProvider = ({ children }) => {
     fetchNextPage,
     loadingMore,
     pagination,
-    uploadProgress,
     uploadPreview,
     uploadType,
-    updatePost
-  }), [reels, posts, addPost, sendFeedback, addComment, loading, addLoading, fetchPosts, deletePost, deleteComment, fetchNextPage, loadingMore, pagination, uploadProgress, uploadPreview, uploadType, updatePost]);
+    updatePost,
+    fetchReels,
+    fetchNextReelsPage,
+    loadingReels,
+    loadingMoreReels,
+    reelsPagination
+  }), [reels, posts, addPost, sendFeedback, addComment, loading, addLoading, fetchPosts, deletePost, deleteComment, fetchNextPage, loadingMore, pagination, uploadProgress, uploadPreview, uploadType, updatePost, fetchReels, fetchNextReelsPage, loadingReels, loadingMoreReels, reelsPagination]);
 
   return (
     <PostContext.Provider value={value}>

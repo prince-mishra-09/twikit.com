@@ -5,9 +5,16 @@ import PostCard from "../components/PostCard";
 
 const Reels = () => {
   const navigate = useNavigate();
-  const { reels, loading } = PostData();
+  const { reels, loadingReels, fetchReels, fetchNextReelsPage, reelsPagination } = PostData();
   const [currentReelId, setCurrentReelId] = useState(null);
   const [displayReels, setDisplayReels] = useState([]);
+
+  // Fetch reels specifically on mount
+  useEffect(() => {
+    if (reels.length === 0) {
+      fetchReels();
+    }
+  }, [fetchReels, reels.length]);
 
   // Logic to handle deep link and Reordering
   useEffect(() => {
@@ -37,6 +44,11 @@ const Reels = () => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setCurrentReelId(entry.target.id);
+            // Infinite scroll trigger: If the user reaches the last reel, fetch more
+            const isLastReel = entry.target === reelElements[reelElements.length - 1];
+            if (isLastReel && reelsPagination?.hasMoreReels) {
+                fetchNextReelsPage();
+            }
           }
         });
       },
@@ -65,7 +77,7 @@ const Reels = () => {
         </svg>
       </button>
 
-      {loading ? (
+      {loadingReels && reels.length === 0 ? (
         <div className="h-full w-full flex items-center justify-center">
           <div className="w-10 h-10 border-4 border-white/20 border-t-[var(--accent)] rounded-full animate-spin" />
         </div>
@@ -103,6 +115,14 @@ const Reels = () => {
               Replay Feed
             </button>
           </div>
+          
+          {/* Loading indicator for infinite scroll */}
+          {reelsPagination?.hasMoreReels && (
+            <div className="h-32 w-full snap-start snap-always flex flex-col items-center justify-center pb-12 bg-black">
+               <div className="w-8 h-8 border-4 border-white/20 border-t-[var(--accent)] rounded-full animate-spin" />
+               <span className="text-white/50 text-xs mt-3 uppercase tracking-widest font-bold">Loading Vibes</span>
+            </div>
+          )}
         </div>
       ) : (
         <div className="h-screen flex items-center justify-center text-[var(--text-secondary)]">

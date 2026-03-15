@@ -46,6 +46,16 @@ const postSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+
+  savesCount: {
+    type: Number,
+    default: 0,
+  },
+
+  sharesCount: {
+    type: Number,
+    default: 0,
+  },
 });
 
 // Indexes for performance optimization

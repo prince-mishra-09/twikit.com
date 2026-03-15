@@ -173,6 +173,8 @@ export const getAllPosts = TryCatch(async (req, res) => {
         createdAt: 1,
         views: 1,
         commentsCount: 1,
+        savesCount: 1,
+        sharesCount: 1,
         owner: {
             _id: 1,
             name: 1,
@@ -278,6 +280,132 @@ export const getAllPosts = TryCatch(async (req, res) => {
         }
     });
 });
+
+export const getReels = TryCatch(async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    const isGuest = !req.user;
+    let userId = null;
+    let hiddenUserObjectIds = [];
+    let mutedUserObjectIds = [];
+    let hiddenPostIds = [];
+
+    if (!isGuest) {
+        userId = req.user._id;
+        const user = await User.findById(userId);
+        const blockedByUsers = await User.find({ blockedUsers: userId }).distinct('_id');
+
+        // CACHE THIS IN REDIS LATER
+        hiddenUserObjectIds = [
+            ...(user.blockedUsers || []),
+            ...blockedByUsers
+        ].map(id => new mongoose.Types.ObjectId(id));
+
+        mutedUserObjectIds = (user.mutedUsers || []).map(id => new mongoose.Types.ObjectId(id));
+        hiddenPostIds = (user.hiddenPosts || []);
+    }
+
+    const userObjectId = userId ? new mongoose.Types.ObjectId(userId) : null;
+
+    // 1. Initial Document Filter
+    const initialMatch = {};
+    if (!isGuest) {
+        const excludedOwners = [...hiddenUserObjectIds, ...mutedUserObjectIds];
+        if (excludedOwners.length > 0) {
+            initialMatch.owner = { $nin: excludedOwners };
+        }
+        if (hiddenPostIds.length > 0) {
+            initialMatch._id = { $nin: hiddenPostIds };
+        }
+    }
+
+    // 3. Projection Stage
+    const projectStage = {
+        caption: 1,
+        post: 1,
+        type: 1,
+        createdAt: 1,
+        views: 1,
+        commentsCount: 1,
+        owner: {
+            _id: 1,
+            name: 1,
+            username: 1,
+            profilePic: 1,
+            isPrivate: 1
+        },
+        vibesUp: 1,
+        vibesDown: {
+            $cond: {
+                if: { $eq: ["$owner._id", userObjectId] },
+                then: "$vibesDown",
+                else: []
+            }
+        }
+    };
+
+    const commonPipeline = [
+        { $match: initialMatch },
+        {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner"
+            }
+        },
+        { $unwind: "$owner" },
+        {
+            $match: {
+                $or: [
+                    { "owner.isPrivate": false }, // Public Account
+                    ...(userObjectId ? [
+                        { "owner._id": userObjectId }, // My own posts
+                        { "owner.followers": userObjectId } // I am a follower
+                    ] : [])
+                ]
+            }
+        }
+    ];
+
+    // Dedicated Reel Fetch
+    const reelsPromise = Post.aggregate([
+        { $match: { type: "reel", ...initialMatch } },
+        ...commonPipeline,
+        { $sort: { createdAt: -1, _id: -1 } },
+        { $skip: skip },
+        { $limit: limit },
+        { $project: projectStage }
+    ]);
+
+    const countPipeline = [
+        { $match: { type: "reel", ...initialMatch } },
+        ...commonPipeline,
+        { $count: "total" }
+    ];
+
+    const countPromise = Post.aggregate(countPipeline);
+
+    const [reels, countResult] = await Promise.all([
+        reelsPromise,
+        countPromise
+    ]);
+
+    const totalReels = countResult.length > 0 ? countResult[0].total : 0;
+
+    res.json({
+        reels,
+        pagination: {
+            page,
+            limit,
+            totalReels,
+            hasMoreReels: reels.length === limit,
+        }
+    });
+});
+
 
 export const handleFeedback = TryCatch(async (req, res) => {
     const { feedbackType } = req.body; // "vibeUp" or "vibeDown"
@@ -527,6 +655,8 @@ export const saveUnsavePost = TryCatch(async (req, res) => {
         const index = user.savedPosts.indexOf(post._id);
         user.savedPosts.splice(index, 1);
         await user.save();
+        
+        await Post.findByIdAndUpdate(post._id, { $inc: { savesCount: -1 } });
 
         res.json({
             message: "Post Unsaved",
@@ -535,6 +665,8 @@ export const saveUnsavePost = TryCatch(async (req, res) => {
         // Save
         user.savedPosts.push(post._id);
         await user.save();
+        
+        await Post.findByIdAndUpdate(post._id, { $inc: { savesCount: 1 } });
 
         res.json({
             message: "Post Saved",
@@ -587,6 +719,9 @@ export const getPost = TryCatch(async (req, res) => {
 export const getUserPosts = TryCatch(async (req, res) => {
     const userId = req.params.id;
     const isGuest = !req.user;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
 
     // 1. Verify target user exists
     const targetUser = await User.findById(userId);
@@ -620,20 +755,88 @@ export const getUserPosts = TryCatch(async (req, res) => {
         return res.status(403).json({ message: "This account is private. Follow to see posts." });
     }
 
-    // 3. Fetch Posts (Optimized: Parallel + Limit)
-    const postsPromise = Post.find({ owner: userId, type: "post" })
-        .sort({ createdAt: -1 })
-        .limit(50)
-        .populate("owner", "name username profilePic isPrivate")
-        .lean();
+    // 3. Fetch Posts (Optimized: Parallel + Limit + Pagination)
+    // We only fetch based on requested type if passed, else fetch both
+    // Actually the user wants both posts and reels so they can be merged.
+    // If frontend wants both, we fetch both simultaneously.
+    const requestedType = req.query.type;
 
-    const reelsPromise = Post.find({ owner: userId, type: "reel" })
-        .sort({ createdAt: -1 })
-        .limit(50)
-        .populate("owner", "name username profilePic isPrivate")
-        .lean();
+    let postsPromise = Promise.resolve([]);
+    let reelsPromise = Promise.resolve([]);
+
+    if (!requestedType || requestedType === "post") {
+        postsPromise = Post.find({ owner: userId, type: "post" })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate("owner", "name username profilePic isPrivate")
+            .lean();
+    }
+
+    if (!requestedType || requestedType === "reel") {
+        reelsPromise = Post.find({ owner: userId, type: "reel" })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate("owner", "name username profilePic isPrivate")
+            .lean();
+    }
 
     const [posts, reels] = await Promise.all([postsPromise, reelsPromise]);
 
-    res.json({ posts, reels });
+    res.json({ 
+        posts, 
+        reels,
+        pagination: {
+            page,
+            limit,
+            hasMorePosts: posts.length === limit,
+            hasMoreReels: reels.length === limit
+        }
+    });
+});
+
+export const sharePost = TryCatch(async (req, res) => {
+    const post = await Post.findById(req.params.id);
+    
+    if (!post) {
+        return res.status(404).json({ message: "Post not found" });
+    }
+
+    const count = req.body.count || 1;
+
+    await Post.findByIdAndUpdate(req.params.id, { $inc: { sharesCount: parseInt(count, 10) } });
+
+    res.json({
+        message: "Share recorded"
+    });
+});
+
+export const syncPostSaves = TryCatch(async (req, res) => {
+    await Post.updateMany({}, { $set: { savesCount: 0 } });
+    let totalUpdated = 0;
+    const users = await User.find({}, "savedPosts");
+    const saveCounts = {};
+    
+    users.forEach(user => {
+        user.savedPosts.forEach(postId => {
+            if (saveCounts[postId]) saveCounts[postId]++;
+            else saveCounts[postId] = 1;
+        });
+    });
+
+    const bulkOps = [];
+    for (const [postId, count] of Object.entries(saveCounts)) {
+        bulkOps.push({ updateOne: { filter: { _id: postId }, update: { $set: { savesCount: count } } } });
+        totalUpdated++;
+    }
+
+    if (bulkOps.length > 0) {
+        await Post.bulkWrite(bulkOps);
+    }
+
+    res.json({
+        message: "Saves count globally synced successfully.",
+        totalDifferingPostsUpdated: totalUpdated
+    });
 });

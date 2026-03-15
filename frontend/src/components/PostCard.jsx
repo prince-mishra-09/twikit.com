@@ -96,7 +96,8 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
   const [isFollowed, setIsFollowed] = useState(() => includesId(user?.followings, value.owner?._id));
 
   const [isSaved, setIsSaved] = useState(() => includesId(user?.savedPosts, value._id));
-
+  const [savesCount, setSavesCount] = useState(value.savesCount || 0);
+  const [sharesCount, setSharesCount] = useState(value.sharesCount || 0);
   const [shareModal, setShareModal] = useState(false);
   const [vibeModal, setVibeModal] = useState(false);
   const [showPostDeleteConfirm, setShowPostDeleteConfirm] = useState(false);
@@ -108,7 +109,9 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
   useEffect(() => {
     setIsFollowed(includesId(user?.followings, value.owner?._id));
     setIsSaved(includesId(user?.savedPosts, value._id));
-  }, [user, value.owner?._id, value._id]);
+    setSavesCount(value.savesCount || 0);
+    setSharesCount(value.sharesCount || 0);
+  }, [user, value.owner?._id, value._id, value.savesCount, value.sharesCount]);
 
   // New Comment State
   const [comments, setComments] = useState([]);
@@ -508,13 +511,41 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
     }
   };
 
-  const saveHandler = async () => {
+  const saveHandler = async (e) => {
+    if (e) e.stopPropagation();
     if (!isAuth) {
       setShowLoginPrompt(true);
       return;
     }
-    setIsSaved(!isSaved);
-    await savePost(value._id);
+    
+    // Optimistic UI for save count
+    const wasSaved = isSaved;
+    setIsSaved(!wasSaved);
+    setSavesCount(prev => wasSaved ? prev - 1 : prev + 1);
+
+    try {
+      await savePost(value._id);
+    } catch {
+      setIsSaved(wasSaved);
+      setSavesCount(prev => wasSaved ? prev + 1 : prev - 1);
+      toast.error("Failed to save post");
+    }
+  };
+
+  const shareHandler = async (e) => {
+    if (e) e.stopPropagation();
+    setShareModal(true);
+  };
+
+  const handleShareSuccess = async (count = 1) => {
+    try {
+      // Optimistic upcast
+      setSharesCount(prev => prev + count);
+      await axios.post(`/api/post/${value._id}/share`, { count });
+    } catch (error) {
+       console.error("Share tracking failed:", error);
+       setSharesCount(prev => prev - count);
+    }
   };
 
   // --- FEED CONTROLS ---
@@ -777,20 +808,23 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
                 <span className="text-white text-xs font-medium drop-shadow-md">{value.commentsCount || 0}</span>
               </div>
 
-              {/* SAVE */}
-              <div className="flex flex-col items-center gap-1">
+              {/* SHARE */}
+              <div className="flex flex-col items-center gap-1 mt-1">
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShareModal(true);
-                  }}
-                  className="text-2xl drop-shadow-lg transition-transform active:scale-95 mb-2"
+                  onClick={shareHandler}
+                  className="text-2xl drop-shadow-lg transition-transform active:scale-95"
                 >
                   <IoPaperPlaneOutline className="text-white" />
                 </button>
-                <button onClick={saveHandler} className="text-3xl drop-shadow-lg transition-transform active:scale-95">
+                <span className="text-white text-xs font-medium drop-shadow-md">{sharesCount}</span>
+              </div>
+
+              {/* SAVE */}
+              <div className="flex flex-col items-center gap-1 mt-1">
+                <button onClick={saveHandler} className="text-[26px] drop-shadow-lg transition-transform active:scale-95">
                   {isSaved ? <BsBookmarkFill className="text-white" /> : <BsBookmark className="text-white" />}
                 </button>
+                <span className="text-white text-xs font-medium drop-shadow-md">{savesCount}</span>
               </div>
 
               {/* DELETE (if owner) */}
@@ -949,19 +983,25 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
                 </div>
 
                 {/* Share Group */}
-                <button
-                  onClick={() => setShareModal(true)}
-                  className="text-xl sm:text-2xl transition-transform active:scale-75 text-[var(--text-primary)]"
-                >
-                  <IoPaperPlaneOutline />
-                </button>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <button
+                    onClick={shareHandler}
+                    className="text-xl sm:text-2xl transition-transform active:scale-75 text-[var(--text-primary)]"
+                  >
+                    <IoPaperPlaneOutline />
+                  </button>
+                  <span className="text-[var(--text-primary)] font-semibold text-xs sm:text-sm">{sharesCount}</span>
+                </div>
 
-                <button
-                  onClick={saveHandler}
-                  className="text-xl sm:text-2xl transition-transform active:scale-75 text-[var(--text-primary)]"
-                >
-                  {isSaved ? <BsBookmarkFill /> : <BsBookmark />}
-                </button>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <button
+                    onClick={saveHandler}
+                    className="text-xl sm:text-2xl transition-transform active:scale-75 text-[var(--text-primary)]"
+                  >
+                    {isSaved ? <BsBookmarkFill className="text-[var(--text-primary)]" /> : <BsBookmark className="text-[var(--text-primary)]" />}
+                  </button>
+                  <span className="text-[var(--text-primary)] font-semibold text-xs sm:text-sm">{savesCount}</span>
+                </div>
               </div>
             </div>
 
@@ -1006,7 +1046,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
           toggleCommentMenu={toggleCommentMenu} handleNewReply={handleNewReply} handleDeleteLocal={handleDeleteLocal} setReplyingTo={setReplyingTo}
           replyingTo={replyingTo} setComment={setComment} addCommentHandler={addCommentHandler} user={user} comment={comment}
           shareModal={shareModal} setShareModal={setShareModal} type={type} vibeModal={vibeModal} setVibeModal={setVibeModal}
-          deleteModal={deleteModal} setDeleteModal={setDeleteModal}
+          deleteModal={deleteModal} setDeleteModal={setDeleteModal} onShare={handleShareSuccess}
         />
       </div >
     );
@@ -1231,19 +1271,25 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
             </div>
 
             {/* Share Group */}
-            <button
-              onClick={() => setShareModal(true)}
-              className="text-xl sm:text-2xl transition-transform active:scale-75 text-[var(--text-primary)]"
-            >
-              <IoPaperPlaneOutline />
-            </button>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <button
+                onClick={shareHandler}
+                className="text-xl sm:text-2xl transition-transform active:scale-75 text-[var(--text-primary)]"
+              >
+                <IoPaperPlaneOutline />
+              </button>
+              <span className="text-[var(--text-primary)] font-semibold text-xs sm:text-sm">{sharesCount}</span>
+            </div>
 
-            <button
-              onClick={saveHandler}
-              className="text-xl sm:text-2xl transition-transform active:scale-75 text-[var(--text-primary)]"
-            >
-              {isSaved ? <BsBookmarkFill /> : <BsBookmark />}
-            </button>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <button
+                onClick={saveHandler}
+                className="text-xl sm:text-2xl transition-transform active:scale-75 text-[var(--text-primary)]"
+              >
+                {isSaved ? <BsBookmarkFill className="text-[var(--text-primary)]" /> : <BsBookmark className="text-[var(--text-primary)]" />}
+              </button>
+              <span className="text-[var(--text-primary)] font-semibold text-xs sm:text-sm">{savesCount}</span>
+            </div>
           </div>
         </div>
 
@@ -1315,7 +1361,7 @@ const PostCardOverlays = React.memo(({
   toggleCommentMenu, handleNewReply, handleDeleteLocal, setReplyingTo,
   replyingTo, setComment, addCommentHandler, user, comment,
   shareModal, setShareModal, type, vibeModal, setVibeModal,
-  deleteModal, setDeleteModal
+  deleteModal, setDeleteModal, onShare
 }) => {
   return (
     <>
@@ -1438,6 +1484,7 @@ const PostCardOverlays = React.memo(({
           <ShareModal
             isOpen={shareModal}
             onClose={() => setShareModal(false)}
+            onShare={onShare}
             content={{
               type: type === "reel" ? "reel" : "post",
               contentId: value._id,

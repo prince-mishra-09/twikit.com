@@ -40,11 +40,56 @@ const Account = ({ user }) => {
   const [showStoryViewer, setShowStoryViewer] = useState(false);
   const [showCreateStory, setShowCreateStory] = useState(false);
 
-  const myPosts = posts?.filter((p) => isSameId(p.owner?._id, user._id));
-  const myReels = reels?.filter((r) => isSameId(r.owner?._id, user._id));
+  // Independent Posts State
+  const [myPosts, setMyPosts] = useState([]);
+  const [myReels, setMyReels] = useState([]);
+  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [loadingMorePosts, setLoadingMorePosts] = useState(false);
+  const [postPage, setPostPage] = useState(1);
+  const [hasMorePosts, setHasMorePosts] = useState(true);
+  const [hasMoreReels, setHasMoreReels] = useState(true);
+
+  const fetchMyPosts = async (page = 1) => {
+    if (page === 1) setLoadingPosts(true);
+    else setLoadingMorePosts(true);
+    
+    try {
+      // Fetch both post and reel types combined for this page, using limit=21 for 3x7 grids
+      const { data } = await axios.get(`/api/post/user/${user._id}?page=${page}&limit=21`);
+      
+      const combinedPosts = [...data.posts, ...data.reels].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      
+      if (page === 1) {
+        setMyPosts(combinedPosts);
+        setMyReels(data.reels);
+      } else {
+        setMyPosts(prev => {
+          const newPosts = combinedPosts.filter(vp => !prev.some(p => p._id === vp._id));
+          return [...prev, ...newPosts];
+        });
+        setMyReels(prev => {
+          const newReels = data.reels.filter(vr => !prev.some(r => r._id === vr._id));
+          return [...prev, ...newReels];
+        });
+      }
+
+      setHasMorePosts(data.pagination.hasMorePosts || data.pagination.hasMoreReels); // simplified
+      setPostPage(page);
+    } catch (error) {
+      console.error("Failed to fetch user posts:", error);
+    } finally {
+      setLoadingPosts(false);
+      setLoadingMorePosts(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user && user._id) {
+       fetchMyPosts(1);
+    }
+  }, [user?._id]);
 
   const [type, setType] = useState("post");
-  const [activeReelId, setActiveReelId] = useState(null);
   const [feedModal, setFeedModal] = useState(null); // { type: 'post' | 'reel' | 'saved', index: 0 }
 
   const [savedPosts, setSavedPosts] = useState([]);
@@ -65,32 +110,6 @@ const Account = ({ user }) => {
   useEffect(() => {
     if (type === "saved") fetchSaved();
   }, [type]);
-
-  useEffect(() => {
-    if (type !== "reel") return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveReelId(entry.target.id);
-          }
-        });
-      },
-      { threshold: 0.6 }
-    );
-
-    // Wait for DOM
-    setTimeout(() => {
-      const elements = document.querySelectorAll(".account-reel");
-      elements.forEach((el) => observer.observe(el));
-    }, 100);
-
-    return () => {
-      const elements = document.querySelectorAll(".account-reel");
-      elements.forEach((el) => observer.unobserve(el));
-    };
-  }, [type, myReels]);
 
   const [show, setShow] = useState(false);
   const [show1, setShow1] = useState(false);
@@ -511,16 +530,21 @@ const Account = ({ user }) => {
       {
         type === "post" && (
           <div className="w-full max-w-[630px]">
-            {myPosts?.length ? (
+            {loadingPosts ? (
               <div className="grid grid-cols-3 gap-1">
+                 <SkeletonPost /><SkeletonPost /><SkeletonPost />
+              </div>
+            ) : myPosts?.length ? (
+              <div className="grid grid-cols-3 gap-1 grid-flow-row auto-rows-[1fr]">
                 {myPosts.map((e, i) => (
-                  <PostCard
-                    type="post"
-                    value={e}
-                    key={e._id}
-                    isGrid={true}
-                    onClick={() => setFeedModal({ type: 'post', index: i })}
-                  />
+                  <div key={e._id} className="aspect-square relative w-full h-full">
+                    <PostCard
+                      type={e.type || "post"}
+                      value={e}
+                      isGrid={true}
+                      onClick={() => setFeedModal({ type: 'post', index: i })}
+                    />
+                  </div>
                 ))}
               </div>
             ) : (
@@ -532,14 +556,17 @@ const Account = ({ user }) => {
 
       {
         type === "reel" &&
-        (myReels?.length ? (
+        (loadingPosts ? (
           <div className="grid grid-cols-3 gap-1 w-full max-w-[630px] mx-auto pb-4">
+            <SkeletonPost /><SkeletonPost /><SkeletonPost />
+          </div>
+        ) : myReels?.length ? (
+          <div className="grid grid-cols-3 gap-1 w-full max-w-[630px] mx-auto pb-4 grid-flow-row auto-rows-[1fr]">
             {myReels.map((reel, i) => (
               <div key={reel._id} id={reel._id} className="account-reel flex justify-center w-full aspect-[9/16] bg-[var(--bg-secondary)] rounded-lg overflow-hidden relative group">
                 <PostCard
                   type="reel"
                   value={reel}
-                  isActive={activeReelId === reel._id}
                   isGrid={true}
                   onClick={() => setFeedModal({ type: 'reel', index: i })}
                 />
@@ -549,8 +576,21 @@ const Account = ({ user }) => {
         ) : <p className="text-[var(--text-secondary)] text-center py-4">No reels yet</p>)
       }
 
+      {/* Load More Pagination */}
+      {hasMorePosts && (type === "post" || type === "reel") && (
+        <div className="w-full flex justify-center py-6">
+          <button 
+            disabled={loadingMorePosts}
+            onClick={() => fetchMyPosts(postPage + 1)}
+            className="px-6 py-2 bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-full hover:bg-[var(--accent)] hover:text-white transition-colors text-sm font-semibold disabled:opacity-50"
+          >
+            {loadingMorePosts ? "Loading..." : "Load More"}
+          </button>
+        </div>
+      )}
+
       {/* End of Feed Message for Profile */}
-      {(myPosts?.length > 0 || myReels?.length > 0) && (
+      {!hasMorePosts && (myPosts?.length > 0 || myReels?.length > 0) && (
         <div className="w-full py-12 flex flex-col items-center justify-center opacity-50">
           <div className="h-[1px] w-20 bg-gradient-to-r from-transparent via-[var(--text-secondary)] to-transparent mb-4" />
           <p className="text-[var(--text-secondary)] text-sm font-medium tracking-wide uppercase italic">The End</p>
