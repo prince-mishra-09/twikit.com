@@ -59,7 +59,7 @@ const VibeDownIcon = ({ active }) => (
   </svg>
 );
 
-const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFeed, onClick }) => {
+const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFeed, onClick, onUpdate }) => {
   const { user, isAuth, setShowLoginPrompt, followUser, savePost, hidePost, muteUser, blockUser } = UserData();
   const { sendFeedback, addComment, deletePost, deleteComment } = PostData();
   const navigate = useNavigate();
@@ -103,15 +103,22 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
   const [showPostDeleteConfirm, setShowPostDeleteConfirm] = useState(false);
   const [showOwnerMenu, setShowOwnerMenu] = useState(false);
   const [showEditPage, setShowEditPage] = useState(false);
-  const { updatePost, trackShare } = PostData();
+  const feedbackProcessingRef = useRef(false);
+  const { updatePost, trackShare, syncPostUpdate } = PostData();
 
-  // Keep state in sync if props change (e.g. user updates via context)
+  // 1. Sync Follow/Save status from User Object
   useEffect(() => {
     setIsFollowed(includesId(user?.followings, value.owner?._id));
     setIsSaved(includesId(user?.savedPosts, value._id));
-    setSavesCount(value.savesCount || 0);
-    setSharesCount(value.sharesCount || 0);
-  }, [user, value.owner?._id, value._id, value.savesCount, value.sharesCount]);
+  }, [user, value.owner?._id, value._id]);
+
+  // 2. Sync Counts from Props ONLY when not processing
+  useEffect(() => {
+    if (!feedbackProcessingRef.current) {
+        setSavesCount(value.savesCount || 0);
+        setSharesCount(value.sharesCount || 0);
+    }
+  }, [value.savesCount, value.sharesCount]);
 
   // New Comment State
   const [comments, setComments] = useState([]);
@@ -433,7 +440,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
 
 
 
-  const feedbackProcessingRef = useRef(false);
+
 
   const feedbackHandler = (feedbackType) => {
     if (!isAuth) {
@@ -517,18 +524,31 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
       setShowLoginPrompt(true);
       return;
     }
+    if (feedbackProcessingRef.current) return;
+    feedbackProcessingRef.current = true;
     
     // Optimistic UI for save count
     const wasSaved = isSaved;
+    const previousCount = savesCount;
     setIsSaved(!wasSaved);
     setSavesCount(prev => wasSaved ? prev - 1 : prev + 1);
 
     try {
-      await savePost(value._id);
+      const data = await savePost(value._id);
+      if (data && data.post) {
+        // Update GLOBAL state so other cards sync up
+        syncPostUpdate(data.post);
+        // Update LOCAL Parent list if it exists
+        if (onUpdate) onUpdate(data.post);
+        // Sync LOCAL state with confirmed backend data
+        setSavesCount(data.post.savesCount);
+      }
     } catch {
       setIsSaved(wasSaved);
-      setSavesCount(prev => wasSaved ? prev + 1 : prev - 1);
+      setSavesCount(previousCount);
       toast.error("Failed to save post");
+    } finally {
+      feedbackProcessingRef.current = false;
     }
   };
 
@@ -538,7 +558,28 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
   };
 
   const handleShareSuccess = async (count = 1) => {
-    trackShare(value._id, count);
+    if (feedbackProcessingRef.current) return;
+    feedbackProcessingRef.current = true;
+    
+    // Optimistic UI for share count
+    const previousSharesCount = sharesCount;
+    setSharesCount(prev => (prev || 0) + count);
+
+    try {
+      const updatedPost = await trackShare(value._id, count);
+      if (updatedPost) {
+        // Update local state with truthful count from backend
+        setSharesCount(updatedPost.sharesCount);
+        // Notify parent list if applicable
+        if (onUpdate) onUpdate(updatedPost);
+      }
+    } catch (error) {
+      // Revert on error
+      setSharesCount(previousSharesCount);
+      console.error("Share sync error:", error);
+    } finally {
+      feedbackProcessingRef.current = false;
+    }
   };
 
   // --- FEED CONTROLS ---
@@ -1322,7 +1363,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
           toggleCommentMenu={toggleCommentMenu} handleNewReply={handleNewReply} handleDeleteLocal={handleDeleteLocal} setReplyingTo={setReplyingTo}
           replyingTo={replyingTo} setComment={setComment} addCommentHandler={addCommentHandler} user={user} comment={comment}
           shareModal={shareModal} setShareModal={setShareModal} type={type} vibeModal={vibeModal} setVibeModal={setVibeModal}
-          deleteModal={deleteModal} setDeleteModal={setDeleteModal}
+          deleteModal={deleteModal} setDeleteModal={setDeleteModal} onShare={handleShareSuccess}
         />
 
         <Suspense fallback={null}>
@@ -1501,6 +1542,8 @@ export default React.memo(PostCard, (prevProps, nextProps) => {
     prevProps.value.vibesUp?.length === nextProps.value.vibesUp?.length &&
     prevProps.value.vibesDown?.length === nextProps.value.vibesDown?.length &&
     prevProps.value.commentsCount === nextProps.value.commentsCount &&
+    prevProps.value.sharesCount === nextProps.value.sharesCount &&
+    prevProps.value.savesCount === nextProps.value.savesCount &&
     prevProps.isActive === nextProps.isActive &&
     prevProps.commentId === nextProps.commentId &&
     prevProps.openComments === nextProps.openComments

@@ -143,9 +143,11 @@ export const UserContextProvider = ({ children }) => {
     try {
       const { data } = await axios.post("/api/post/save/" + postId);
       toast.success(data.message);
-      fetchUser(); // Refresh user to update savedPosts
+      fetchUser(); // Refresh user to update savedPosts list
+      return data; // Return data so PostCard can sync counts
     } catch (error) {
       toast.error(getErrorMessage(error));
+      return null;
     }
   }, [fetchUser]);
 

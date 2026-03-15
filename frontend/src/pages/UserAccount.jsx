@@ -146,6 +146,11 @@ const UserAccount = ({ user: loggedInUser }) => {
     }
   }, [loggedInUser, user, params.id]);
 
+  const handleLocalUpdate = (updatedPost) => {
+    setUserPosts(prev => prev.map(p => p._id === updatedPost._id ? { ...p, ...updatedPost } : p));
+    setUserReels(prev => prev.map(r => r._id === updatedPost._id ? { ...r, ...updatedPost } : r));
+  };
+
   const followHandler = async () => {
     if (!loggedInUser) {
       setShowLoginPrompt(true);
@@ -462,6 +467,7 @@ const UserAccount = ({ user: loggedInUser }) => {
                   key={e._id}
                   isGrid={true}
                   onClick={() => setFeedModal({ type: 'post', index: i })}
+                  onUpdate={handleLocalUpdate}
                 />
               ))}
             </div>
@@ -482,6 +488,7 @@ const UserAccount = ({ user: loggedInUser }) => {
                   value={reel}
                   isGrid={true}
                   onClick={() => setFeedModal({ type: 'reel', index: i })}
+                  onUpdate={handleLocalUpdate}
                 />
               </div>
             ))}
@@ -512,6 +519,7 @@ const UserAccount = ({ user: loggedInUser }) => {
           posts={feedModal.type === 'reel' ? myReels : myPosts}
           initialIndex={feedModal.index}
           onClose={() => setFeedModal(null)}
+          onUpdate={handleLocalUpdate}
         />
       )}
       {/* Share Modal */}
@@ -537,7 +545,7 @@ const UserAccount = ({ user: loggedInUser }) => {
 export default UserAccount;
 
 // Feed Modal - copy from Account.jsx
-const FeedModal = ({ posts, initialIndex, onClose }) => {
+const FeedModal = ({ posts, initialIndex, onClose, onUpdate }) => {
   const modalRef = React.useRef(null);
   const [currentIndex, setCurrentIndex] = React.useState(initialIndex);
 
@@ -569,7 +577,7 @@ const FeedModal = ({ posts, initialIndex, onClose }) => {
             id={`feed-post-${index}`}
             className={`mb-6 last:mb-20 ${post.type === 'reel' ? 'aspect-[9/16] w-full max-w-[350px] mx-auto' : ''}`}
           >
-            <PostCard type={post.type || "post"} value={post} />
+            <PostCard type={post.type || "post"} value={post} onUpdate={onUpdate} />
           </div>
         ))}
         <div className="h-20 text-center text-white/50 text-sm">End of list</div>

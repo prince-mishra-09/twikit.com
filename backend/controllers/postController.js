@@ -651,29 +651,45 @@ export const saveUnsavePost = TryCatch(async (req, res) => {
     }
 
     const user = await User.findById(req.user._id);
+    let action = "";
 
     if (user.savedPosts.includes(post._id)) {
         // Unsave
         const index = user.savedPosts.indexOf(post._id);
         user.savedPosts.splice(index, 1);
         await user.save();
-        
-        await Post.findByIdAndUpdate(post._id, { $inc: { savesCount: -1 } });
-
-        res.json({
-            message: "Post Unsaved",
-        });
+        action = "unsaved";
     } else {
         // Save
         user.savedPosts.push(post._id);
         await user.save();
-        
-        await Post.findByIdAndUpdate(post._id, { $inc: { savesCount: 1 } });
-
-        res.json({
-            message: "Post Saved",
-        });
+        action = "saved";
     }
+
+    // Get REAL count from User model to ensure accuracy
+    const actualSavesCount = await User.countDocuments({ savedPosts: post._id });
+    
+    // Update Post model with REAL count
+    const updatedPost = await Post.findByIdAndUpdate(
+        post._id, 
+        { savesCount: actualSavesCount }, 
+        { new: true }
+    ).populate("owner", "name username profilePic isPrivate");
+
+    // Socket: Broadcast naya REAL save count
+    try {
+        const io = getIO();
+        io.to("post:" + post._id.toString()).emit("postSaveUpdated", {
+            postId: post._id,
+            savesCount: actualSavesCount
+        });
+    } catch (e) {}
+
+    res.json({
+        message: `Post ${action}`,
+        action,
+        post: updatedPost
+    });
 });
 // ... existing code ...
 
@@ -815,6 +831,17 @@ export const sharePost = TryCatch(async (req, res) => {
         { $inc: { sharesCount: parseInt(count, 10) } }, 
         { new: true }
     ).populate("owner", "name username profilePic isPrivate");
+
+    // Socket Broadcast for Real-Time Share Update
+    try {
+        const io = getIO();
+        io.to("post:" + req.params.id).emit("postShareUpdated", {
+            postId: req.params.id,
+            sharesCount: updatedPost.sharesCount
+        });
+    } catch (error) {
+        // Silently fail if socket isn't ready
+    }
 
     res.json({
         message: "Share recorded",

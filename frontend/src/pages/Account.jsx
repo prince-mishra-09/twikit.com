@@ -137,7 +137,11 @@ const Account = ({ user }) => {
     setFollowersData(data.followers);
     setFollowingsData(data.followings);
   }
-
+  const handleLocalUpdate = (updatedPost) => {
+    setMyPosts(prev => prev.map(p => p._id === updatedPost._id ? { ...p, ...updatedPost } : p));
+    setMyReels(prev => prev.map(r => r._id === updatedPost._id ? { ...r, ...updatedPost } : r));
+    setSavedPosts(prev => prev.map(p => p._id === updatedPost._id ? { ...p, ...updatedPost } : p));
+  };
   const removeHandler = async (id) => {
     // Optimistic Update
     setFollowersData(prev => prev.filter(p => p._id !== id));
@@ -553,6 +557,7 @@ const Account = ({ user }) => {
                       value={e}
                       isGrid={true}
                       onClick={() => setFeedModal({ type: 'post', index: i })}
+                      onUpdate={handleLocalUpdate}
                     />
                   </div>
                 ))}
@@ -579,6 +584,7 @@ const Account = ({ user }) => {
                   value={reel}
                   isGrid={true}
                   onClick={() => setFeedModal({ type: 'reel', index: i })}
+                  onUpdate={handleLocalUpdate}
                 />
               </div>
             ))}
@@ -608,13 +614,14 @@ const Account = ({ user }) => {
       )}
 
 
-      {type === "saved" && <SavedPosts savedPosts={savedPosts} loading={loadingSaved} onPostClick={(index) => setFeedModal({ type: 'saved', index })} />}
+      {type === "saved" && <SavedPosts savedPosts={savedPosts} loading={loadingSaved} onPostClick={(index) => setFeedModal({ type: 'saved', index })} onUpdate={handleLocalUpdate} />}
       {showEdit && <EditProfile user={user} onBack={() => setShowEdit(false)} />}
       {feedModal && (
         <FeedModal
           posts={feedModal.type === 'post' ? myPosts : feedModal.type === 'reel' ? myReels : savedPosts}
           initialIndex={feedModal.index}
           onClose={() => setFeedModal(null)}
+          onUpdate={handleLocalUpdate}
         />
       )}
       {showEdit && <EditProfile user={user} onBack={() => setShowEdit(false)} />}
@@ -810,7 +817,7 @@ const EditProfile = ({ user, onBack }) => {
   )
 }
 
-const SavedPosts = ({ savedPosts, loading, onPostClick }) => {
+const SavedPosts = ({ savedPosts, loading, onPostClick, onUpdate }) => {
 
   return (
     <div className="w-full max-w-[630px] pb-20">
@@ -829,6 +836,7 @@ const SavedPosts = ({ savedPosts, loading, onPostClick }) => {
               value={e}
               isGrid={true}
               onClick={() => onPostClick && onPostClick(i)}
+              onUpdate={onUpdate}
             />
           ))}
         </div>
@@ -876,7 +884,7 @@ const BioDisplay = ({ bio }) => {
 
 
 // Feed Modal - shows posts in a feed view starting from a specific index
-const FeedModal = ({ posts, initialIndex, onClose }) => {
+const FeedModal = ({ posts, initialIndex, onClose, onUpdate }) => {
   const modalRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
@@ -906,7 +914,7 @@ const FeedModal = ({ posts, initialIndex, onClose }) => {
             id={`feed-post-${index}`}
             className={`mb-6 last:mb-20 ${post.type === 'reel' ? 'aspect-[9/16] w-full max-w-[350px] mx-auto' : ''}`}
           >
-            <PostCard type={post.type || "post"} value={post} />
+            <PostCard type={post.type || "post"} value={post} onUpdate={onUpdate} />
           </div>
         ))}
         <div className="h-20 text-center text-white/50 text-sm">End of list</div>

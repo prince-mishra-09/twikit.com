@@ -7,7 +7,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 const ShareModal = ({ isOpen, onClose, content, onShare }) => {
-    const { chats, setChats } = ChatData(); // Uses recent chats
+    const { chats, setChats, getAllChats } = ChatData(); // Uses recent chats
     const { user: myUser } = UserData();
     const [query, setQuery] = useState("");
     const [users, setUsers] = useState([]); // Search results
@@ -82,8 +82,12 @@ const ShareModal = ({ isOpen, onClose, content, onShare }) => {
                         };
                     }
                 });
-                return updatedChats;
+                // Re-sort existing chats based on latest activity
+                return updatedChats.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
             });
+
+            // Re-fetch to handle cases where a NEW chat was created
+            await getAllChats();
 
             toast.success(`Sent to ${selectedUsers.length} users!`);
             if (onShare) onShare(selectedUsers.length);

@@ -129,21 +129,27 @@ export const PostContextProvider = ({ children }) => {
     }
   }, []);
 
+  // Centralized helper to update a post in all relevant global lists
+  const syncPostUpdate = useCallback((updatedPost) => {
+    if (!updatedPost?._id) return;
+    const updateFn = (prev) => prev.map((p) => (p._id === updatedPost._id ? { ...p, ...updatedPost } : p));
+    setPosts(updateFn);
+    setReels(updateFn);
+  }, []);
+
   const sendFeedback = useCallback(async (id, feedbackType) => {
     try {
       const { data } = await axios.post("/api/post/feedback/" + id, { feedbackType });
       // Update state immediately if data.post exists to ensure UI consistency
       if (data.post) {
-        const updateFn = (prev) => prev.map((p) => (p._id === id ? { ...p, ...data.post } : p));
-        setPosts(updateFn);
-        setReels(updateFn);
+        syncPostUpdate(data.post);
       }
       return data.post;
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");
       throw error;
     }
-  }, []);
+  }, [syncPostUpdate]);
 
   const addComment = useCallback(async (id, comment, setComment, setShow, parentComment = null) => {
     try {
@@ -154,15 +160,7 @@ export const PostContextProvider = ({ children }) => {
       toast.success(data.message);
 
       // Optimistic Update: Increment comment count immediately
-      const updateFn = (prev) =>
-        prev.map((p) => {
-          if (p._id === id) {
-            return { ...p, commentsCount: (p.commentsCount || 0) + 1 };
-          }
-          return p;
-        });
-      setPosts(updateFn);
-      setReels(updateFn);
+      syncPostUpdate({ _id: id, commentsCount: (posts.find(p => p._id === id)?.commentsCount || reels.find(r => r._id === id)?.commentsCount || 0) + 1 });
 
       setComment("");
       setShow(false);
@@ -203,22 +201,22 @@ export const PostContextProvider = ({ children }) => {
   const trackShare = useCallback(async (id, count = 1) => {
     try {
       // Optimistic Update
-      const updateFn = (prev) => prev.map((p) => (p._id === id ? { ...p, sharesCount: (p.sharesCount || 0) + count } : p));
-      setPosts(updateFn);
-      setReels(updateFn);
+      const post = posts.find((p) => p._id === id) || reels.find((r) => r._id === id);
+      syncPostUpdate({ _id: id, sharesCount: (post?.sharesCount || 0) + count });
 
       const { data } = await axios.post(`/api/post/${id}/share`, { count });
-      
-      // Sync with final backend data if needed
+
+      // Sync with final backend data
       if (data.post) {
-        const syncFn = (prev) => prev.map((p) => (p._id === id ? { ...p, ...data.post } : p));
-        setPosts(syncFn);
-        setReels(syncFn);
+        syncPostUpdate(data.post);
+        return data.post; // Return the updated post for component-level sync
       }
+      return null;
     } catch (error) {
       console.error("Share tracking failed:", error);
+      return null;
     }
-  }, []);
+  }, [posts, reels, syncPostUpdate]);
 
   const deleteComment = useCallback(async (id, commentId) => {
     try {
@@ -328,10 +326,20 @@ export const PostContextProvider = ({ children }) => {
       });
     });
 
+    socket.on("postShareUpdated", (data) => {
+      syncPostUpdate({ _id: data.postId, sharesCount: data.sharesCount });
+    });
+
+    socket.on("postSaveUpdated", (data) => {
+      syncPostUpdate({ _id: data.postId, savesCount: data.savesCount });
+    });
+
     return () => {
       socket.off("postVibeUpdated");
       socket.off("postVibeDownUpdated");
       socket.off("postCommentUpdated");
+      socket.off("postShareUpdated");
+      socket.off("postSaveUpdated");
       socket.off("post:ready");
       socket.off("post:failed");
     };
@@ -363,8 +371,9 @@ export const PostContextProvider = ({ children }) => {
     loadingReels,
     loadingMoreReels,
     reelsPagination,
-    trackShare
-  }), [reels, posts, addPost, sendFeedback, addComment, loading, addLoading, fetchPosts, deletePost, deleteComment, fetchNextPage, loadingMore, pagination, uploadPreview, uploadType, updatePost, fetchReels, fetchNextReelsPage, loadingReels, loadingMoreReels, reelsPagination, trackShare]);
+    trackShare,
+    syncPostUpdate
+  }), [reels, posts, addPost, sendFeedback, addComment, loading, addLoading, fetchPosts, deletePost, deleteComment, fetchNextPage, loadingMore, pagination, uploadPreview, uploadType, updatePost, fetchReels, fetchNextReelsPage, loadingReels, loadingMoreReels, reelsPagination, trackShare, syncPostUpdate]);
 
   return (
     <PostContext.Provider value={value}>
