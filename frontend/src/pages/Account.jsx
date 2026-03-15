@@ -85,6 +85,8 @@ const Account = ({ user }) => {
     }
   };
 
+  const [type, setType] = useState("post");
+
   useEffect(() => {
     if (user && user._id) {
       fetchMyPosts(1);
@@ -96,8 +98,6 @@ const Account = ({ user }) => {
       fetchMyReels();
     }
   }, [type]);
-
-  const [type, setType] = useState("post");
   const [feedModal, setFeedModal] = useState(null); // { type: 'post' | 'reel' | 'saved', index: 0 }
 
   const [savedPosts, setSavedPosts] = useState([]);
@@ -421,12 +421,10 @@ const Account = ({ user }) => {
           <div className="flex flex-1 justify-around text-center">
             {/* POSTS COUNT */}
             <div className="cursor-pointer">
-              <div className="cursor-pointer">
               <p className="text-[var(--text-primary)] font-semibold">
-                {userPosts?.length || 0}
+                {myPosts?.length || 0}
               </p>
               <p className="text-[var(--text-secondary)] text-xs">posts</p>
-            </div>
             </div>
 
             <div onClick={() => setShow(true)} className="cursor-pointer">
