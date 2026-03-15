@@ -173,8 +173,8 @@ export const getAllPosts = TryCatch(async (req, res) => {
         createdAt: 1,
         views: 1,
         commentsCount: 1,
-        savesCount: 1,
-        sharesCount: 1,
+        savesCount: { $ifNull: ["$savesCount", 0] },
+        sharesCount: { $ifNull: ["$sharesCount", 0] },
         owner: {
             _id: 1,
             name: 1,
@@ -329,6 +329,8 @@ export const getReels = TryCatch(async (req, res) => {
         createdAt: 1,
         views: 1,
         commentsCount: 1,
+        savesCount: { $ifNull: ["$savesCount", 0] },
+        sharesCount: { $ifNull: ["$sharesCount", 0] },
         owner: {
             _id: 1,
             name: 1,
@@ -755,43 +757,46 @@ export const getUserPosts = TryCatch(async (req, res) => {
         return res.status(403).json({ message: "This account is private. Follow to see posts." });
     }
 
-    // 3. Fetch Posts (Optimized: Parallel + Limit + Pagination)
-    // We only fetch based on requested type if passed, else fetch both
-    // Actually the user wants both posts and reels so they can be merged.
-    // If frontend wants both, we fetch both simultaneously.
-    const requestedType = req.query.type;
-
-    let postsPromise = Promise.resolve([]);
-    let reelsPromise = Promise.resolve([]);
-
-    if (!requestedType || requestedType === "post") {
-        postsPromise = Post.find({ owner: userId, type: "post" })
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit)
-            .populate("owner", "name username profilePic isPrivate")
-            .lean();
+    // 3. Fetch Content (Unified Query for Posts + Reels)
+    const requestedType = req.query.type; // "post" (grid), "reel" (reels tab), or undefined
+    
+    let matchQuery = { owner: userId };
+    if (requestedType === "reel") {
+        matchQuery.type = "reel";
+    } else if (requestedType === "post") {
+        // If "post" is requested, usually means the main grid. 
+        // We'll return both posts and reels for the integrated grid view.
+        matchQuery.type = { $in: ["post", "reel"] };
+    } else {
+        // Default to all content if no type specified
+        matchQuery.type = { $in: ["post", "reel"] };
     }
 
-    if (!requestedType || requestedType === "reel") {
-        reelsPromise = Post.find({ owner: userId, type: "reel" })
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit)
-            .populate("owner", "name username profilePic isPrivate")
-            .lean();
-    }
+    const posts = await Post.find(matchQuery)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("owner", "name username profilePic isPrivate")
+        .lean();
 
-    const [posts, reels] = await Promise.all([postsPromise, reelsPromise]);
+    // Map to ensure saves/shares count exist (defensive)
+    const processedPosts = posts.map(p => ({
+        ...p,
+        savesCount: p.savesCount || 0,
+        sharesCount: p.sharesCount || 0
+    }));
+
+    // Count for pagination
+    const totalCount = await Post.countDocuments(matchQuery);
 
     res.json({ 
-        posts, 
-        reels,
+        posts: processedPosts, // Unified array
+        reels: requestedType === "reel" ? processedPosts : [], // Backward compat
         pagination: {
             page,
             limit,
-            hasMorePosts: posts.length === limit,
-            hasMoreReels: reels.length === limit
+            total: totalCount,
+            hasMore: processedPosts.length === limit
         }
     });
 });
@@ -805,15 +810,20 @@ export const sharePost = TryCatch(async (req, res) => {
 
     const count = req.body.count || 1;
 
-    await Post.findByIdAndUpdate(req.params.id, { $inc: { sharesCount: parseInt(count, 10) } });
+    const updatedPost = await Post.findByIdAndUpdate(
+        req.params.id, 
+        { $inc: { sharesCount: parseInt(count, 10) } }, 
+        { new: true }
+    ).populate("owner", "name username profilePic isPrivate");
 
     res.json({
-        message: "Share recorded"
+        message: "Share recorded",
+        post: updatedPost
     });
 });
 
 export const syncPostSaves = TryCatch(async (req, res) => {
-    await Post.updateMany({}, { $set: { savesCount: 0 } });
+    await Post.updateMany({}, { $set: { savesCount: 0, sharesCount: 0 } });
     let totalUpdated = 0;
     const users = await User.find({}, "savedPosts");
     const saveCounts = {};

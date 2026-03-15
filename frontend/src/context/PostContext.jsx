@@ -200,6 +200,26 @@ export const PostContextProvider = ({ children }) => {
     }
   }, []);
 
+  const trackShare = useCallback(async (id, count = 1) => {
+    try {
+      // Optimistic Update
+      const updateFn = (prev) => prev.map((p) => (p._id === id ? { ...p, sharesCount: (p.sharesCount || 0) + count } : p));
+      setPosts(updateFn);
+      setReels(updateFn);
+
+      const { data } = await axios.post(`/api/post/${id}/share`, { count });
+      
+      // Sync with final backend data if needed
+      if (data.post) {
+        const syncFn = (prev) => prev.map((p) => (p._id === id ? { ...p, ...data.post } : p));
+        setPosts(syncFn);
+        setReels(syncFn);
+      }
+    } catch (error) {
+      console.error("Share tracking failed:", error);
+    }
+  }, []);
+
   const deleteComment = useCallback(async (id, commentId) => {
     try {
       const { data } = await axios.delete(`/api/comment/${commentId}`);
@@ -342,8 +362,9 @@ export const PostContextProvider = ({ children }) => {
     fetchNextReelsPage,
     loadingReels,
     loadingMoreReels,
-    reelsPagination
-  }), [reels, posts, addPost, sendFeedback, addComment, loading, addLoading, fetchPosts, deletePost, deleteComment, fetchNextPage, loadingMore, pagination, uploadProgress, uploadPreview, uploadType, updatePost, fetchReels, fetchNextReelsPage, loadingReels, loadingMoreReels, reelsPagination]);
+    reelsPagination,
+    trackShare
+  }), [reels, posts, addPost, sendFeedback, addComment, loading, addLoading, fetchPosts, deletePost, deleteComment, fetchNextPage, loadingMore, pagination, uploadPreview, uploadType, updatePost, fetchReels, fetchNextReelsPage, loadingReels, loadingMoreReels, reelsPagination, trackShare]);
 
   return (
     <PostContext.Provider value={value}>

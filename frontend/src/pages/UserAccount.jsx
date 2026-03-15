@@ -54,36 +54,14 @@ const UserAccount = ({ user: loggedInUser }) => {
     const startTime = Date.now();
 
     try {
-      // Parallel fetch for speed (User + Posts only)
-      // console.log("[Profile Debug] Starting parallel fetch (User + Posts)...");
-      const userPromise = axios.get("/api/user/" + params.id);
-      const postsPromise = axios.get("/api/post/user/" + params.id + "?type=post");
+      // Single unified fetch for mixed content (Posts + Reels)
+      const userRes = await axios.get("/api/user/" + params.id);
+      setUser(userRes.data);
 
-      const [userRes, postsRes] = await Promise.allSettled([userPromise, postsPromise]);
-
-      const endTime = Date.now();
-      // console.log(`[Profile Debug] Parallel fetch completed in ${endTime - startTime}ms`);
-
-      if (userRes.status === "fulfilled") {
-        // console.log("[Profile Debug] User fetch SUCCESS", userRes.value.data);
-        setUser(userRes.value.data);
-      } else {
-        console.error("[Profile Debug] User fetch FAILED", userRes.reason);
-        if (userRes.reason.response) {
-          console.error("[Profile Debug] Backend Response Status:", userRes.reason.response.status);
-          console.error("[Profile Debug] Backend Response Data:", userRes.reason.response.data);
-        }
-      }
-
-      if (postsRes.status === "fulfilled") {
-        // console.log(`[Profile Debug] Posts fetch SUCCESS. Count: ${postsRes.value.data.posts?.length}`);
-        setUserPosts(postsRes.value.data.posts);
-      } else {
-        console.error("[Profile Debug] Posts fetch FAILED", postsRes.reason);
-        setUserPosts([]);
-      }
+      const postsRes = await axios.get("/api/post/user/" + params.id + "?type=post");
+      setUserPosts(postsRes.data.posts);
     } catch (error) {
-      console.error("[Profile Debug] Critical Error in fetchData:", error);
+      console.error("[Profile Debug] Error fetching profile data:", error);
     } finally {
       setLoading(false);
     }
@@ -133,11 +111,11 @@ const UserAccount = ({ user: loggedInUser }) => {
   const [type, setType] = useState("post");
 
   // Fetch Reels when tab changes
-  useEffect(() => {
-    if (type === "reel" && userReels.length === 0) {
-      fetchUserReels();
-    }
-  }, [type]);
+    useEffect(() => {
+      if (type === "reel") {
+        fetchUserReels();
+      }
+    }, [type]);
 
   const [index, setIndex] = useState(0);
 
@@ -387,14 +365,14 @@ const UserAccount = ({ user: loggedInUser }) => {
             {/* POSTS COUNT */}
             <div className="cursor-pointer">
               <p className="text-[var(--text-primary)] font-semibold">
-                {myPosts?.length || 0}
+                {userPosts?.length || 0}
               </p>
               <p className="text-[var(--text-secondary)] text-xs">posts</p>
             </div>
 
             <div
               className="cursor-pointer"
-              onClick={() => setShow(true)}
+              onClick={() => setShowFollowers(true)}
             >
               <p className="text-[var(--text-primary)] font-semibold">
                 {user.followers.length}
@@ -479,7 +457,7 @@ const UserAccount = ({ user: loggedInUser }) => {
             <div className="grid grid-cols-3 gap-1">
               {myPosts.map((e, i) => (
                 <PostCard
-                  type="post"
+                  type={e.type || "post"}
                   value={e}
                   key={e._id}
                   isGrid={true}

@@ -41,9 +41,7 @@ function App() {
   // Only allow bypass if user is already logged in as admin
   const isBypass = user?.email === "admin@prince";
 
-  if (isMaintenanceMode && !isBypass) {
-    return <BrowserRouter><Maintenance /></BrowserRouter>;
-  }
+
 
   useEffect(() => {
     if (socket && user) {
@@ -96,6 +94,10 @@ function App() {
       };
     }
   }, [socket, user, setUser]);
+
+  if (isMaintenanceMode && !isBypass) {
+    return <BrowserRouter><Maintenance /></BrowserRouter>;
+  }
 
   return (
     <>

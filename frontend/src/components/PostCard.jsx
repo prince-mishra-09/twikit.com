@@ -103,7 +103,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
   const [showPostDeleteConfirm, setShowPostDeleteConfirm] = useState(false);
   const [showOwnerMenu, setShowOwnerMenu] = useState(false);
   const [showEditPage, setShowEditPage] = useState(false);
-  const { updatePost } = PostData();
+  const { updatePost, trackShare } = PostData();
 
   // Keep state in sync if props change (e.g. user updates via context)
   useEffect(() => {
@@ -538,14 +538,7 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
   };
 
   const handleShareSuccess = async (count = 1) => {
-    try {
-      // Optimistic upcast
-      setSharesCount(prev => prev + count);
-      await axios.post(`/api/post/${value._id}/share`, { count });
-    } catch (error) {
-       console.error("Share tracking failed:", error);
-       setSharesCount(prev => prev - count);
-    }
+    trackShare(value._id, count);
   };
 
   // --- FEED CONTROLS ---

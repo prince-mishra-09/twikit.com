@@ -11,6 +11,7 @@ Thumbs.db
 # Logs
 *.log
 log.txt
+*.txt
 npm-debug.log*
 *_logs.js
 # History

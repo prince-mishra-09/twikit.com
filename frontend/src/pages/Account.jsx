@@ -57,23 +57,16 @@ const Account = ({ user }) => {
       // Fetch both post and reel types combined for this page, using limit=21 for 3x7 grids
       const { data } = await axios.get(`/api/post/user/${user._id}?page=${page}&limit=21`);
       
-      const combinedPosts = [...data.posts, ...data.reels].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      
       if (page === 1) {
-        setMyPosts(combinedPosts);
-        setMyReels(data.reels);
+        setMyPosts(data.posts);
       } else {
         setMyPosts(prev => {
-          const newPosts = combinedPosts.filter(vp => !prev.some(p => p._id === vp._id));
+          const newPosts = data.posts.filter(p => !prev.some(old => old._id === p._id));
           return [...prev, ...newPosts];
-        });
-        setMyReels(prev => {
-          const newReels = data.reels.filter(vr => !prev.some(r => r._id === vr._id));
-          return [...prev, ...newReels];
         });
       }
 
-      setHasMorePosts(data.pagination.hasMorePosts || data.pagination.hasMoreReels); // simplified
+      setHasMorePosts(data.pagination.hasMore);
       setPostPage(page);
     } catch (error) {
       console.error("Failed to fetch user posts:", error);
@@ -83,11 +76,26 @@ const Account = ({ user }) => {
     }
   };
 
+  const fetchMyReels = async () => {
+    try {
+      const { data } = await axios.get(`/api/post/user/${user._id}?type=reel`);
+      setMyReels(data.posts); // Unified API returns 'posts' array
+    } catch (error) {
+      console.error("Failed to fetch reels:", error);
+    }
+  };
+
   useEffect(() => {
     if (user && user._id) {
-       fetchMyPosts(1);
+      fetchMyPosts(1);
     }
   }, [user?._id]);
+
+  useEffect(() => {
+    if (type === "reel") {
+      fetchMyReels();
+    }
+  }, [type]);
 
   const [type, setType] = useState("post");
   const [feedModal, setFeedModal] = useState(null); // { type: 'post' | 'reel' | 'saved', index: 0 }
@@ -413,8 +421,12 @@ const Account = ({ user }) => {
           <div className="flex flex-1 justify-around text-center">
             {/* POSTS COUNT */}
             <div className="cursor-pointer">
-              <p className="text-[var(--text-primary)] font-bold text-lg">{myPosts?.length || 0}</p>
-              <p className="text-[var(--text-secondary)] text-xs uppercase tracking-wider">Posts</p>
+              <div className="cursor-pointer">
+              <p className="text-[var(--text-primary)] font-semibold">
+                {userPosts?.length || 0}
+              </p>
+              <p className="text-[var(--text-secondary)] text-xs">posts</p>
+            </div>
             </div>
 
             <div onClick={() => setShow(true)} className="cursor-pointer">
