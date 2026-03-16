@@ -118,7 +118,7 @@ const RightBar = () => {
                             </Link>
                             <button
                                 onClick={() => followUser(s._id)}
-                                className="text-xs font-bold text-[var(--accent)] hover:text-white transition-colors"
+                                className="text-xs font-bold text-[var(--accent)] hover:text-[var(--text-primary)] transition-colors"
                             >
                                 Follow
                             </button>

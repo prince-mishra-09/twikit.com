@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 const Modal = ({ value, title, setShow, onRemove }) => {
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--overlay)] backdrop-blur-sm">
         {/* Backdrop for exit click */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -20,17 +20,17 @@ const Modal = ({ value, title, setShow, onRemove }) => {
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="w-full max-w-sm bg-[#111827]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-5 mx-4 relative z-10"
+          className="w-full max-w-sm bg-[var(--card-bg)]/90 backdrop-blur-xl border border-[var(--border)]/20 rounded-2xl shadow-2xl p-5 mx-4 relative z-10"
         >
 
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-white font-medium text-lg">
+            <h1 className="text-[var(--text-primary)] font-medium text-lg">
               {title}
             </h1>
             <button
               onClick={() => setShow(false)}
-              className="text-gray-400 hover:text-white text-xl transition"
+              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xl transition"
             >
               &times;
             </button>
@@ -44,7 +44,7 @@ const Modal = ({ value, title, setShow, onRemove }) => {
                   key={i}
                   to={`/user/${e?._id}`}
                   onClick={() => setShow(false)}
-                  className="flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-white/5 transition group"
+                   className="flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-[var(--text-primary)]/5 transition group"
                 >
                   <div className="flex items-center gap-3">
                     <img
@@ -73,7 +73,7 @@ const Modal = ({ value, title, setShow, onRemove }) => {
                 </Link>
               ))
             ) : (
-              <p className="text-gray-400 text-sm text-center py-6">
+              <p className="text-[var(--text-secondary)] text-sm text-center py-6">
                 No {title.toLowerCase()} yet
               </p>
             )}

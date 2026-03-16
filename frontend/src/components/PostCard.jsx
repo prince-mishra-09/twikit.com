@@ -50,11 +50,11 @@ const VibeDownIcon = ({ active }) => (
     height="18"
     viewBox="0 0 24 24"
     fill="none"
-    stroke={active ? "var(--accent-secondary)" : "currentColor"}
+    stroke={active ? "var(--warning)" : "currentColor"}
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
-    className={`transition-all duration-200 ${active ? "fill-[var(--accent-secondary)] opacity-100" : "opacity-80"}`}
+    className={`transition-all duration-200 ${active ? "fill-[var(--warning)] opacity-100" : "opacity-80"}`}
   >
     <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.31 2H17" />
   </svg>
@@ -718,8 +718,8 @@ const PostCard = ({
                     followHandler();
                   }}
                   className={`text-xs px-3 py-1 rounded-full backdrop-blur-md transition border font-medium ${isFollowed
-                    ? "bg-white/20 border-white/30 text-white"
-                    : "bg-[var(--accent)] border-[var(--accent)] text-white hover:opacity-90"
+                    ? "bg-[var(--text-primary)]/10 border-[var(--text-primary)]/20 text-[var(--text-primary)]/90"
+                    : "bg-[var(--accent)] border-[var(--accent)] text-[var(--text-on-accent)] hover:opacity-90"
                     }`}
                 >
                   {isFollowed ? "Following" : "Follow"}
@@ -738,16 +738,16 @@ const PostCard = ({
                     <BsThreeDotsVertical />
                   </button>
                   {showMenu && (
-                    <div className="absolute right-0 top-full mt-2 w-40 bg-[#1F2937] rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[100] animate-in slide-in-from-top-2 fade-in duration-200">
+                    <div className="absolute right-0 top-full mt-2 w-40 bg-[var(--card-bg)] rounded-xl shadow-2xl border border-[var(--border)] overflow-hidden z-[100] animate-in slide-in-from-top-2 fade-in duration-200">
                       <button
                         onClick={notInterestedHandler}
-                        className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2"
+                        className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] flex items-center gap-2"
                       >
                         ❌ Not Interested
                       </button>
                       <button
                         onClick={muteHandler}
-                        className="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
+                        className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] flex items-center gap-2 border-t border-[var(--border)]"
                       >
                         🔇 Mute @{value.owner?.name || "user"}
                       </button>
@@ -759,7 +759,7 @@ const PostCard = ({
                           }
                           setShowMenu(false);
                         }}
-                        className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-white/10 flex items-center gap-2 border-t border-white/5"
+                        className="w-full text-left px-4 py-3 text-sm text-[var(--danger)] hover:bg-[var(--bg-secondary)] flex items-center gap-2 border-t border-[var(--border)]"
                       >
                         🚫 Block User
                       </button>

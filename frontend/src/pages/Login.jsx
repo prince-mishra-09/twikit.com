@@ -111,8 +111,8 @@ const Login = () => {
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-[var(--bg-primary)] overflow-hidden">
       {/* Soft background glow */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 bg-purple-600/30 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 -right-32 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl"></div>
+      <div className="absolute -top-32 -left-32 w-96 h-96 bg-[var(--accent)]/30 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 -right-32 w-96 h-96 bg-[var(--accent)]/10 rounded-full blur-3xl"></div>
 
       {/* Login Card */}
       <div className="relative z-10 w-full max-w-md bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--border)] rounded-2xl shadow-2xl p-8">
@@ -152,7 +152,7 @@ const Login = () => {
             />
             <span
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-white transition select-none"
+              className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition select-none"
             >
               {showPassword ? "🙈" : "👁️"}
             </span>
@@ -195,7 +195,7 @@ const Login = () => {
               <h2 className="text-2xl font-semibold text-[var(--text-primary)]">Reset Password</h2>
               <button
                 onClick={closeForgotModal}
-                className="text-gray-400 hover:text-white text-2xl"
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-2xl"
               >
                 ×
               </button>
@@ -214,7 +214,7 @@ const Login = () => {
 
             {/* Error Message */}
             {forgotError && (
-              <p className="text-red-400 text-sm text-center mb-4 bg-red-500/10 border border-red-500/20 rounded-lg p-2">
+              <p className="text-[var(--danger)] text-sm text-center mb-4 bg-[var(--danger)]/10 border border-[var(--danger)]/20 rounded-lg p-2">
                 {forgotError}
               </p>
             )}
@@ -276,7 +276,7 @@ const Login = () => {
                     />
                     <span
                       onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-white transition select-none"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition select-none"
                     >
                       {showNewPassword ? "🙈" : "👁️"}
                     </span>
@@ -294,7 +294,7 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => setForgotStep(1)}
-                  className="w-full py-2 text-gray-400 hover:text-white text-sm transition"
+                  className="w-full py-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm transition"
                 >
                   ← Change Email
                 </button>

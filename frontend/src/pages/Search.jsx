@@ -285,14 +285,14 @@ const SearchReelItem = ({ reel }) => {
       {/* Overlay info */}
       <div className="absolute bottom-0 inset-x-0 p-2 flex flex-col justify-end pointer-events-none">
         <div className="flex items-center gap-1.5 mb-1">
-          <img src={reel.owner?.profilePic?.url} className="w-5 h-5 rounded-full border border-white/30 object-cover shrink-0" alt="" />
+          <img src={reel.owner?.profilePic?.url} className="w-5 h-5 rounded-full border border-[var(--border)]/30 object-cover shrink-0" alt="" />
           <span className="text-white text-[10px] font-bold truncate drop-shadow-md max-w-[80px]">{reel.owner?.name}</span>
         </div>
         {reel.caption && <p className="text-white/90 text-[10px] line-clamp-2 leading-tight drop-shadow-md break-all">{reel.caption}</p>}
       </div>
 
       {/* Play Icon Hint */}
-      <div className={`absolute top-2 right-2 p-1.5 bg-black/50 rounded-full backdrop-blur transition-opacity ${isPlaying ? 'opacity-0' : 'opacity-100'}`}>
+      <div className={`absolute top-2 right-2 p-1.5 bg-[var(--overlay)]/50 rounded-full backdrop-blur transition-opacity ${isPlaying ? 'opacity-0' : 'opacity-100'}`}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
           <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clipRule="evenodd" />
         </svg>

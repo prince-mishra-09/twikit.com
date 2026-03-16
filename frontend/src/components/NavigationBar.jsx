@@ -7,17 +7,18 @@ import { RiAccountCircleFill, RiAccountCircleLine } from "react-icons/ri";
 import CreatePostModal from "./CreatePostModal";
 import { UserData } from "../context/UserContext";
 import { PostData } from "../context/PostContext";
+import { useTheme } from "../context/ThemeContext";
 import AuraXIcon from "./AuraXIcon";
 
 const NavigationBar = () => {
   const { user, isAuth, setShowLoginPrompt } = UserData();
   const { fetchPosts } = PostData();
+  const { theme } = useTheme();
   const location = useLocation();
   const [tab, setTab] = useState(location.pathname);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  // Get theme directly from localStorage (safe in client-side)
-  const theme = localStorage.getItem('aurax-theme') || 'paper';
+
 
   useEffect(() => {
     setTab(location.pathname);

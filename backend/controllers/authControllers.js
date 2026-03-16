@@ -222,17 +222,15 @@ export const logoutUser = tryCatch(async (req, res) => {
         await Session.deleteOne({ refreshToken });
     }
 
-    res.clearCookie("accessToken", {
+    const isProduction = process.env.NODE_ENV === "production";
+    const commonOptions = {
         httpOnly: true,
-        sameSite: "none",
-        secure: true,
-    });
+        sameSite: isProduction ? "none" : "lax",
+        secure: isProduction,
+    };
 
-    res.clearCookie("refreshToken", {
-        httpOnly: true,
-        sameSite: "none",
-        secure: true,
-    });
+    res.clearCookie("accessToken", commonOptions);
+    res.clearCookie("refreshToken", commonOptions);
 
     res.json({
         message: "logout successfully",
@@ -266,10 +264,11 @@ export const refreshAccessToken = tryCatch(async (req, res) => {
         expiresIn: "15m",
     });
 
+    const isProduction = process.env.NODE_ENV === "production";
     const cookieOptions = {
         httpOnly: true,
-        sameSite: "none",
-        secure: true,
+        sameSite: isProduction ? "none" : "lax",
+        secure: isProduction,
         maxAge: 30 * 24 * 60 * 60 * 1000,
     };
 

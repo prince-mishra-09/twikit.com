@@ -41,13 +41,13 @@
 
 /* Glassmorphic Card Style */
 .aurax-glass-card {
-  background: rgba(15, 15, 25, 0.8);
+  background: var(--card-bg);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
   border-radius: 24px;
   padding: 24px;
-  color: #fff;
+  color: var(--text-primary);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
 }
 
@@ -171,7 +171,7 @@
 }
 
 .stat-icon {
-  color: #00F5FF;
+  color: var(--accent);
   /* Cyan icons */
   display: flex;
   align-items: center;
@@ -179,7 +179,7 @@
 }
 
 .stat-label {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
 }
 
 .stat-value {
@@ -207,7 +207,7 @@
 
 .aurax-privacy-disclaimer p {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
   line-height: 1.4;
   margin: 0;
 }
@@ -233,7 +233,7 @@
   border-radius: 30px;
   background: rgba(255, 68, 68, 0.1);
   border: 1px solid rgba(255, 68, 68, 0.3);
-  color: #ff4444;
+  color: var(--danger);
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s ease;

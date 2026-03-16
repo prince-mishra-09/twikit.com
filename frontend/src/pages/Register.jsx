@@ -232,8 +232,8 @@ const Register = () => {
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-[var(--bg-primary)] overflow-hidden">
       {/* Background glow */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 bg-indigo-600/30 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 -right-32 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl"></div>
+      <div className="absolute -top-32 -left-32 w-96 h-96 bg-[var(--accent)]/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 -right-32 w-96 h-96 bg-[var(--accent)]/5 rounded-full blur-3xl"></div>
 
       {/* Register Card */}
       <div className="relative z-10 w-full max-w-md bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--border)] rounded-2xl shadow-2xl p-8">
@@ -268,7 +268,7 @@ const Register = () => {
 
         {/* Error Message */}
         {error && (
-          <p className="text-red-400 text-sm text-center mt-4 bg-red-500/10 border border-red-500/20 rounded-lg p-2">
+          <p className="text-[var(--danger)] text-sm text-center mt-4 bg-[var(--danger)]/10 border border-[var(--danger)]/20 rounded-lg p-2">
             {error}
           </p>
         )}
@@ -328,7 +328,7 @@ const Register = () => {
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="w-full py-2 text-gray-400 hover:text-white text-sm transition"
+              className="w-full py-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm transition"
             >
               ← Change Email
             </button>
@@ -343,9 +343,9 @@ const Register = () => {
               <div
                 onClick={() => fileInputRef.current.click()}
                 className={`relative cursor-pointer group w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 border-2 ${file
-                  ? "border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+                  ? "border-[var(--success)] shadow-[0_0_15px_rgba(34,197,94,0.3)]"
                   : error && error.includes("Profile image")
-                    ? "border-red-500 shadow-[0_0_15px_rgba(239,44,44,0.3)]"
+                    ? "border-[var(--danger)] shadow-[0_0_15px_rgba(239,44,44,0.3)]"
                     : "border-dashed border-[var(--border)] hover:border-[var(--accent)]"
                   }`}
               >
@@ -368,7 +368,7 @@ const Register = () => {
               </div>
 
               {file && (
-                <p className="text-green-400 text-[10px] mt-2 font-medium bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
+                <p className="text-[var(--success)] text-[10px] mt-2 font-medium bg-[var(--success)]/10 px-2 py-0.5 rounded-full border border-[var(--success)]/20">
                   Ready to go! ✨
                 </p>
               )}
@@ -385,7 +385,7 @@ const Register = () => {
             {/* Username (required) */}
             <div>
               <label className="text-[var(--text-secondary)] text-sm mb-2 block">
-                Username <span className="text-red-400">*</span>
+                Username <span className="text-[var(--danger)]">*</span>
               </label>
               <div className="relative">
                 <input
@@ -402,18 +402,18 @@ const Register = () => {
                   </span>
                 )}
                 {!checkingUsername && usernameAvailable === true && username.length >= 3 && (
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-green-400 text-sm">
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--success)] text-sm">
                     ✓ Available
                   </span>
                 )}
                 {!checkingUsername && usernameAvailable === false && (
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-red-400 text-sm">
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--danger)] text-sm">
                     {username.length < 3 ? "" : /^[a-zA-Z0-9_\.]{3,20}$/.test(username) ? "✗ Taken" : "✗ Invalid"}
                   </span>
                 )}
               </div>
               {username.length >= 3 && !/^[a-zA-Z0-9_\.]{3,20}$/.test(username) && (
-                <p className="text-red-400 text-[10px] mt-1 ml-1">
+                <p className="text-[var(--danger)] text-[10px] mt-1 ml-1">
                   Use only letters, numbers, dots, or underscores (3-20 chars).
                 </p>
               )}
@@ -441,7 +441,7 @@ const Register = () => {
 
               <span
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-white transition select-none"
+                className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition select-none"
               >
                 {showPassword ? "🙈" : "👁️"}
               </span>

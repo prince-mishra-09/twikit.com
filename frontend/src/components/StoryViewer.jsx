@@ -172,7 +172,7 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
 
     return (
         <div
-            className="fixed inset-0 z-[1000] bg-black/90 flex items-center justify-center"
+            className="fixed inset-0 z-[1000] bg-[var(--overlay)] flex items-center justify-center"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
@@ -181,7 +181,7 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
 
             {/* Container */}
             <div
-                className="relative w-full h-full md:w-[400px] md:h-[90vh] md:rounded-2xl overflow-hidden bg-[#1a1a1a]"
+                className="relative w-full h-full md:w-[400px] md:h-[90vh] md:rounded-2xl overflow-hidden bg-[var(--bg-primary)]"
                 onClick={(e) => e.stopPropagation()}
             >
 
@@ -206,7 +206,7 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
                         onClose();
                         navigate(`/user/${currentUserStories.user._id}`);
                     }}
-                    className="absolute top-8 left-4 z-20 flex items-center gap-3 bg-black/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-lg cursor-pointer hover:bg-black/30 transition">
+                    className="absolute top-8 left-4 z-20 flex items-center gap-3 bg-[var(--surface-glass)] backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-lg cursor-pointer hover:bg-black/30 transition">
                     <img
                         src={currentUserStories.user.profilePic?.url || "https://placehold.co/400"}
                         className="w-8 h-8 rounded-full border border-white/20 object-cover shrink-0"
@@ -224,13 +224,13 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
                 {/* Close Button - Glass Effect */}
                 <button
                     onClick={onClose}
-                    className="absolute top-8 right-4 z-20 text-white/90 hover:text-white bg-black/20 backdrop-blur-md p-2 rounded-full border border-white/10 transition"
+                    className="absolute top-8 right-4 z-20 text-white/90 hover:text-white bg-[var(--surface-glass)] backdrop-blur-md p-2 rounded-full border border-white/10 transition"
                 >
                     <AiOutlineClose size={20} />
                 </button>
 
                 {/* Content */}
-                <div className="w-full h-full flex items-center justify-center bg-gray-900" onClick={() => !showInsights && setIsPaused(prev => !prev)}>
+                <div className="w-full h-full flex items-center justify-center bg-black" onClick={() => !showInsights && setIsPaused(prev => !prev)}>
                     {currentStory.mediaUrl ? (
                         currentStory.mediaUrl.includes(".mp4") || currentStory.mediaUrl.includes(".webm") ? (
                             <video
@@ -252,7 +252,7 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
                             />
                         )
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center px-8 text-center bg-gradient-to-br from-[var(--accent)] to-[#1F2937] opacity-90">
+                        <div className="w-full h-full flex items-center justify-center px-8 text-center bg-gradient-to-br from-[var(--accent)] to-[var(--bg-secondary)] opacity-90">
                             <p className="text-white text-2xl font-serif leading-relaxed">
                                 {currentStory.text}
                             </p>
@@ -284,7 +284,7 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
 
                 {/* --- INSIGHTS PANEL --- */}
                 <div
-                    className={`absolute bottom-0 left-0 w-full bg-[#111827] rounded-t-3xl transition-transform duration-300 ease-out z-40 flex flex-col ${showInsights ? "translate-y-0" : "translate-y-full"}`}
+                    className={`absolute bottom-0 left-0 w-full bg-[var(--card-bg)] rounded-t-3xl transition-transform duration-300 ease-out z-40 flex flex-col ${showInsights ? "translate-y-0" : "translate-y-full"}`}
                     style={{ height: "50%" }}
                     onClick={(e) => e.stopPropagation()}
                 >
@@ -315,8 +315,8 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
                             currentStory.viewers
                                 .filter(v => v._id !== currentUserStories.user._id)
                                 .map((viewer, idx) => (
-                                    <div key={idx} className="flex items-center gap-3 py-2 border-b border-gray-800 last:border-0">
-                                        <img src={viewer.profilePic?.url || "https://placehold.co/100"} className="w-10 h-10 rounded-full bg-gray-700 object-cover shrink-0" />
+                                    <div key={idx} className="flex items-center gap-3 py-2 border-b border-[var(--border)]/20 last:border-0">
+                                        <img src={viewer.profilePic?.url || "https://placehold.co/100"} className="w-10 h-10 rounded-full bg-[var(--bg-secondary)] object-cover shrink-0" />
                                         <span className="text-white font-medium">{viewer.name || "Unknown User"}</span>
                                     </div>
                                 ))
@@ -333,14 +333,14 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
 
             {/* --- DELETE CONFIRMATION MODAL --- */}
             {showDeleteModal && (
-                <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={(e) => e.stopPropagation()}>
-                    <div className="bg-[#1F2937] w-full max-w-xs rounded-2xl p-6 shadow-2xl border border-gray-700 text-center ring-1 ring-white/10 animate-in zoom-in-95 duration-200">
+                <div className="absolute inset-0 z-[60] flex items-center justify-center bg-[var(--overlay)] backdrop-blur-sm" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-[var(--card-bg)] w-full max-w-xs rounded-2xl p-6 shadow-2xl border border-[var(--border)]/20 text-center ring-1 ring-white/10 animate-in zoom-in-95 duration-200">
                         <h3 className="text-white font-bold text-lg mb-2">Delete Story?</h3>
                         <p className="text-gray-400 text-sm mb-6">This action cannot be undone.</p>
                         <div className="flex gap-3 justify-center">
                             <button
                                 onClick={() => setShowDeleteModal(false)}
-                                className="flex-1 py-2 rounded-xl bg-gray-800 text-white font-semibold hover:bg-gray-700 border border-gray-600 transition"
+                                className="flex-1 py-2 rounded-xl bg-[var(--bg-secondary)] text-[var(--text-primary)] font-semibold hover:bg-[var(--bg-primary)] border border-[var(--border)] transition"
                             >
                                 Cancel
                             </button>

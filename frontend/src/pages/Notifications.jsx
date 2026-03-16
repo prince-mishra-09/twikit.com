@@ -169,7 +169,7 @@ const Notifications = () => {
                                     <Link to={getPostLink(n)}>
                                         {n.postId?.post?.url ? (
                                             n.postId.type === 'reel' ? (
-                                                <video src={n.postId.post.url} className="w-10 h-10 rounded-lg object-cover border border-white/10" muted playsInline loop autoPlay />
+                                                <video src={n.postId.post.url} className="w-10 h-10 rounded-lg object-cover border border-[var(--border)]/30" muted playsInline loop autoPlay />
                                             ) : (
                                                 <img
                                                     src={n.postId.post.url}

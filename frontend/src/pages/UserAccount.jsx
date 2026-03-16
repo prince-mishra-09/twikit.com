@@ -21,6 +21,7 @@ import { ChatData } from "../context/ChatContext"; // Added import
 import StoryViewer from "../components/StoryViewer";
 import StoryAvatar from "../components/StoryAvatar";
 import ShareModal from "../components/ShareModal";
+import FeedModal from "../components/FeedModal";
 import { useTheme } from "../context/ThemeContext";
 
 const UserAccount = ({ user: loggedInUser }) => {
@@ -310,7 +311,7 @@ const UserAccount = ({ user: loggedInUser }) => {
                 • {user.gender}
               </span> */}
               {(user._id === loggedInUser?._id ? user.showOnlineStatus : onlineUsers.includes(user._id)) && (
-                <span className="text-green-400 text-xs">●</span>
+                <span className="text-[var(--success)] text-xs">●</span>
               )}
             </p>
             <p className="text-[var(--text-secondary)] text-sm">@{user.username}</p>
@@ -331,7 +332,7 @@ const UserAccount = ({ user: loggedInUser }) => {
               </button>
               {showMenu && (
                 <div className="absolute right-0 top-full mt-2 w-40 bg-[var(--card-bg)] rounded-xl shadow-2xl border border-[var(--border)] overflow-hidden z-[50]">
-                  <button onClick={handleBlock} className="w-full text-left px-4 py-3 text-red-500 hover:bg-[var(--bg-primary)]/10 font-medium text-sm">
+                  <button onClick={handleBlock} className="w-full text-left px-4 py-3 text-[var(--danger)] hover:bg-[var(--bg-primary)]/10 font-medium text-sm">
                     Block User
                   </button>
                   <button className="w-full text-left px-4 py-3 text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]/10 text-sm">
@@ -411,7 +412,7 @@ const UserAccount = ({ user: loggedInUser }) => {
               className={`flex-1 py-2 rounded-lg transition-all duration-300 font-semibold text-sm ${followed
                 ? "bg-[var(--accent)]/5 text-[var(--accent)] border border-[var(--accent)]/40 shadow-[0_0_15px_rgba(0,255,209,0.1)] hover:bg-[var(--accent)]/10 hover:shadow-[0_0_20px_rgba(0,255,209,0.2)]"
                 : requested
-                  ? "bg-gray-600 text-white"
+                  ? "bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-[var(--border)]"
                   : "bg-[var(--accent)] text-[var(--text-on-accent)] hover:bg-[var(--accent)]/90 shadow-[0_0_15px_rgba(0,255,209,0.3)]"
                 }`}
             >
@@ -546,45 +547,3 @@ const UserAccount = ({ user: loggedInUser }) => {
 };
 
 export default UserAccount;
-
-// Feed Modal - copy from Account.jsx
-const FeedModal = ({ posts, initialIndex, onClose, onUpdate }) => {
-  const modalRef = React.useRef(null);
-  const [currentIndex, setCurrentIndex] = React.useState(initialIndex);
-
-  useEffect(() => {
-    // Scroll to the initial post on mount
-    if (modalRef.current) {
-      setTimeout(() => {
-        const element = document.getElementById(`feed-post-${initialIndex}`);
-        if (element) {
-          element.scrollIntoView({ behavior: "auto" });
-        }
-      }, 100);
-    }
-  }, [initialIndex]);
-
-  return (
-    <div className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-md overflow-y-auto custom-scrollbar flex justify-center">
-      <button
-        onClick={onClose}
-        className="fixed top-4 right-4 text-white/70 hover:text-white text-3xl z-[70] p-2 bg-black/20 rounded-full backdrop-blur-sm transition-colors"
-      >
-        <IoClose />
-      </button>
-
-      <div className="w-full max-w-md md:max-w-lg py-10 min-h-screen" ref={modalRef}>
-        {posts.map((post, index) => (
-          <div
-            key={post._id}
-            id={`feed-post-${index}`}
-            className={`mb-6 last:mb-20 ${post.type === 'reel' ? 'aspect-[9/16] w-full max-w-[350px] mx-auto' : ''}`}
-          >
-            <PostCard type={post.type || "post"} value={post} onUpdate={onUpdate} />
-          </div>
-        ))}
-        <div className="h-20 text-center text-white/50 text-sm">End of list</div>
-      </div>
-    </div>
-  );
-};

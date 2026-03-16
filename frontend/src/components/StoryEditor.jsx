@@ -223,13 +223,13 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[60] bg-[#0B0F14] flex flex-col">
+        <div className="fixed inset-0 z-[60] bg-[var(--bg-primary)] flex flex-col">
 
-            {/* --- TOP BAR (Dark Theme) --- */}
-            <div className="bg-[#111827] border-b border-gray-800 px-4 py-3 flex items-center justify-between z-20 shadow-sm">
+            {/* --- TOP BAR (Theme Aware) --- */}
+            <div className="bg-[var(--card-bg)] border-b border-[var(--border)] px-4 py-3 flex items-center justify-between z-20 shadow-sm">
                 <button
                     onClick={() => setShowExitModal(true)} // Open Custom Modal
-                    className="p-2 -ml-2 text-gray-400 hover:text-white rounded-full transition"
+                    className="p-2 -ml-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-full transition"
                 >
                     <AiOutlineArrowLeft size={24} />
                 </button>
@@ -237,28 +237,28 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
                 <div className="flex items-center gap-6">
                     {/* 1. Photo Add */}
                     <div className="flex flex-col items-center gap-1 cursor-pointer group" onClick={() => fileInputRef.current.click()}>
-                        <BsImage size={24} className="text-indigo-400 group-hover:text-indigo-300 transition" />
-                        <span className="text-[10px] font-bold text-gray-400 group-hover:text-gray-200 leading-none">Media</span>
+                        <BsImage size={24} className="text-[var(--accent)] group-hover:scale-110 transition" />
+                        <span className="text-[10px] font-bold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] leading-none">Media</span>
                         <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={handleAddImage} />
                     </div>
 
                     {/* 2. Text Add */}
                     <button
                         onClick={() => setShowTextModal(true)}
-                        className="flex items-center gap-2 bg-[#1F2937] border border-gray-700 px-3 py-1.5 rounded-full hover:bg-gray-800 transition"
+                        className="flex items-center gap-2 bg-[var(--bg-secondary)] border border-[var(--border)] px-3 py-1.5 rounded-full hover:bg-[var(--bg-primary)] transition"
                     >
-                        <IoText size={20} className="text-purple-400" />
-                        <span className="text-sm font-bold text-gray-200"></span>
+                        <IoText size={20} className="text-[var(--accent)]" />
+                        <span className="text-sm font-bold text-[var(--text-primary)]"></span>
                     </button>
 
                     {/* 3. Color Circle (Showing Current Color) */}
                     <button onClick={cycleBackgroundColor} className="relative group flex flex-col items-center gap-1">
                         <div
-                            className="w-8 h-8 rounded-full border-2 border-gray-600 shadow-inner transition-transform active:scale-95 hover:border-white"
+                            className="w-8 h-8 rounded-full border-2 border-[var(--border)] shadow-inner transition-transform active:scale-95 hover:border-[var(--text-primary)]"
                             // Showing CURRENT color
                             style={{ backgroundColor: GEN_Z_COLORS[backgroundIndex] }}
                         />
-                        <span className="text-[10px] font-bold text-gray-400 group-hover:text-gray-200 leading-none">Bg</span>
+                        <span className="text-[10px] font-bold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] leading-none">Bg</span>
                     </button>
                 </div>
             </div>
@@ -353,7 +353,7 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
                     ref={trashRef}
                     className={`absolute bottom-32 left-1/2 -translate-x-1/2 transition-all duration-300 z-40 ${isDragging ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"}`}
                 >
-                    <div className={`w-16 h-16 rounded-full flex items-center justify-center border-2 shadow-lg backdrop-blur-md ${isOverTrash ? "bg-red-500 border-red-500 text-white scale-125" : "bg-black/50 border-white/30 text-white"}`}>
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center border-2 shadow-lg backdrop-blur-md ${isOverTrash ? "bg-[var(--danger)] border-[var(--danger)] text-[var(--text-on-accent)] scale-125" : "bg-[var(--overlay)]/50 border-[var(--border)]/30 text-white"}`}>
                         <FaTrash size={24} />
                     </div>
                 </div>
@@ -367,28 +367,28 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
                         <div className="bg-[#1F2937] border border-gray-700 rounded-2xl shadow-xl flex items-center p-2 gap-4 animate-in slide-in-from-bottom-5">
 
                             {/* Size - */}
-                            <button onClick={() => handleResize(-0.1)} className="p-3 bg-gray-700 rounded-full text-white hover:bg-gray-600 active:scale-95 transition">
+                            <button onClick={() => handleResize(-0.1)} className="p-3 bg-[var(--bg-primary)] rounded-full text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] active:scale-95 transition">
                                 <AiOutlineMinus size={20} />
                             </button>
 
-                            <span className="text-gray-400 text-xs font-bold uppercase tracking-wider select-none">Size</span>
+                            <span className="text-[var(--text-secondary)] text-xs font-bold uppercase tracking-wider select-none">Size</span>
 
                             {/* Size + */}
-                            <button onClick={() => handleResize(0.1)} className="p-3 bg-gray-700 rounded-full text-white hover:bg-gray-600 active:scale-95 transition">
+                            <button onClick={() => handleResize(0.1)} className="p-3 bg-[var(--bg-primary)] rounded-full text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] active:scale-95 transition">
                                 <AiOutlinePlus size={20} />
                             </button>
 
-                            <div className="w-px h-6 bg-gray-600 mx-1"></div>
+                            <div className="w-px h-6 bg-[var(--border)] mx-1"></div>
 
                             {/* Rotate */}
-                            <button onClick={handleRotate} className="p-3 bg-gray-700 rounded-full text-white hover:bg-gray-600 active:scale-95 transition">
+                            <button onClick={handleRotate} className="p-3 bg-[var(--bg-primary)] rounded-full text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] active:scale-95 transition">
                                 <AiOutlineRotateRight size={20} />
                             </button>
 
-                            <div className="w-px h-6 bg-gray-600 mx-1"></div>
+                            <div className="w-px h-6 bg-[var(--border)] mx-1"></div>
 
                             {/* Delete */}
-                            <button onClick={() => deleteElement(activeElementId)} className="p-3 bg-red-500/20 text-red-400 rounded-full hover:bg-red-500/30 active:scale-95 transition">
+                            <button onClick={() => deleteElement(activeElementId)} className="p-3 bg-[var(--danger)]/20 text-[var(--danger)] rounded-full hover:bg-[var(--danger)]/30 active:scale-95 transition">
                                 <AiOutlineDelete size={20} />
                             </button>
                         </div>
@@ -400,7 +400,7 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
                     <button
                         onClick={handleSave}
                         disabled={saving}
-                        className="absolute bottom-8 right-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold h-12 px-6 rounded-full shadow-lg shadow-indigo-500/30 flex items-center gap-2 active:scale-95 transition z-50 hover:brightness-110"
+                        className="absolute bottom-8 right-6 bg-[var(--accent)] text-[var(--text-on-accent)] font-bold h-12 px-6 rounded-full shadow-lg shadow-[var(--accent)]/30 flex items-center gap-2 active:scale-95 transition z-50 hover:brightness-110"
                     >
                         {saving ? <LoadingAnimation small /> : "Share Story >"}
                     </button>
@@ -409,7 +409,7 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
                 {activeElementId && !isDragging && (
                     <button
                         onClick={() => setActiveElementId(null)}
-                        className="absolute bottom-8 right-6 bg-gray-800 text-white font-bold h-12 px-6 rounded-full shadow-lg border border-gray-600 active:scale-95 transition z-50"
+                        className="absolute bottom-8 right-6 bg-[var(--bg-secondary)] text-[var(--text-primary)] font-bold h-12 px-6 rounded-full shadow-lg border border-[var(--border)] active:scale-95 transition z-50"
                     >
                         Done
                     </button>
@@ -444,17 +444,17 @@ const TextEditorModal = ({ onDone, onCancel }) => {
     const [font, setFont] = useState("Inter, sans-serif");
 
     return (
-        <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[70] bg-[var(--overlay)]/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
             <div className="absolute inset-0" onClick={onCancel}></div>
 
-            <div className="bg-[#111827] w-full max-w-sm rounded-[2rem] p-6 shadow-2xl relative z-10 border border-gray-700 ring-1 ring-white/10">
+            <div className="bg-[var(--card-bg)] w-full max-w-sm rounded-[2rem] p-6 shadow-2xl relative z-10 border border-[var(--border)] ring-1 ring-white/10">
 
                 <div className="flex justify-between items-center mb-6">
-                    <button onClick={onCancel} className="text-gray-400 hover:text-white px-2">Cancel</button>
-                    <h3 className="text-white font-bold text-lg">Add Text</h3>
+                    <button onClick={onCancel} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] px-2">Cancel</button>
+                    <h3 className="text-[var(--text-primary)] font-bold text-lg">Add Text</h3>
                     <button
                         onClick={() => text.trim() && onDone(text, color, font)}
-                        className="text-indigo-400 font-bold hover:text-indigo-300 px-2"
+                        className="text-[var(--accent)] font-bold hover:opacity-80 px-2"
                     >
                         Done
                     </button>
@@ -465,7 +465,7 @@ const TextEditorModal = ({ onDone, onCancel }) => {
                         value={text}
                         onChange={(e) => setText(e.target.value)}
                         placeholder="Type something..."
-                        className="bg-transparent text-center text-3xl font-bold w-full focus:outline-none placeholder-gray-600 resize-none"
+                        className="bg-transparent text-center text-3xl font-bold w-full focus:outline-none placeholder-[var(--text-secondary)] resize-none"
                         style={{ color: color, fontFamily: font }}
                         rows={3}
                         autoFocus
@@ -473,13 +473,13 @@ const TextEditorModal = ({ onDone, onCancel }) => {
                 </div>
 
                 <div className="mb-6">
-                    <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-2 ml-1">Font</p>
+                    <p className="text-xs text-[var(--text-secondary)] uppercase font-bold tracking-wider mb-2 ml-1">Font</p>
                     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                         {FONTS.map((f) => (
                             <button
                                 key={f.name}
                                 onClick={() => setFont(f.value)}
-                                className={`px-4 py-2 rounded-xl border transition ${font === f.value ? "bg-white text-black border-white" : "bg-gray-800 text-gray-400 border-gray-700 hover:bg-gray-700"}`}
+                                className={`px-4 py-2 rounded-xl border transition ${font === f.value ? "bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)]" : "bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border)] hover:bg-[var(--bg-primary)]"}`}
                                 style={{ fontFamily: f.value }}
                             >
                                 {f.name}
@@ -489,13 +489,13 @@ const TextEditorModal = ({ onDone, onCancel }) => {
                 </div>
 
                 <div>
-                    <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-2 ml-1">Color</p>
+                    <p className="text-xs text-[var(--text-secondary)] uppercase font-bold tracking-wider mb-2 ml-1">Color</p>
                     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                         {GEN_Z_COLORS.map((c) => (
                             <button
                                 key={c}
                                 onClick={() => setColor(c)}
-                                className={`w-10 h-10 rounded-full border-2 shrink-0 transition ${color === c ? "border-white scale-110" : "border-transparent"}`}
+                                className={`w-10 h-10 rounded-full border-2 shrink-0 transition ${color === c ? "border-[var(--text-primary)] scale-110" : "border-transparent"}`}
                                 style={{ backgroundColor: c }}
                             />
                         ))}
@@ -509,20 +509,20 @@ const TextEditorModal = ({ onDone, onCancel }) => {
 
 // ... ExitConfirmationModal ...
 const ExitConfirmationModal = ({ onConfirm, onCancel }) => (
-    <div className="fixed inset-0 z-[80] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-        <div className="bg-[#1F2937] w-full max-w-xs rounded-2xl p-6 shadow-2xl border border-gray-700 text-center ring-1 ring-white/10">
-            <h3 className="text-white font-bold text-lg mb-2">Exit Story Studio?</h3>
-            <p className="text-gray-400 text-sm mb-6">Want to exit story workplace?</p> {/* Exact text requested */}
+    <div className="fixed inset-0 z-[80] bg-[var(--overlay)]/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="bg-[var(--bg-secondary)] w-full max-w-xs rounded-2xl p-6 shadow-2xl border border-[var(--border)] text-center ring-1 ring-white/10">
+            <h3 className="text-[var(--text-primary)] font-bold text-lg mb-2">Exit Story Studio?</h3>
+            <p className="text-[var(--text-secondary)] text-sm mb-6">Want to exit story workplace?</p> {/* Exact text requested */}
             <div className="flex gap-3 justify-center">
                 <button
                     onClick={onCancel}
-                    className="flex-1 py-2 rounded-xl bg-gray-800 text-white font-semibold hover:bg-gray-700 border border-gray-600 transition"
+                    className="flex-1 py-2 rounded-xl bg-[var(--bg-primary)] text-[var(--text-primary)] font-semibold hover:bg-[var(--bg-secondary)] border border-[var(--border)] transition"
                 >
                     No
                 </button>
                 <button
                     onClick={onConfirm}
-                    className="flex-1 py-2 rounded-xl bg-red-500/10 text-red-500 border border-red-500/50 font-semibold hover:bg-red-500 hover:text-white transition"
+                    className="flex-1 py-2 rounded-xl bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/50 font-semibold hover:bg-[var(--danger)] hover:text-[var(--text-on-accent)] transition"
                 >
                     Yes
                 </button>

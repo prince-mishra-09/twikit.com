@@ -33,8 +33,8 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
                 const element = document.getElementById(`comment-${targetId}`);
                 if (element) {
                     element.scrollIntoView({ behavior: "smooth", block: "center" });
-                    element.classList.add("bg-white/10");
-                    setTimeout(() => element.classList.remove("bg-white/10"), 2000);
+                    element.classList.add("bg-[var(--text-primary)]/10");
+                    setTimeout(() => element.classList.remove("bg-[var(--text-primary)]/10"), 2000);
                 }
             }, 500); // Wait for expansion animation
         }
@@ -106,7 +106,7 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
                                 {/* Delete Modal for this specific comment */}
                                 {activeCommentMenuId === comment._id && (
                                     <div className="absolute right-0 top-full mt-1 bg-[var(--bg-secondary)] p-2 rounded items-center flex gap-2 z-50 shadow-lg border border-[var(--border)] w-32 animate-in fade-in zoom-in-95 duration-100">
-                                        <button onClick={handleDelete} className="text-xs text-red-500 font-bold hover:underline">Delete</button>
+                                        <button onClick={handleDelete} className="text-xs text-[var(--danger)] font-bold hover:underline">Delete</button>
                                         <button onClick={() => toggleCommentMenu(comment._id)} className="text-xs text-[var(--text-primary)] hover:underline">Cancel</button>
                                     </div>
                                 )}
@@ -157,7 +157,7 @@ const CommentItem = ({ comment, postId, addComment, deleteComment, postOwnerId, 
                                                             onDelete(reply._id, comment._id);
                                                         }
                                                     }}
-                                                    className="text-[10px] text-[var(--text-secondary)] hover:text-red-500 ml-auto"
+                                                    className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--danger)] ml-auto"
                                                 >
                                                     Delete
                                                 </button>

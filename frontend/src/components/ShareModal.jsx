@@ -105,7 +105,7 @@ const ShareModal = ({ isOpen, onClose, content, onShare }) => {
     if (!isOpen) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-[var(--overlay)] backdrop-blur-sm p-4">
             <div className="bg-[var(--card-bg)] w-full max-w-md rounded-2xl border border-[var(--border)] overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
 
                 {/* HEADER */}
@@ -249,7 +249,7 @@ const UserItem = ({ user, selected, onSelect, isRestricted }) => (
                     </div>
                 )}
                 {isRestricted && (
-                    <div className="absolute inset-0 bg-black/20 rounded-full flex items-center justify-center">
+                    <div className="absolute inset-0 bg-[var(--overlay)]/20 rounded-full flex items-center justify-center">
                         <svg className="w-5 h-5 text-white/60" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 17a2 2 0 01-2-2V9a2 2 0 012-2m0 10a2 2 0 002-2V9a2 2 0 00-2-2m0 10v4m0-14V3m0 0a9 9 0 110 18 9 9 0 010-18z" />
                         </svg>

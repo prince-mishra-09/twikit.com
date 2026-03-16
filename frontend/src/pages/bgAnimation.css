@@ -7,7 +7,7 @@
   animation-name: fall;
   animation-iteration-count: infinite;
   animation-timing-function: linear;
-  text-shadow: 0 0 4px #fff, 0 0 8px currentColor;
+  text-shadow: 0 0 4px var(--text-primary), 0 0 8px currentColor;
 }
 
 @keyframes fall {

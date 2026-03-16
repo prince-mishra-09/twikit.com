@@ -66,11 +66,11 @@ const Reels = () => {
   }, [displayReels]); // Observe on displayReels change
 
   return (
-    <div className="h-[100dvh] w-full bg-black overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar relative flex justify-center">
+    <div className="h-[100dvh] w-full bg-[var(--bg-primary)] overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar relative flex justify-center">
       {/* Back Button - Absolute for easy exit */}
       <button
         onClick={() => navigate(-1)}
-        className="absolute top-6 left-6 z-50 p-3 bg-white/10 backdrop-blur-md rounded-full text-white border border-white/20 hover:bg-white/20 transition-all group"
+        className="absolute top-6 left-6 z-50 p-3 bg-[var(--surface-glass)] backdrop-blur-md rounded-full text-[var(--text-primary)] border border-[var(--border)]/20 hover:bg-[var(--text-primary)]/10 transition-all group"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6 group-hover:-translate-x-1 transition-transform">
           <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -89,7 +89,7 @@ const Reels = () => {
               id={reel._id}
               className="reel-container h-[100dvh] w-full snap-start snap-always flex justify-center items-center py-4"
             >
-              <div className="w-full h-full relative flex items-center justify-center bg-black rounded-lg overflow-hidden shadow-2xl shadow-black/50">
+              <div className="w-full h-full relative flex items-center justify-center bg-[var(--bg-primary)] rounded-lg overflow-hidden shadow-2xl shadow-[var(--overlay)]/20">
                 {/* Pass isReelPage prop if needed for specific styling in PostCard */}
                 <PostCard value={reel} type="reel" isActive={currentReelId === reel._id} />
               </div>
@@ -97,12 +97,12 @@ const Reels = () => {
           ))}
 
           {/* End of Reels Message */}
-          <div className="h-[100dvh] w-full snap-start snap-always flex flex-col items-center justify-center p-8 text-center bg-black">
-            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/10">
+          <div className="h-[100dvh] w-full snap-start snap-always flex flex-col items-center justify-center p-8 text-center bg-[var(--bg-primary)]">
+            <div className="w-20 h-20 bg-[var(--bg-secondary)] rounded-full flex items-center justify-center mb-6 border border-[var(--border)]/20">
               <span className="text-4xl animate-bounce">🎬</span>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-2">That's all for now!</h3>
-            <p className="text-white/50 text-base max-w-[280px] mb-8">
+            <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-2">That's all for now!</h3>
+            <p className="text-[var(--text-secondary)] text-base max-w-[280px] mb-8">
               You've reached the end of the spotlight. Come back later for more!
             </p>
             <button
@@ -110,7 +110,7 @@ const Reels = () => {
                 const firstReel = document.querySelector('.reel-container');
                 if (firstReel) firstReel.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="px-8 py-3 bg-white text-black font-bold rounded-full hover:bg-white/90 transition-all active:scale-95"
+              className="px-8 py-3 bg-[var(--text-primary)] text-[var(--bg-primary)] font-bold rounded-full hover:opacity-90 transition-all active:scale-95"
             >
               Replay Feed
             </button>
@@ -118,9 +118,9 @@ const Reels = () => {
           
           {/* Loading indicator for infinite scroll */}
           {reelsPagination?.hasMoreReels && (
-            <div className="h-32 w-full snap-start snap-always flex flex-col items-center justify-center pb-12 bg-black">
-               <div className="w-8 h-8 border-4 border-white/20 border-t-[var(--accent)] rounded-full animate-spin" />
-               <span className="text-white/50 text-xs mt-3 uppercase tracking-widest font-bold">Loading Vibes</span>
+            <div className="h-32 w-full snap-start snap-always flex flex-col items-center justify-center pb-12 bg-[var(--bg-primary)]">
+               <div className="w-8 h-8 border-4 border-[var(--border)]/20 border-t-[var(--accent)] rounded-full animate-spin" />
+               <span className="text-[var(--text-secondary)] text-xs mt-3 uppercase tracking-widest font-bold">Loading Vibes</span>
             </div>
           )}
         </div>

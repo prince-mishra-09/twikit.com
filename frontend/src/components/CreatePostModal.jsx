@@ -135,7 +135,7 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                     }}
                 />
             ) : (
-                <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-[var(--bg-primary)]/80 backdrop-blur-md p-4">
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-[var(--overlay)] backdrop-blur-md p-4">
                     <div className="w-full max-w-[630px] bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden relative flex flex-col max-h-[90vh]">
 
                         {/* Header */}
@@ -178,7 +178,7 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                 {/* File Input Area */}
                                 <div
                                     onClick={() => { setBlinkFile(false); fileInputRef.current.click(); }}
-                                    className={`cursor-pointer rounded-xl border-2 border-dashed ${blinkFile ? "border-red-500 animate-pulse bg-red-500/5 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "border-[var(--border)] bg-[var(--bg-primary)] hover:border-[var(--accent)]/50 hover:bg-[var(--bg-primary)]/50"} text-[var(--text-secondary)] flex items-center justify-center min-h-[250px] transition-all group overflow-hidden duration-300`}
+                                    className={`cursor-pointer rounded-xl border-2 border-dashed ${blinkFile ? "border-[var(--danger)] animate-pulse bg-[var(--danger)]/5 shadow-[0_0_15px_var(--danger)]" : "border-[var(--border)] bg-[var(--bg-primary)] hover:border-[var(--accent)]/50 hover:bg-[var(--bg-primary)]/50"} text-[var(--text-secondary)] flex items-center justify-center min-h-[250px] transition-all group overflow-hidden duration-300`}
                                 >
                                     {filePrev ? (
                                         <div className="relative w-full aspect-[3/4] bg-black rounded-lg overflow-hidden flex items-center justify-center">
@@ -227,19 +227,19 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                     placeholder={`Write a caption for your ${type}...`}
                                     value={caption}
                                     onChange={(e) => { setBlinkCaption(false); setCaption(e.target.value); }}
-                                    className={`w-full px-4 py-3 rounded-xl bg-[var(--bg-primary)] border ${blinkCaption ? "border-red-500 animate-pulse bg-red-500/5 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "border-[var(--border)] focus:border-[var(--accent)]/50"} text-[var(--text-primary)] placeholder-[var(--text-secondary)]/50 focus:outline-none transition-all resize-none custom-scrollbar duration-300`}
+                                    className={`w-full px-4 py-3 rounded-xl bg-[var(--bg-primary)] border ${blinkCaption ? "border-[var(--danger)] animate-pulse bg-[var(--danger)]/5 shadow-[0_0_15px_var(--danger)]" : "border-[var(--border)] focus:border-[var(--accent)]/50"} text-[var(--text-primary)] placeholder-[var(--text-secondary)]/50 focus:outline-none transition-all resize-none custom-scrollbar duration-300`}
                                 />
 
                                 {/* Error Message */}
                                 {error && (
-                                    <p className="text-xs text-red-500/90 text-center font-medium bg-red-500/10 py-2 rounded-lg border border-red-500/20 animate-in fade-in slide-in-from-top-2">
+                                    <p className="text-xs text-[var(--danger)]/90 text-center font-medium bg-[var(--danger)]/10 py-2 rounded-lg border border-[var(--danger)]/20 animate-in fade-in slide-in-from-top-2">
                                         {error}
                                     </p>
                                 )}
 
                                 {/* Privacy Indicator */}
                                 <div className="flex items-center gap-1.5 px-1">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/80"></div>
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--success)]"></div>
                                     <p className="text-[11px] text-[var(--text-secondary)] font-medium uppercase tracking-wider">
                                         Shared with: Public
                                     </p>
@@ -258,7 +258,7 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
 
                     {/* Discard Confirmation Modal */}
                     {showConfirmDiscard && (
-                        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[var(--overlay)] backdrop-blur-md p-4">
                             <div className="w-full max-w-[280px] bg-[var(--card-bg)] rounded-3xl p-6 shadow-2xl border border-[var(--border)] text-center animate-in zoom-in-95 duration-200">
                                 <h3 className="text-[var(--text-primary)] font-bold text-lg mb-2">Discard draft?</h3>
                                 <p className="text-[var(--text-secondary)] text-sm mb-6 leading-relaxed">
@@ -267,7 +267,7 @@ const CreatePostModal = ({ setShow, initialTab = "post" }) => { // Accept initia
                                 <div className="flex flex-col gap-2">
                                     <button
                                         onClick={() => setShow(false)}
-                                        className="w-full py-3 rounded-xl bg-red-500/10 text-red-500 font-semibold hover:bg-red-500/20 transition active:scale-95"
+                                        className="w-full py-3 rounded-xl bg-[var(--danger)]/10 text-[var(--danger)] font-semibold hover:bg-[var(--danger)]/20 transition active:scale-95"
                                     >
                                         Discard
                                     </button>

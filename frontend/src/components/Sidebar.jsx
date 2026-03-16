@@ -174,7 +174,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => { // Accept props
                                             : <item.icon className="text-2xl text-[var(--text-primary)]" />
                                         }
                                         {item.badge > 0 && (
-                                            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white overflow-hidden border border-[var(--bg-primary)] animate-pulse">
+                                            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--danger)] text-[10px] text-white overflow-hidden border border-[var(--bg-primary)] animate-pulse">
                                                 {item.badge}
                                             </span>
                                         )}
@@ -203,7 +203,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => { // Accept props
                     <button
                         onClick={handleReportBug}
                         title={isCollapsed ? "Report a Bug" : ""}
-                        className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-orange-500/10 text-orange-500 mb-1 ${isCollapsed ? "justify-center gap-0" : "gap-4"
+                        className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-[var(--warning)]/10 text-[var(--warning)] mb-1 ${isCollapsed ? "justify-center gap-0" : "gap-4"
                             }`}
                     >
                         <div className="relative group-hover:scale-110 transition-transform duration-200">
@@ -232,7 +232,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => { // Accept props
                     <button
                         onClick={() => logoutUser(navigate)}
                         title={isCollapsed ? "Log out" : ""}
-                        className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-red-500/10 text-red-500 ${isCollapsed ? "justify-center gap-0" : "gap-4"
+                        className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-[var(--danger)]/10 text-[var(--danger)] ${isCollapsed ? "justify-center gap-0" : "gap-4"
                             }`}
                     >
                         <div className="relative group-hover:scale-110 transition-transform duration-200">

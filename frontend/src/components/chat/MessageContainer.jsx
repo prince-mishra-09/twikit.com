@@ -201,7 +201,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
                 </p>
                 <p className="text-xs text-[var(--text-secondary)]">
                   {isOnline ? (
-                    <span className="text-green-400 font-medium">Active now</span>
+                    <span className="text-[var(--success)] font-medium">Active now</span>
                   ) : (
                     formatLastSeen(otherUser.lastSeen)
                   )}
@@ -226,9 +226,9 @@ const MessageContainer = ({ selectedChat, setChats }) => {
             <div className="max-w-4xl mx-auto w-full px-4 space-y-2">
               {/* Bug Report Guideline Banner */}
               {isBugReport && (
-                <div className="mb-6 p-5 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-center animate-in fade-in slide-in-from-top duration-700">
+                <div className="mb-6 p-5 rounded-2xl bg-[var(--warning)]/10 border border-[var(--warning)]/20 text-center animate-in fade-in slide-in-from-top duration-700">
                   <div className="flex justify-center mb-3">
-                    <div className="p-3 rounded-full bg-orange-500/20 text-orange-500 shadow-lg shadow-orange-500/10">
+                    <div className="p-3 rounded-full bg-[var(--warning)]/20 text-[var(--warning)] shadow-lg shadow-[var(--warning)]/10">
                       <IoBugOutline className="text-3xl" />
                     </div>
                   </div>

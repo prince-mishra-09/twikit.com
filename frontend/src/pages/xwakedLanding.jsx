@@ -38,7 +38,7 @@ const FeaturePost = ({ title, subtitle, color = "bg-[var(--accent)]" }) => (
 );
 
 /* ---------------- PAGE ---------------- */
-export default function xwakedLanding() {
+export default function XwakedLanding() {
     const [activeIndex, setActiveIndex] = useState(0);
 
     useEffect(() => {
@@ -76,7 +76,7 @@ export default function xwakedLanding() {
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                     <Link to="/" className="flex items-center gap-2">
                         <img
-                            src="/images/xwaked-white.png"
+                            src={theme === "matcha" || theme === "retro" ? "/images/xwaked-black.png" : "/images/xwaked-white.png"}
                             alt="xwaked"
                             className="w-12 h-auto"
                         />
@@ -154,7 +154,7 @@ export default function xwakedLanding() {
                 <div className="grid md:grid-cols-2 gap-16 items-center">
                     <div>
                         <h2 className="text-3xl md:text-4xl font-semibold text-[var(--text-primary)] mb-8 leading-tight">
-                            Modern social media is <span className="text-red-400/80">loud</span> by design.
+                            Modern social media is <span className="text-[var(--danger)]/80">loud</span> by design.
                         </h2>
                     </div>
                     <div className="space-y-8">
@@ -164,7 +164,7 @@ export default function xwakedLanding() {
                             "Privacy treated as an afterthought"
                         ].map((text, i) => (
                             <div key={i} className="flex gap-4 items-center text-[var(--text-secondary)]">
-                                <div className="w-1.5 h-1.5 rounded-full bg-red-400/50" />
+                                <div className="w-1.5 h-1.5 rounded-full bg-[var(--danger)]/50" />
                                 <span className="text-lg font-light">{text}</span>
                             </div>
                         ))}
@@ -291,7 +291,7 @@ export default function xwakedLanding() {
 
                         {/* Visual */}
                         <div className="relative h-auto py-10 md:py-12 w-full flex justify-center items-center">
-                            <div className="w-full max-w-sm md:max-w-md rounded-xl overflow-hidden border border-[var(--border)] shadow-2xl bg-[#0B0F14] relative z-10 rotate-1 hover:rotate-0 transition-transform duration-500">
+                            <div className="w-full max-w-sm md:max-w-md rounded-xl overflow-hidden border border-[var(--border)] shadow-2xl bg-[var(--card-bg)] relative z-10 rotate-1 hover:rotate-0 transition-transform duration-500">
                                 <img src="/landing/profile.webp" alt="Profile UI" className="w-full h-auto opacity-90 hover:opacity-100 transition-opacity" />
                             </div>
                             <div className="absolute right-10 top-1/2 -translate-y-1/2 w-48 h-48 bg-[var(--accent)]/10 rounded-full blur-3xl pointer-events-none hidden md:block" />
@@ -325,7 +325,7 @@ export default function xwakedLanding() {
                             <div className="absolute inset-0 backdrop-blur-sm bg-black/20 z-10" />
                             <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                            <div className="absolute top-2 left-3 text-xs font-mono text-gray-600 font-bold">0{i}</div>
+                            <div className="absolute top-2 left-3 text-xs font-mono text-[var(--text-secondary)] font-bold">0{i}</div>
                             <Lock className="w-8 h-8 md:w-6 md:h-6 text-[var(--text-secondary)] relative z-20 group-hover:text-[var(--accent)] transition-colors" />
                             <span className="text-[10px] md:text-xs font-mono relative z-20 uppercase tracking-widest animate-shimmer font-bold text-center px-2">Coming Soon</span>
                         </div>
@@ -379,7 +379,7 @@ export default function xwakedLanding() {
                 </p>
                 <Link
                     to="/register"
-                    className="inline-block px-10 py-4 rounded-full bg-[var(--accent)] text-white font-medium hover:bg-[var(--accent)]/90 transition-all active:scale-95"
+                    className="inline-block px-10 py-4 rounded-full bg-[var(--accent)] text-[var(--text-on-accent)] font-medium hover:bg-[var(--accent)]/90 transition-all active:scale-95"
                 >
                     Create account
                 </Link>

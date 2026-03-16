@@ -22,6 +22,7 @@ import CreatePostModal from "../components/CreatePostModal";
 import StoryAvatar from "../components/StoryAvatar";
 import { AiOutlinePlus } from "react-icons/ai";
 import ShareModal from "../components/ShareModal";
+import FeedModal from "../components/FeedModal";
 import ThemeModal from "../components/ThemeModal";
 import { getOptimizedImg } from "../utils/imagekit";
 import { RiRecordCircleFill } from "react-icons/ri";
@@ -216,7 +217,7 @@ const Account = ({ user }) => {
                     </div>
                     <button
                       onClick={() => unmuteUser(u._id)}
-                      className="px-3 py-1 bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white rounded-full text-xs transition-colors border border-red-500/50"
+                      className="px-3 py-1 bg-[var(--danger)]/20 text-[var(--danger)] hover:bg-[var(--danger)] hover:text-[var(--text-on-accent)] rounded-full text-xs transition-colors border border-[var(--danger)]/50"
                     >
                       Unmute
                     </button>
@@ -279,7 +280,7 @@ const Account = ({ user }) => {
                       <IoShieldCheckmarkOutline className="text-lg" />
                       <span>Private Account</span>
                     </div>
-                    <div className={`w-8 h-4 rounded-full relative transition-colors ${user.isPrivate ? "bg-[var(--accent)]" : "bg-gray-600"}`}>
+                    <div className={`w-8 h-4 rounded-full relative transition-colors ${user.isPrivate ? "bg-[var(--accent)]" : "bg-[var(--bg-secondary)]"}`}>
                       <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-transform ${user.isPrivate ? "left-4.5" : "left-0.5"}`} style={{ left: user.isPrivate ? '18px' : '2px' }} />
                     </div>
                   </button>
@@ -886,46 +887,6 @@ const BioDisplay = ({ bio }) => {
   );
 };
 
-
-// Feed Modal - shows posts in a feed view starting from a specific index
-const FeedModal = ({ posts, initialIndex, onClose, onUpdate }) => {
-  const modalRef = useRef(null);
-  const [currentIndex, setCurrentIndex] = useState(initialIndex);
-
-  useEffect(() => {
-    // Scroll to the initial post on mount
-    if (modalRef.current) {
-      const element = document.getElementById(`feed-post-${initialIndex}`);
-      if (element) {
-        element.scrollIntoView({ behavior: "auto" });
-      }
-    }
-  }, []); // Run once on mount
-
-  return (
-    <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md overflow-y-auto custom-scrollbar flex justify-center">
-      <button
-        onClick={onClose}
-        className="fixed top-4 right-4 text-white/70 hover:text-white text-3xl z-[70] p-2 bg-black/20 rounded-full backdrop-blur-sm transition-colors"
-      >
-        <IoClose />
-      </button>
-
-      <div className="w-full max-w-md md:max-w-lg py-10 min-h-screen" ref={modalRef}>
-        {posts.map((post, index) => (
-          <div
-            key={post._id}
-            id={`feed-post-${index}`}
-            className={`mb-6 last:mb-20 ${post.type === 'reel' ? 'aspect-[9/16] w-full max-w-[350px] mx-auto' : ''}`}
-          >
-            <PostCard type={post.type || "post"} value={post} onUpdate={onUpdate} />
-          </div>
-        ))}
-        <div className="h-20 text-center text-white/50 text-sm">End of list</div>
-      </div>
-    </div>
-  );
-};
 
 
 export default Account;

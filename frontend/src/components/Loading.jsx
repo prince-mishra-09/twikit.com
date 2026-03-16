@@ -9,27 +9,27 @@ export const SkeletonFullPage = () => {
     <div className="flex bg-[var(--bg-primary)] h-[100dvh] overflow-hidden">
 
       {/* Left Sidebar Skeleton (Desktop) */}
-      <div className="hidden md:flex flex-col w-[72px] lg:w-[244px] h-full fixed left-0 top-0 border-r border-[#262626] p-4 bg-black z-50 items-center lg:items-start transition-all">
+      <div className="hidden md:flex flex-col w-[72px] lg:w-[244px] h-full fixed left-0 top-0 border-r border-[var(--border)] p-4 bg-[var(--bg-primary)] z-50 items-center lg:items-start transition-all">
         {/* Logo */}
-        <div className="h-8 w-8 lg:w-32 bg-[#262626] rounded mb-8 animate-pulse"></div>
+        <div className="h-8 w-8 lg:w-32 bg-[var(--border)] rounded mb-8 animate-pulse"></div>
         {/* Nav Items */}
         <div className="flex flex-col gap-6 flex-1 w-full">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="flex items-center justify-center lg:justify-start gap-4">
-              <div className="w-6 h-6 rounded-full bg-[#262626] animate-pulse shrink-0"></div>
-              <div className="hidden lg:block h-4 w-24 bg-[#262626] rounded animate-pulse"></div>
+              <div className="w-6 h-6 rounded-full bg-[var(--border)] animate-pulse shrink-0"></div>
+              <div className="hidden lg:block h-4 w-24 bg-[var(--border)] rounded animate-pulse"></div>
             </div>
           ))}
         </div>
         {/* Profile */}
-        <div className="w-10 h-10 rounded-full bg-[#262626] animate-pulse mt-auto"></div>
+        <div className="w-10 h-10 rounded-full bg-[var(--border)] animate-pulse mt-auto"></div>
       </div>
 
       {/* Main Content Skeleton */}
       <div className="flex-1 flex flex-col h-full relative md:ml-[72px] lg:ml-[244px] lg:mr-[320px]">
         {/* Mobile Header */}
-        <div className="md:hidden h-14 w-full border-b border-[#262626] mb-4 flex items-center px-4">
-          <div className="h-6 w-24 bg-[#262626] rounded animate-pulse"></div>
+        <div className="md:hidden h-14 w-full border-b border-[var(--border)] mb-4 flex items-center px-4">
+          <div className="h-6 w-24 bg-[var(--border)] rounded animate-pulse"></div>
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar pt-4 px-4 flex justify-center">
@@ -41,21 +41,21 @@ export const SkeletonFullPage = () => {
         </div>
 
         {/* Mobile Bottom Nav */}
-        <div className="md:hidden h-16 w-full border-t border-[#262626] bg-black fixed bottom-0 flex justify-around items-center px-4 z-50">
+        <div className="md:hidden h-16 w-full border-t border-[var(--border)] bg-[var(--bg-primary)] fixed bottom-0 flex justify-around items-center px-4 z-50">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="w-6 h-6 rounded bg-[#262626] animate-pulse"></div>
+            <div key={i} className="w-6 h-6 rounded bg-[var(--border)] animate-pulse"></div>
           ))}
         </div>
       </div>
 
       {/* Right Sidebar Skeleton (Desktop) */}
-      <div className="hidden lg:flex w-[320px] h-full fixed right-0 top-0 border-l border-[#262626] bg-black p-4 flex-col gap-6 z-50">
-        <div className="h-10 w-full bg-[#262626] rounded-full animate-pulse"></div>
+      <div className="hidden lg:flex w-[320px] h-full fixed right-0 top-0 border-l border-[var(--border)] bg-[var(--bg-primary)] p-4 flex-col gap-6 z-50">
+        <div className="h-10 w-full bg-[var(--border)] rounded-full animate-pulse"></div>
         <div className="space-y-4">
-          <div className="h-4 w-32 bg-[#262626] rounded animate-pulse"></div>
+          <div className="h-4 w-32 bg-[var(--border)] rounded animate-pulse"></div>
           {[...Array(5)].map((_, i) => (
             <div key={i} className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#262626] animate-pulse"></div>
+              <div className="w-10 h-10 rounded-full bg-[var(--border)] animate-pulse"></div>
               <div className="flex flex-col gap-2">
                 <div className="h-3 w-24 bg-[#262626] rounded animate-pulse"></div>
                 <div className="h-2 w-16 bg-[#262626] rounded animate-pulse"></div>

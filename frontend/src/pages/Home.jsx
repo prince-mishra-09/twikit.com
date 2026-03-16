@@ -148,7 +148,7 @@ const Home = () => {
                   <div className="relative">
                     <button
                       onClick={handleReportBug}
-                      className="bg-orange-500/10 p-2 text-orange-500 rounded-full hover:bg-orange-500/20 transition-all"
+                      className="bg-[var(--warning)]/10 p-2 text-[var(--warning)] rounded-full hover:bg-[var(--warning)]/20 transition-all"
                       title="Report a Bug"
                     >
                       <IoBugOutline className="text-xl" />
@@ -161,7 +161,7 @@ const Home = () => {
                   >
                     <IoNotificationsOutline className="text-xl" />
                     {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[var(--bg-primary)]">
+                      <span className="absolute -top-1 -right-1 bg-[var(--danger)] text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[var(--bg-primary)]">
                         {unreadCount > 9 ? "9+" : unreadCount}
                       </span>
                     )}
@@ -172,7 +172,7 @@ const Home = () => {
                   >
                     <IoChatbubbleEllipsesOutline className="text-xl" />
                     {totalUnreadMessages > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[var(--bg-primary)]">
+                      <span className="absolute -top-1 -right-1 bg-[var(--danger)] text-[var(--text-on-accent)] text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-[var(--bg-primary)]">
                         {totalUnreadMessages > 9 ? "9+" : totalUnreadMessages}
                       </span>
                     )}

@@ -214,7 +214,7 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
           } ${highlightedMessageId === message._id ? 'highlight-message' : ''} ${isMediaOnly
             ? "p-0 bg-transparent shadow-none"
             : `px-3 py-1.5 sm:px-4 sm:py-2 text-[14px] sm:text-base rounded-2xl shadow-sm ${ownMessage
-              ? "bg-[#3a82ee] text-white rounded-br-sm"
+              ? "bg-[var(--accent)] text-[var(--text-on-accent)] rounded-br-sm"
               : "bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-bl-sm border border-[var(--border)]"}`}
           }`}
       >
@@ -226,7 +226,7 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
               scrollToMessage(message.replyTo._id);
             }}
             className={`mb-2 p-2 rounded-lg text-[11px] border-l-4 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity ${ownMessage
-              ? "bg-black/20 border-white/40 text-white/80"
+              ? "bg-black/10 border-[var(--text-on-accent)]/40 text-[var(--text-on-accent)]/80"
               : "bg-[var(--bg-primary)] border-[var(--accent)] text-[var(--text-secondary)]"
               }`}>
             <p className="font-bold mb-0.5">
@@ -242,7 +242,7 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
           <div className="w-full relative">
             <div
               onClick={(e) => handleTap(e, getSharedContentUrl())}
-              className={`block overflow-hidden transition-all pointer-events-auto ${message.sharedContent.type === 'profile' ? 'mb-1 rounded-xl border border-white/10 p-2 bg-black/10' : 'rounded-lg'
+              className={`block overflow-hidden transition-all pointer-events-auto ${message.sharedContent.type === 'profile' ? 'mb-1 rounded-xl border border-[var(--border)]/30 p-2 bg-[var(--bg-primary)]/10' : 'rounded-lg'
                 }`}
             >
               {(message.sharedContent.type === 'post' || message.sharedContent.type === 'reel') ? (
@@ -264,7 +264,7 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
                     )
                   )}
 
-                  <div className="absolute bottom-1 right-2 flex items-center gap-1 text-[10px] text-white/70 drop-shadow-md font-medium">
+                  <div className="absolute bottom-1 right-2 flex items-center gap-1 text-[10px] text-white/90 drop-shadow-md font-medium">
                     <span>{
                       message.createdAt
                         ? new Date(message.createdAt).toLocaleTimeString([], {
@@ -284,7 +284,7 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
                     <img
                       src={message.sharedContent.preview?.image || "/default-avatar.png"}
                       alt="Profile"
-                      className="w-full h-full rounded-full object-cover border border-white/20"
+                      className="w-full h-full rounded-full object-cover border border-[var(--border)]/30"
                     />
                   </div>
                   <div className="flex flex-col min-w-0 flex-1">
@@ -368,7 +368,7 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
           >
             <button
               onClick={(e) => { e.stopPropagation(); deleteHandler(message._id, "unsend"); setActiveMessageId(null); }}
-              className="px-4 py-2.5 text-left text-sm text-red-500 font-medium hover:bg-red-500/10 border-b border-[var(--border)]"
+              className="px-4 py-2.5 text-left text-sm text-[var(--danger)] font-medium hover:bg-[var(--danger)]/10 border-b border-[var(--border)]"
             >
               Unsend
             </button>

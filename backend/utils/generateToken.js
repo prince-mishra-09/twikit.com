@@ -22,10 +22,11 @@ const generateToken = async (userId, req, res) => {
   });
 
   // 4. Set Cookies for Web (HttpOnly for security)
+  const isProduction = process.env.NODE_ENV === "production";
   const cookieOptions = {
     httpOnly: true,
-    sameSite: "none",
-    secure: true,
+    sameSite: isProduction ? "none" : "lax",
+    secure: isProduction,
     maxAge: 30 * 24 * 60 * 60 * 1000, // Refresh token duration
   };
 

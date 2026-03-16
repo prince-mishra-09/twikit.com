@@ -96,7 +96,7 @@ const AddPost = ({ type }) => {
 
         {/* Privacy Indicator */}
         <div className="flex items-center gap-1.5 px-1">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/80"></div>
+          <div className="w-1.5 h-1.5 rounded-full bg-[var(--success)]"></div>
           <p className="text-[11px] text-[var(--text-secondary)] font-medium uppercase tracking-wider">
             Shared with: Public
           </p>

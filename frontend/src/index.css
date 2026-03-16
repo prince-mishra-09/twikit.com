@@ -25,8 +25,12 @@ body {
   --text-on-accent: #000000;
   --border: #333333;
   --card-bg: #1F1F1F;
-  --accent-secondary: #FF2E63;
   /* Hot Pink */
+  --danger: #FF2E63;
+  --success: #00FFD1;
+  --warning: #FFD700;
+  --overlay: rgba(0, 0, 0, 0.85);
+  --surface-glass: rgba(255, 255, 255, 0.05);
 }
 
 /* Theme Option A: "Black & White" (Pure Monochrome) */
@@ -43,6 +47,11 @@ body {
   --border: #262626;
   --card-bg: #0A0A0A;
   --accent-secondary: #404040;
+  --danger: #999999;
+  --success: #FFFFFF;
+  --warning: #B0B0B0;
+  --overlay: rgba(0, 0, 0, 0.95);
+  --surface-glass: rgba(255, 255, 255, 0.02);
 }
 
 /* Theme Option B: "Soft Matcha" (Pale Matcha Green) - Aesthetic/Lifestyle */
@@ -59,8 +68,12 @@ body {
   --text-on-accent: #1A2F1A;
   --border: #B8D4B8;
   --card-bg: #F0F8F0;
-  --accent-secondary: #D4A373;
   /* Earthy Brown/Orange */
+  --danger: #B22222;
+  --success: #2D3A2D;
+  --warning: #D4A373;
+  --overlay: rgba(45, 58, 45, 0.3);
+  --surface-glass: rgba(0, 0, 0, 0.05);
 }
 
 /* Theme Option C: "Retro Pop" (Lavender Blush) - Y2K Nostalgia */
@@ -77,8 +90,12 @@ body {
   --border: #FFB6C1;
   /* Softer border than pure black */
   --card-bg: #FFFFFF;
-  --accent-secondary: #00B4D8;
   /* Cyan */
+  --danger: #FF007A;
+  --success: #00B4D8;
+  --warning: #FFD700;
+  --overlay: rgba(255, 240, 245, 0.7);
+  --surface-glass: rgba(255, 255, 255, 0.4);
 }
 
 /* Theme Option D: "Earthy Slate" (Slate Charcoal) - Quiet Luxury */
