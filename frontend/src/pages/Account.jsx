@@ -583,6 +583,8 @@ const Account = ({ user }) => {
                   type="reel"
                   value={reel}
                   isGrid={true}
+                  showViews={true}
+                  showIcon={false}
                   onClick={() => setFeedModal({ type: 'reel', index: i })}
                   onUpdate={handleLocalUpdate}
                 />
@@ -828,16 +830,18 @@ const SavedPosts = ({ savedPosts, loading, onPostClick, onUpdate }) => {
           <SkeletonPost />
         </div>
       ) : savedPosts && savedPosts.length > 0 ? (
-        <div className="grid grid-cols-3 gap-1">
+        <div className="grid grid-cols-3 gap-1 grid-flow-row auto-rows-[1fr]">
           {savedPosts.map((e, i) => (
-            <PostCard
-              key={e._id}
-              type={e.type || "post"}
-              value={e}
-              isGrid={true}
-              onClick={() => onPostClick && onPostClick(i)}
-              onUpdate={onUpdate}
-            />
+            <div key={e._id} className="aspect-square relative w-full h-full overflow-hidden">
+              <PostCard
+                key={e._id}
+                type={e.type || "post"}
+                value={e}
+                isGrid={true}
+                onClick={() => onPostClick && onPostClick(i)}
+                onUpdate={onUpdate}
+              />
+            </div>
           ))}
         </div>
       ) : (

@@ -6,6 +6,12 @@ const postSchema = new mongoose.Schema({
   post: {
     id: String,
     url: String,
+    thumbnailUrl: String,           // ImageKit auto-thumbnail for videos
+    mediaType: {
+      type: String,
+      enum: ["image", "video"],
+      default: "image",
+    },
   },
 
   type: {

@@ -13,6 +13,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { MdDelete } from "react-icons/md";
 import { SocketData } from "../context/SocketContext";
 import StoryAvatar from "./StoryAvatar";
+import ReelsIcon from "./ReelsIcon";
 import { Suspense } from "react";
 import { getOptimizedImg } from "../utils/imagekit";
 import { isSameId, includesId } from "../utils/idUtils";
@@ -59,7 +60,19 @@ const VibeDownIcon = ({ active }) => (
   </svg>
 );
 
-const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFeed, onClick, onUpdate }) => {
+const PostCard = ({ 
+  value, 
+  type, 
+  isActive, 
+  commentId, 
+  openComments, 
+  isGrid, 
+  isFeed, 
+  onClick, 
+  onUpdate,
+  showViews = false,
+  showIcon = true
+}) => {
   const { user, isAuth, setShowLoginPrompt, followUser, savePost, hidePost, muteUser, blockUser } = UserData();
   const { sendFeedback, addComment, deletePost, deleteComment } = PostData();
   const navigate = useNavigate();
@@ -607,19 +620,45 @@ const PostCard = ({ value, type, isActive, commentId, openComments, isGrid, isFe
 
   if (!value || isHidden) return null; // Hide post if isHidden is true
 
+  // --- Rendering logic ---
+
+  // ===================== GRID RENDERS =====================
+  
   // ===================== REEL RENDER =====================
   // GRID MODE (For Profile/Search)
   if (type === "reel" && isGrid) {
     return (
-      <div className="w-full h-full relative cursor-pointer bg-black flex items-center justify-center group" onClick={onClick}>
+      <div className="w-full h-full relative cursor-pointer bg-black flex items-center justify-center group/grid" onClick={onClick}>
         <video
           src={value.post.url}
           className="w-full h-full object-contain"
           muted
         />
-        {/* Simple View Count Overlay - Bottom Right */}
-        <div className="absolute bottom-2 right-2 flex items-center gap-1 text-white text-xs drop-shadow-md font-medium bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">
-          <IoEyeOutline /> {value.views || 0}
+        {/* Reel Indicator - Top Right (Optional) */}
+        {showIcon && (
+          <div className="absolute top-2 right-2 text-white drop-shadow-md z-10 opacity-90">
+            <ReelsIcon size={18} />
+          </div>
+        )}
+
+        {/* View Count Indicator - Bottom Left (Optional - for Reel Tab) */}
+        {showViews && (
+          <div className="absolute bottom-2 left-2 flex items-center gap-1 text-white text-[11px] drop-shadow-md font-bold z-10 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            <IoEyeOutline size={14} className="mb-[1px]" />
+            <span>{value.views || 0}</span>
+          </div>
+        )}
+
+        {/* Hover Overlay - Optional but matches standard posts if we want consistency */}
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/grid:opacity-100 transition-opacity flex items-center justify-center gap-4 text-white font-bold">
+          <div className="flex items-center gap-1">
+            <VibeUpIcon active={true} />
+            <span>{value.vibesUp?.length || 0}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <BsChatFill />
+            <span>{value.commentsCount || 0}</span>
+          </div>
         </div>
       </div>
     );

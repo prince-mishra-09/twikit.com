@@ -459,16 +459,17 @@ const UserAccount = ({ user: loggedInUser }) => {
       {type === "post" && (
         <div className="w-full max-w-[630px]">
           {myPosts?.length ? (
-            <div className="grid grid-cols-3 gap-1">
+            <div className="grid grid-cols-3 gap-1 grid-flow-row auto-rows-[1fr]">
               {myPosts.map((e, i) => (
-                <PostCard
-                  type={e.type || "post"}
-                  value={e}
-                  key={e._id}
-                  isGrid={true}
-                  onClick={() => setFeedModal({ type: 'post', index: i })}
-                  onUpdate={handleLocalUpdate}
-                />
+                <div key={e._id} className="aspect-square relative w-full h-full overflow-hidden">
+                  <PostCard
+                    type={e.type || "post"}
+                    value={e}
+                    isGrid={true}
+                    onClick={() => setFeedModal({ type: 'post', index: i })}
+                    onUpdate={handleLocalUpdate}
+                  />
+                </div>
               ))}
             </div>
           ) : (
@@ -487,6 +488,8 @@ const UserAccount = ({ user: loggedInUser }) => {
                   type="reel"
                   value={reel}
                   isGrid={true}
+                  showViews={true}
+                  showIcon={false}
                   onClick={() => setFeedModal({ type: 'reel', index: i })}
                   onUpdate={handleLocalUpdate}
                 />
@@ -498,12 +501,12 @@ const UserAccount = ({ user: loggedInUser }) => {
         ))}
 
       {/* End of Feed Message for Profile */}
-      {(myPosts?.length > 0 || myReels?.length > 0) && (
+      {/* {(myPosts?.length > 0 || myReels?.length > 0) && (
         <div className="w-full py-12 flex flex-col items-center justify-center opacity-50">
           <div className="h-[1px] w-20 bg-gradient-to-r from-transparent via-[var(--text-secondary)] to-transparent mb-4" />
           <p className="text-[var(--text-secondary)] text-sm font-medium tracking-wide">End of Profile Feed</p>
         </div>
-      )}
+      )} */}
 
       {/* Story Viewer Overlay */}
       {showStoryViewer && activeStory && (

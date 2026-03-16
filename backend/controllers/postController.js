@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import User from "../models/userModel.js";
 import TryCatch from "../utils/tryCatch.js";
 import getDataUrl from "../utils/urlGenerator.js";
-import { uploadFile, deleteFile } from '../utils/imagekit.js';
+import { uploadFile, deleteFile, uploadMedia } from '../utils/imagekit.js';
 import { getIO } from "../socket/socketIO.js";
 import { Notification } from "../models/Notification.js";
 import { sendPushNotification } from "./notificationController.js";
@@ -55,8 +55,13 @@ export const newPost = TryCatch(async (req, res) => {
             const fileUrl = getDataUrl(file);
             const option = type === "reel" ? { resource_type: "video" } : {};
 
-            // Heavy: ImageKit Upload
-            const myCloud = await uploadFile(fileUrl.content, file.originalname, type === "reel" ? "reels" : "posts");
+            // Compress + Upload to ImageKit (images: WebP 3:4 | videos: H.264 9:16)
+            const myCloud = await uploadMedia(
+                file.buffer,
+                file.originalname,
+                type === "reel" ? "reels" : "posts",
+                file.mimetype
+            );
             logToFile(`[BACKGROUND UPLOAD] ImageKit upload success for user ${ownerIdStr}`);
 
             // Heavy: DB Creation
@@ -65,6 +70,8 @@ export const newPost = TryCatch(async (req, res) => {
                 post: {
                     id: myCloud.id,
                     url: myCloud.url,
+                    thumbnailUrl: myCloud.thumbnailUrl || null,
+                    mediaType: myCloud.mediaType || "image",
                 },
                 owner: ownerId,
                 type,
