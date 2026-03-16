@@ -1,30 +1,33 @@
-import React, { useState, useRef, useEffect, createRef } from "react";
+import React, { useState, useRef, useEffect, createRef, useMemo } from "react";
 import Draggable from "react-draggable";
 import html2canvas from "html2canvas";
-import { AiOutlineArrowLeft, AiOutlinePlus, AiOutlineMinus, AiOutlineRotateRight, AiOutlineDelete } from "react-icons/ai";
-import { BsImage } from "react-icons/bs";
-import { IoText } from "react-icons/io5";
-import { FaTrash } from "react-icons/fa";
+import { useGesture } from "@use-gesture/react";
+import { UserData } from "../context/UserContext";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+    AiOutlineArrowLeft, 
+    AiOutlinePlus, 
+    AiOutlineMinus, 
+    AiOutlineRotateRight, 
+    AiOutlineDelete,
+    AiOutlineCheck,
+    AiOutlineGlobal,
+    AiOutlineAlignLeft,
+    AiOutlineAlignCenter,
+    AiOutlineAlignRight
+} from "react-icons/ai";
+import { BsImage, BsCheck2 } from "react-icons/bs";
+import { IoText, IoColorPaletteOutline, IoImagesOutline } from "react-icons/io5";
+import { FaTrash, FaCheck } from "react-icons/fa";
 import { LoadingAnimation } from "./Loading";
 import toast from "react-hot-toast";
 
 // Gen Z / Modern Colors
 const GEN_Z_COLORS = [
-     
-    "#000000", // Classic Black (User Custom)
-    "#1A1A1A", // Dark Gray
-    "#FFFFFF", // White
-    "#FF00FF", // Magenta
-    "#00FFFF", // Cyan
-    "#39FF14", // Neon Green
-    "#FFFF00", // Neon Yellow
-    "#FF4500", // Orange Red
-    "#8A2BE2", // Blue Violet
-    "#FF1493", // Deep Pink
-    "#ffff02ff", // Light Yellow
+    "#000000", "#1A1A1A", "#FFFFFF", "#FF00FF", "#00FFFF", 
+    "#39FF14", "#FFFF00", "#FF4500", "#8A2BE2", "#FF1493", "#ffff02ff",
 ];
 
-// Fonts
 const FONTS = [
     { name: "Modern", value: "Inter, sans-serif" },
     { name: "Serif", value: "Merriweather, serif" },
@@ -33,18 +36,27 @@ const FONTS = [
     { name: "Impact", value: "fantasy" },
 ];
 
+const TEXT_STYLES = [
+    { id: "classic", label: "Classic", icon: <IoText /> },
+    { id: "highlighted", label: "Box", icon: <div className="w-4 h-3 bg-white rounded-sm" /> },
+    { id: "rounded", label: "Bubble", icon: <div className="w-4 h-3 bg-white rounded-full" /> },
+];
+
 const StoryEditor = ({ file, type, onSave, onCancel }) => {
+    const { user } = UserData();
     // --- State ---
     const [elements, setElements] = useState([]);
     const [backgroundIndex, setBackgroundIndex] = useState(0);
     const [activeElementId, setActiveElementId] = useState(null);
     const [showTextModal, setShowTextModal] = useState(false);
-    const [showExitModal, setShowExitModal] = useState(false); // Custom Exit Modal State
+    const [editingElement, setEditingElement] = useState(null); // For "Double Tap to Edit"
+    const [showExitModal, setShowExitModal] = useState(false);
     const [saving, setSaving] = useState(false);
 
     // Drag/Delete State
     const [isDragging, setIsDragging] = useState(false);
     const [isOverTrash, setIsOverTrash] = useState(false);
+    const [snapGuides, setSnapGuides] = useState({ x: false, y: false });
 
     // Refs
     const canvasRef = useRef(null);
@@ -52,7 +64,6 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
     const fileInputRef = useRef(null);
     const elementRefs = useRef({});
 
-    // Helper to get or create ref synchronously
     const getRef = (id) => {
         if (!elementRefs.current[id]) {
             elementRefs.current[id] = createRef();
@@ -60,7 +71,6 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
         return elementRefs.current[id];
     };
 
-    // Initial Media (Background Layer)
     const [bgMedia, setBgMedia] = useState(null);
 
     useEffect(() => {
@@ -71,33 +81,42 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
         }
     }, [file]);
 
-    // Force default Light Yellow on mount if no media
-    useEffect(() => {
-        if (!file && backgroundIndex !== 0) {
-            setBackgroundIndex(0);
-        }
-    }, []);
-
-    // --- Actions ---
-
     const cycleBackgroundColor = () => {
         setBackgroundIndex((prev) => (prev + 1) % GEN_Z_COLORS.length);
     };
 
-    const handleAddText = (text, color, font) => {
-        const newEl = {
-            id: Date.now(),
-            type: "text",
-            content: text,
-            x: 50,
-            y: 200,
-            rotation: 0,
-            scale: 1,
-            color,
-            font
+    // --- REFRESH PROTECTION ---
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            if (elements.length > 0) {
+                e.preventDefault();
+                e.returnValue = ''; 
+            }
         };
-        getRef(newEl.id);
-        setElements([...elements, newEl]);
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [elements]);
+
+    const handleAddText = (textData) => {
+        if (editingElement) {
+            setElements(prev => prev.map(el => el.id === editingElement.id ? { ...el, ...textData, content: textData.text } : el));
+            setEditingElement(null);
+        } else {
+            const newEl = {
+                id: Date.now(),
+                type: "text",
+                content: textData.text,
+                x: 0,
+                y: 0,
+                rotation: 0,
+                scale: 1,
+                color: textData.color,
+                font: textData.font,
+                textStyle: textData.textStyle,
+                textAlign: textData.textAlign
+            };
+            setElements([...elements, newEl]);
+        }
         setShowTextModal(false);
     };
 
@@ -109,15 +128,14 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
                 id: Date.now(),
                 type: "image",
                 url: url,
-                x: 50,
-                y: 100,
+                x: 0,
+                y: 0,
                 rotation: 0,
                 scale: 1
             };
-            getRef(newEl.id);
             setElements([...elements, newEl]);
         }
-        e.target.value = ""; // Reset to allow re-selection
+        e.target.value = "";
     };
 
     // --- Interaction Handlers ---
@@ -127,24 +145,19 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
         setIsDragging(true);
     };
 
-    const handleDrag = (e, data) => {
+    const handleDrag = (e, data, id) => {
+        const threshold = 10;
+        const isCenteredX = Math.abs(data.x) < threshold;
+        const isCenteredY = Math.abs(data.y) < threshold;
+
+        setSnapGuides({ x: isCenteredX, y: isCenteredY });
+
         if (trashRef.current) {
             const rect = trashRef.current.getBoundingClientRect();
-            // ClientX/Y 
-            let clientX = e.clientX;
-            let clientY = e.clientY;
+            let clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            let clientY = e.clientY || (e.touches && e.touches[0].clientY);
 
-            if (e.type.startsWith('touch')) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            }
-
-            if (
-                clientX > rect.left &&
-                clientX < rect.right &&
-                clientY > rect.top &&
-                clientY < rect.bottom
-            ) {
+            if (clientX > rect.left && clientX < rect.right && clientY > rect.top && clientY < rect.bottom) {
                 setIsOverTrash(true);
             } else {
                 setIsOverTrash(false);
@@ -154,6 +167,7 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
 
     const handleDragStop = (e, data, id) => {
         setIsDragging(false);
+        setSnapGuides({ x: false, y: false });
         if (isOverTrash) {
             deleteElement(id);
             setIsOverTrash(false);
@@ -162,373 +176,456 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
         }
     };
 
-    // --- Toolbar Handlers ---
-
-    // Explicitly update only the scale/rotation properties, keep x/y as is
-    const handleResize = (increment) => {
-        if (!activeElementId) return;
-        setElements(prev => prev.map(item => {
-            if (item.id === activeElementId) {
-                const newScale = item.scale + increment;
-                return { ...item, scale: Math.max(0.2, Math.min(newScale, 4)) };
-            }
-            return item;
-        }));
-    };
-
-    const handleRotate = () => {
-        if (!activeElementId) return;
-        setElements(prev => prev.map(item => {
-            if (item.id === activeElementId) {
-                return { ...item, rotation: (item.rotation + 45) % 360 };
-            }
-            return item;
-        }));
-    };
-
     const deleteElement = (id) => {
         setElements(prev => prev.filter(el => el.id !== id));
         setActiveElementId(null);
-        toast.success("Deleted", { icon: "🗑️" });
+        toast.success("Removed", { 
+            style: { background: "#1A1A1A", color: "#FFF", borderRadius: "10px" },
+            iconTheme: { primary: "#FF3040", secondary: "#FFF" }
+        });
     };
 
-    // --- Save / Bake ---
     const handleSave = async () => {
         if (!canvasRef.current) return;
         setSaving(true);
-
         try {
             setActiveElementId(null);
-            await new Promise(r => setTimeout(r, 100));
-
+            await new Promise(r => setTimeout(r, 200));
             if (bgMedia?.type === "video") {
                 onSave(file);
             } else {
                 const canvas = await html2canvas(canvasRef.current, {
                     useCORS: true,
-                    scale: 2,
+                    scale: 3,
                     backgroundColor: GEN_Z_COLORS[backgroundIndex],
                 });
-
                 canvas.toBlob((blob) => {
                     const bakedFile = new File([blob], "story.png", { type: "image/png" });
                     onSave(bakedFile);
                 }, "image/png");
             }
         } catch (error) {
-            console.error("Baking failed", error);
+            toast.error("Failed to save story");
             setSaving(false);
-            onSave(file);
         }
     };
 
+    const openTextEditor = (el = null) => {
+        setEditingElement(el);
+        setShowTextModal(true);
+    };
+
     return (
-        <div className="fixed inset-0 z-[60] bg-[var(--bg-primary)] flex flex-col">
+        <div className="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center font-['Inter']">
+            
+            {/* Top Left: Exit */}
+            <motion.button 
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowExitModal(true)}
+                className="absolute top-4 left-4 z-[70] p-2.5 rounded-full bg-black/20 backdrop-blur-xl border border-white/10 text-white transition-all shadow-lg"
+                style={{ color: isDark(GEN_Z_COLORS[backgroundIndex]) ? '#FFF' : '#000' }}
+            >
+                <AiOutlineArrowLeft size={22} />
+            </motion.button>
 
-            {/* --- TOP BAR (Theme Aware) --- */}
-            <div className="bg-[var(--card-bg)] border-b border-[var(--border)] px-4 py-3 flex items-center justify-between z-20 shadow-sm">
-                <button
-                    onClick={() => setShowExitModal(true)} // Open Custom Modal
-                    className="p-2 -ml-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-full transition"
-                >
-                    <AiOutlineArrowLeft size={24} />
-                </button>
-
-                <div className="flex items-center gap-6">
-                    {/* 1. Photo Add */}
-                    <div className="flex flex-col items-center gap-1 cursor-pointer group" onClick={() => fileInputRef.current.click()}>
-                        <BsImage size={24} className="text-[var(--accent)] group-hover:scale-110 transition" />
-                        <span className="text-[10px] font-bold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] leading-none">Media</span>
-                        <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={handleAddImage} />
-                    </div>
-
-                    {/* 2. Text Add */}
-                    <button
-                        onClick={() => setShowTextModal(true)}
-                        className="flex items-center gap-2 bg-[var(--bg-secondary)] border border-[var(--border)] px-3 py-1.5 rounded-full hover:bg-[var(--bg-primary)] transition"
-                    >
-                        <IoText size={20} className="text-[var(--accent)]" />
-                        <span className="text-sm font-bold text-[var(--text-primary)]"></span>
-                    </button>
-
-                    {/* 3. Color Circle (Showing Current Color) */}
-                    <button onClick={cycleBackgroundColor} className="relative group flex flex-col items-center gap-1">
-                        <div
-                            className="w-8 h-8 rounded-full border-2 border-[var(--border)] shadow-inner transition-transform active:scale-95 hover:border-[var(--text-primary)]"
-                            // Showing CURRENT color
-                            style={{ backgroundColor: GEN_Z_COLORS[backgroundIndex] }}
-                        />
-                        <span className="text-[10px] font-bold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] leading-none">Bg</span>
-                    </button>
-                </div>
+            {/* Top Right: Vertical Tools Stack */}
+            <div className="absolute top-4 right-4 z-[70] flex flex-col gap-4">
+                <ToolButton 
+                    icon={<IoText size={22} />} 
+                    onClick={() => openTextEditor()} 
+                    label="Text" 
+                    isDarkBg={isDark(GEN_Z_COLORS[backgroundIndex])}
+                />
+                <ToolButton 
+                    icon={<IoImagesOutline size={22} />} 
+                    onClick={() => fileInputRef.current.click()} 
+                    label="Stickers" 
+                    isDarkBg={isDark(GEN_Z_COLORS[backgroundIndex])}
+                />
+                <ToolButton 
+                    icon={<div className="w-5 h-5 rounded-full border border-current shadow-[0_0_10px_rgba(255,255,255,0.1)]" style={{ backgroundColor: GEN_Z_COLORS[backgroundIndex] }} />} 
+                    onClick={cycleBackgroundColor} 
+                    label="Backdrop" 
+                    isDarkBg={isDark(GEN_Z_COLORS[backgroundIndex])}
+                />
+                <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={handleAddImage} />
             </div>
 
-            {/* --- WORKSPACE (CANVAS) --- */}
-            <div className="flex-1 relative overflow-hidden bg-[#000000] flex items-center justify-center">
-
+            {/* --- CANVAS CONTAINER (9:16) --- */}
+            <div className="relative w-full h-full flex items-center justify-center md:p-4">
                 <div
-                    ref={canvasRef} // Needs to capture the background color
-                    className="relative w-full h-full md:max-w-sm md:aspect-[9/16] overflow-hidden shadow-2xl transition-colors duration-300"
+                    ref={canvasRef}
+                    className="relative w-full h-full md:aspect-[9/16] md:h-full md:max-h-[85vh] md:w-auto bg-black overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] md:rounded-[2.5rem] md:border border-white/5 transition-all"
                     style={{ backgroundColor: GEN_Z_COLORS[backgroundIndex] }}
                     onClick={() => setActiveElementId(null)}
                 >
-                    {/* Main Background Media */}
+                    {/* Snap Guides */}
+                    <AnimatePresence>
+                        {snapGuides.x && (
+                            <motion.div 
+                                key="snap-x"
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                className="absolute left-1/2 top-0 bottom-0 w-[2px] bg-cyan-400 z-[100] shadow-[0_0_10px_rgba(0,255,255,0.8)]"
+                                style={{ transform: "translateX(-50%)" }}
+                            />
+                        )}
+                        {snapGuides.y && (
+                            <motion.div 
+                                key="snap-y"
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                className="absolute top-1/2 left-0 right-0 h-[2px] bg-cyan-400 z-[100] shadow-[0_0_10px_rgba(0,255,255,0.8)]"
+                                style={{ transform: "translateY(-50%)" }}
+                            />
+                        )}
+                    </AnimatePresence>
+
+                    {/* Background Media */}
                     {bgMedia && (
-                        <Draggable
-                            nodeRef={getRef("bg")}
-                            onStart={() => setActiveElementId("bg")}
-                            cancel=".no-drag"
-                        >
-                            <div ref={getRef("bg")} className="w-full h-full">
-                                {bgMedia.type === "video" ? (
-                                    <video
-                                        src={bgMedia.url}
-                                        className="w-full h-full object-cover pointer-events-none"
-                                        autoPlay loop muted playsInline
-                                    />
-                                ) : (
-                                    <img
-                                        src={bgMedia.url}
-                                        className={`w-full h-full object-cover ${activeElementId === 'bg' ? 'border-2 border-blue-500' : ''}`}
-                                        alt="bg"
-                                        draggable={false}
-                                    />
-                                )}
-                            </div>
-                        </Draggable>
+                        <div className="absolute inset-0 w-full h-full">
+                            {bgMedia.type === "video" ? (
+                                <video src={bgMedia.url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
+                            ) : (
+                                <img src={bgMedia.url} className="w-full h-full object-cover" alt="bg" draggable={false} />
+                            )}
+                        </div>
                     )}
 
-                    {/* Elements Layer */}
-                    {elements.map(el => (
-                        <Draggable
-                            key={el.id}
-                            nodeRef={getRef(el.id)}
-                            position={{ x: el.x, y: el.y }}
-                            onStart={() => handleDragStart(el.id)}
-                            onDrag={handleDrag}
-                            onStop={(e, d) => handleDragStop(e, d, el.id)}
-                            disabled={false}
-                        >
-
-                            {/* OUTER WRAPPER: Handles DRAG (Translate) only. */}
-                            <div
-                                ref={getRef(el.id)}
-                                className={`absolute cursor-pointer p-0 ${activeElementId === el.id ? "z-50" : "z-10"}`} // Lift active on top
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setActiveElementId(el.id);
-                                }}
-                            >
-                                {/* INNER WRAPPER: Handles TRANSFORM (Scale/Rotate). */}
-                                <div
-                                    className={`p-2 transition-transform duration-100 ease-linear ${activeElementId === el.id ? "border-2 border-white border-dashed rounded-lg bg-black/10" : ""}`}
-                                    style={{
-                                        transform: `scale(${el.scale}) rotate(${el.rotation}deg)`,
-                                        transformOrigin: "center center"
-                                    }}
-                                >
-                                    {el.type === "text" ? (
-                                        <p
-                                            className="text-2xl font-bold whitespace-pre-wrap text-center leading-tight drop-shadow-md select-none"
-                                            style={{ color: el.color, fontFamily: el.font }}
-                                        >
-                                            {el.content}
-                                        </p>
-                                    ) : (
-                                        <img
-                                            src={el.url}
-                                            className="max-w-[150px] rounded-lg shadow-xl pointer-events-none"
-                                            alt="element"
-                                        />
-                                    )}
-                                </div>
-                            </div>
-                        </Draggable>
-                    ))}
-
-                </div>
-
-                {/* --- TRASH BIN (Floating) --- */}
-                <div
-                    ref={trashRef}
-                    className={`absolute bottom-32 left-1/2 -translate-x-1/2 transition-all duration-300 z-40 ${isDragging ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"}`}
-                >
-                    <div className={`w-16 h-16 rounded-full flex items-center justify-center border-2 shadow-lg backdrop-blur-md ${isOverTrash ? "bg-[var(--danger)] border-[var(--danger)] text-[var(--text-on-accent)] scale-125" : "bg-[var(--overlay)]/50 border-[var(--border)]/30 text-white"}`}>
-                        <FaTrash size={24} />
+                    {/* Elements */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        {elements.map(el => (
+                            <StoryElement 
+                                key={el.id} 
+                                element={el} 
+                                active={activeElementId === el.id}
+                                onSelect={() => setActiveElementId(el.id)}
+                                onDrag={handleDrag}
+                                onDragStart={handleDragStart}
+                                onDragStop={handleDragStop}
+                                onUpdate={(updates) => setElements(prev => prev.map(item => item.id === el.id ? { ...item, ...updates } : item))}
+                                onDoubleTap={() => openTextEditor(el)}
+                            />
+                        ))}
                     </div>
                 </div>
-
-                {/* --- SELECTION TOOLBAR (FIXED BUBBLING) --- */}
-                {activeElementId && activeElementId !== "bg" && !isDragging && !showTextModal && (
-                    <div
-                        className="absolute bottom-24 left-0 right-0 z-50 flex justify-center pb-2 cursor-default"
-                        onClick={(e) => e.stopPropagation()} // STOP BUBBLING to Canvas
-                    >
-                        <div className="bg-[#1F2937] border border-gray-700 rounded-2xl shadow-xl flex items-center p-2 gap-4 animate-in slide-in-from-bottom-5">
-
-                            {/* Size - */}
-                            <button onClick={() => handleResize(-0.1)} className="p-3 bg-[var(--bg-primary)] rounded-full text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] active:scale-95 transition">
-                                <AiOutlineMinus size={20} />
-                            </button>
-
-                            <span className="text-[var(--text-secondary)] text-xs font-bold uppercase tracking-wider select-none">Size</span>
-
-                            {/* Size + */}
-                            <button onClick={() => handleResize(0.1)} className="p-3 bg-[var(--bg-primary)] rounded-full text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] active:scale-95 transition">
-                                <AiOutlinePlus size={20} />
-                            </button>
-
-                            <div className="w-px h-6 bg-[var(--border)] mx-1"></div>
-
-                            {/* Rotate */}
-                            <button onClick={handleRotate} className="p-3 bg-[var(--bg-primary)] rounded-full text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] active:scale-95 transition">
-                                <AiOutlineRotateRight size={20} />
-                            </button>
-
-                            <div className="w-px h-6 bg-[var(--border)] mx-1"></div>
-
-                            {/* Delete */}
-                            <button onClick={() => deleteElement(activeElementId)} className="p-3 bg-[var(--danger)]/20 text-[var(--danger)] rounded-full hover:bg-[var(--danger)]/30 active:scale-95 transition">
-                                <AiOutlineDelete size={20} />
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* --- SHARE BUTTON --- */}
-                {!isDragging && !showTextModal && !activeElementId && (
-                    <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="absolute bottom-8 right-6 bg-[var(--accent)] text-[var(--text-on-accent)] font-bold h-12 px-6 rounded-full shadow-lg shadow-[var(--accent)]/30 flex items-center gap-2 active:scale-95 transition z-50 hover:brightness-110"
-                    >
-                        {saving ? <LoadingAnimation small /> : "Share Story >"}
-                    </button>
-                )}
-                {/* Done Button for Clarity */}
-                {activeElementId && !isDragging && (
-                    <button
-                        onClick={() => setActiveElementId(null)}
-                        className="absolute bottom-8 right-6 bg-[var(--bg-secondary)] text-[var(--text-primary)] font-bold h-12 px-6 rounded-full shadow-lg border border-[var(--border)] active:scale-95 transition z-50"
-                    >
-                        Done
-                    </button>
-                )}
-
             </div>
 
-            {/* --- TEXT EDITOR MODAL --- */}
-            {showTextModal && (
-                <TextEditorModal
-                    onDone={handleAddText}
-                    onCancel={() => setShowTextModal(false)}
-                />
+            {/* --- SMART TRASH BIN --- */}
+            <AnimatePresence>
+                {isDragging && (
+                    <motion.div 
+                        key="trash-bin"
+                        initial={{ y: 100, opacity: 0, x: "-50%" }}
+                        animate={{ y: 0, opacity: 1, x: "-50%" }}
+                        exit={{ y: 100, opacity: 0, x: "-50%" }}
+                        ref={trashRef}
+                        className="absolute bottom-10 left-1/2 z-[70]"
+                    >
+                        <motion.div 
+                            animate={{ scale: isOverTrash ? 1.4 : 1 }}
+                            className={`w-16 h-16 rounded-full flex items-center justify-center backdrop-blur-xl border-2 transition-colors ${isOverTrash ? "bg-red-500 border-red-400 text-white" : "bg-white/10 border-white/20 text-white"}`}
+                        >
+                            <FaTrash size={20} />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* --- FLOATING ACTION BUTTON (SHARE) --- */}
+            {!isDragging && !showTextModal && (
+                <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="absolute bottom-6 right-6 z-[70] bg-black/20 backdrop-blur-2xl text-white font-bold h-14 pl-2 pr-6 rounded-full border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.3)] flex items-center gap-3 hover:scale-105 active:scale-95 transition-all group"
+                >
+                    {saving ? <LoadingAnimation small /> : (
+                        <>
+                            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/10">
+                                <img 
+                                    src={user?.profilePic?.url || "https://placehold.co/100"} 
+                                    className="w-full h-full object-cover" 
+                                    alt="user"
+                                />
+                            </div>
+                            <span className="text-sm font-extrabold tracking-tight">Your Story</span>
+                            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                                <BsCheck2 size={18} />
+                            </div>
+                        </>
+                    )}
+                </button>
             )}
 
-            {/* --- EXIT CONFIRMATION MODAL --- */}
-            {showExitModal && (
-                <ExitConfirmationModal
-                    onConfirm={onCancel}
-                    onCancel={() => setShowExitModal(false)}
-                />
-            )}
-
+            {/* Modals */}
+            <AnimatePresence>
+                {showTextModal && (
+                    <TextEditorModal 
+                        key="text-editor"
+                        initialData={editingElement}
+                        onDone={handleAddText} 
+                        onCancel={() => { setShowTextModal(false); setEditingElement(null); }} 
+                    />
+                )}
+                {showExitModal && (
+                    <ExitConfirmationModal 
+                        key="exit-confirm"
+                        onConfirm={onCancel} 
+                        onCancel={() => setShowExitModal(false)} 
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 };
 
-// ... TextEditorModal remains same ... 
-const TextEditorModal = ({ onDone, onCancel }) => {
-    const [text, setText] = useState("");
-    const [color, setColor] = useState("#FFFFFF");
-    const [font, setFont] = useState("Inter, sans-serif");
+const ToolButton = ({ icon, onClick, label, isDarkBg }) => (
+    <motion.button 
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={onClick}
+        className="group relative flex flex-col items-center gap-1"
+        style={{ color: isDarkBg ? '#FFF' : '#000' }}
+    >
+        <div className="p-2.5 rounded-full bg-black/20 backdrop-blur-xl border border-white/10 transition-all shadow-lg">
+            {icon}
+        </div>
+        <span className={`text-[10px] font-bold uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap ${isDarkBg ? 'text-white/70' : 'text-black/70'}`}>
+            {label}
+        </span>
+    </motion.button>
+);
+
+const StoryElement = ({ element, active, onSelect, onDrag, onDragStart, onDragStop, onUpdate, onDoubleTap }) => {
+    const nodeRef = useRef(null);
+    const lastTap = useRef(0);
+
+    useGesture(
+        {
+            onPinch: ({ offset: [d, a] }) => {
+                onUpdate({ scale: d, rotation: a });
+            },
+        },
+        {
+            target: nodeRef,
+            pinch: { scaleBounds: { min: 0.5, max: 4 }, from: () => [element.scale, element.rotation] }
+        }
+    );
+
+    const handleTap = (e) => {
+        e.stopPropagation();
+        onSelect();
+        const now = Date.now();
+        if (now - lastTap.current < 300) {
+            onDoubleTap();
+        }
+        lastTap.current = now;
+    };
+
+    const textStyles = {
+        classic: "text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]",
+        highlighted: "bg-white text-black px-3 py-1 rounded-sm shadow-lg inline-block",
+        rounded: "bg-white text-black px-5 py-2 rounded-full shadow-lg inline-block"
+    };
+
+    const contrastColor = (bgColor) => {
+        if (!bgColor || bgColor === 'transparent') return '#FFF';
+        return isDark(bgColor) ? '#FFF' : '#000';
+    };
 
     return (
-        <div className="fixed inset-0 z-[70] bg-[var(--overlay)]/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-            <div className="absolute inset-0" onClick={onCancel}></div>
+        <Draggable
+            nodeRef={nodeRef}
+            position={{ x: element.x, y: element.y }}
+            onStart={() => onDragStart(element.id)}
+            onDrag={(e, d) => onDrag(e, d, element.id)}
+            onStop={(e, d) => onDragStop(e, d, element.id)}
+        >
+            <div
+                ref={nodeRef}
+                className={`absolute pointer-events-auto cursor-grab active:cursor-grabbing p-4 ${active ? "z-50" : "z-10"}`}
+                onClick={handleTap}
+                style={{ touchAction: "none" }}
+            >
+                <div 
+                    style={{ 
+                        transform: `scale(${element.scale}) rotate(${element.rotation}deg)`,
+                        transition: "transform 0.1s ease-out"
+                    }}
+                >
+                    {element.type === "text" ? (
+                        <div className="flex flex-col" style={{ alignItems: element.textAlign || 'center' }}>
+                            <div 
+                                className={`text-2xl font-bold whitespace-pre-wrap select-none ${textStyles[element.textStyle || 'classic']}`}
+                                style={{ 
+                                    fontFamily: element.font,
+                                    textAlign: element.textAlign || 'center',
+                                    color: (element.textStyle === 'classic' || !element.textStyle) ? element.color : contrastColor(element.color),
+                                    backgroundColor: (element.textStyle !== 'classic' && element.textStyle) ? element.color : 'transparent',
+                                }}
+                            >
+                                {element.content}
+                            </div>
+                        </div>
+                    ) : (
+                        <img src={element.url} className="w-40 rounded-2xl shadow-2xl pointer-events-none" alt="sticker" />
+                    )}
+                </div>
+                {active && (
+                    <div className="absolute inset-0 border-2 border-dashed border-white/50 rounded-lg pointer-events-none" />
+                )}
+            </div>
+        </Draggable>
+    );
+};
 
-            <div className="bg-[var(--card-bg)] w-full max-w-sm rounded-[2rem] p-6 shadow-2xl relative z-10 border border-[var(--border)] ring-1 ring-white/10">
+const isDark = (color) => {
+    if (!color) return true;
+    const hex = color.replace('#', '');
+    if (hex.length < 6) return true;
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    const brightness = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return brightness < 155;
+};
 
-                <div className="flex justify-between items-center mb-6">
-                    <button onClick={onCancel} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] px-2">Cancel</button>
-                    <h3 className="text-[var(--text-primary)] font-bold text-lg">Add Text</h3>
-                    <button
-                        onClick={() => text.trim() && onDone(text, color, font)}
-                        className="text-[var(--accent)] font-bold hover:opacity-80 px-2"
-                    >
-                        Done
-                    </button>
+const TextEditorModal = ({ onDone, onCancel, initialData }) => {
+    const [text, setText] = useState(initialData?.content || "");
+    const [color, setColor] = useState(initialData?.color || "#FFFFFF");
+    const [font, setFont] = useState(initialData?.font || "Inter, sans-serif");
+    const [textStyle, setTextStyle] = useState(initialData?.textStyle || "classic");
+    const [textAlign, setTextAlign] = useState(initialData?.textAlign || "center");
+
+    const nextAlignment = () => {
+        const flow = { center: 'left', left: 'right', right: 'center' };
+        setTextAlign(flow[textAlign]);
+    };
+
+    const alignmentIcon = () => {
+        if (textAlign === 'left') return <AiOutlineAlignLeft size={24} />;
+        if (textAlign === 'right') return <AiOutlineAlignRight size={24} />;
+        return <AiOutlineAlignCenter size={24} />;
+    };
+
+    return (
+        <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-2xl flex flex-col items-center p-6 pt-6 md:pt-20"
+        >
+            <div className="w-full max-w-lg flex flex-col h-full">
+                <div className="flex justify-between items-center mb-4 md:mb-10">
+                    <button onClick={onCancel} className="text-white/60 hover:text-white font-medium text-lg">Cancel</button>
+                    <div className="flex gap-4">
+                        {TEXT_STYLES.map(style => (
+                            <button 
+                                key={style.id}
+                                onClick={() => setTextStyle(style.id)}
+                                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${textStyle === style.id ? "bg-white text-black scale-110" : "bg-white/10 text-white border border-white/10"}`}
+                            >
+                                {style.icon}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="flex gap-4">
+                        <button 
+                            onClick={nextAlignment}
+                            className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10 text-white border border-white/10"
+                        >
+                            {alignmentIcon()}
+                        </button>
+                        <button 
+                            onClick={() => text.trim() && onDone({ text, color, font, textStyle, textAlign })}
+                            className="bg-white text-black px-6 py-2 rounded-full font-bold hover:bg-white/90 active:scale-95 transition"
+                        >
+                            Done
+                        </button>
+                    </div>
                 </div>
 
-                <div className="mb-8 flex justify-center">
-                    <textarea
-                        value={text}
-                        onChange={(e) => setText(e.target.value)}
-                        placeholder="Type something..."
-                        className="bg-transparent text-center text-3xl font-bold w-full focus:outline-none placeholder-[var(--text-secondary)] resize-none"
-                        style={{ color: color, fontFamily: font }}
-                        rows={3}
-                        autoFocus
-                    />
-                </div>
+                    <div className="w-full flex flex-col items-center">
+                        <textarea
+                            value={text}
+                            onChange={(e) => setText(e.target.value)}
+                            placeholder="Type something..."
+                            className="bg-transparent text-4xl font-bold focus:outline-none placeholder-white/20 resize-none overflow-hidden max-w-full"
+                            style={{ 
+                                textAlign: textAlign,
+                                color: textStyle === 'classic' ? color : (isDark(color) ? '#FFF' : '#000'),
+                                fontFamily: font,
+                                backgroundColor: textStyle !== 'classic' ? color : 'transparent',
+                                padding: textStyle === 'rounded' ? '1rem 2rem' : (textStyle === 'highlighted' ? '0.5rem 1.5rem' : '0'),
+                                borderRadius: textStyle === 'rounded' ? '999px' : (textStyle === 'highlighted' ? '4px' : '0'),
+                                width: 'auto',
+                                display: 'inline-block',
+                                minWidth: '100px'
+                            }}
+                            rows={text.split('\n').length || 1}
+                            autoFocus
+                        />
+                    </div>
 
-                <div className="mb-6">
-                    <p className="text-xs text-[var(--text-secondary)] uppercase font-bold tracking-wider mb-2 ml-1">Font</p>
-                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                <div className="space-y-8 pb-2 md:pb-10">
+                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide py-2">
                         {FONTS.map((f) => (
                             <button
                                 key={f.name}
                                 onClick={() => setFont(f.value)}
-                                className={`px-4 py-2 rounded-xl border transition ${font === f.value ? "bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)]" : "bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border)] hover:bg-[var(--bg-primary)]"}`}
+                                className={`px-5 py-2 rounded-full border shrink-0 transition-all font-medium ${font === f.value ? "bg-white text-black border-white" : "bg-white/5 text-white border-white/10 hover:bg-white/10"}`}
                                 style={{ fontFamily: f.value }}
                             >
                                 {f.name}
                             </button>
                         ))}
                     </div>
-                </div>
 
-                <div>
-                    <p className="text-xs text-[var(--text-secondary)] uppercase font-bold tracking-wider mb-2 ml-1">Color</p>
-                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                    <div className="flex gap-4 overflow-x-auto py-6 scrollbar-hide items-center">
                         {GEN_Z_COLORS.map((c) => (
                             <button
                                 key={c}
                                 onClick={() => setColor(c)}
-                                className={`w-10 h-10 rounded-full border-2 shrink-0 transition ${color === c ? "border-[var(--text-primary)] scale-110" : "border-transparent"}`}
+                                className={`w-9 h-9 rounded-full border-2 shrink-0 transition-all ${color === c ? "border-white scale-125 shadow-[0_0_15px_rgba(255,255,255,0.5)]" : "border-transparent"}`}
                                 style={{ backgroundColor: c }}
                             />
                         ))}
                     </div>
                 </div>
-
             </div>
-        </div>
+        </motion.div>
     );
 };
 
-// ... ExitConfirmationModal ...
 const ExitConfirmationModal = ({ onConfirm, onCancel }) => (
-    <div className="fixed inset-0 z-[80] bg-[var(--overlay)]/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-        <div className="bg-[var(--bg-secondary)] w-full max-w-xs rounded-2xl p-6 shadow-2xl border border-[var(--border)] text-center ring-1 ring-white/10">
-            <h3 className="text-[var(--text-primary)] font-bold text-lg mb-2">Exit Story Studio?</h3>
-            <p className="text-[var(--text-secondary)] text-sm mb-6">Want to exit story workplace?</p> {/* Exact text requested */}
-            <div className="flex gap-3 justify-center">
-                <button
-                    onClick={onCancel}
-                    className="flex-1 py-2 rounded-xl bg-[var(--bg-primary)] text-[var(--text-primary)] font-semibold hover:bg-[var(--bg-secondary)] border border-[var(--border)] transition"
-                >
-                    No
-                </button>
+    <motion.div 
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[110] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6"
+    >
+        <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            className="bg-[#1A1A1A] w-full max-w-xs rounded-[2.5rem] p-8 border border-white/10 text-center shadow-2xl"
+        >
+            <div className="mb-6 flex justify-center">
+                <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">
+                    <AiOutlineDelete size={32} />
+                </div>
+            </div>
+            <h3 className="text-white font-bold text-xl mb-2">Discard Story?</h3>
+            <p className="text-white/50 text-sm mb-8">If you exit now, you'll lose all the progress you've made on this story.</p>
+            <div className="flex flex-col gap-3">
                 <button
                     onClick={onConfirm}
-                    className="flex-1 py-2 rounded-xl bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/50 font-semibold hover:bg-[var(--danger)] hover:text-[var(--text-on-accent)] transition"
+                    className="w-full py-4 rounded-2xl bg-red-500 text-white font-bold hover:bg-red-600 transition-colors"
                 >
-                    Yes
+                    Discard
+                </button>
+                <button
+                    onClick={onCancel}
+                    className="w-full py-4 rounded-2xl bg-white/5 text-white font-bold border border-white/10 hover:bg-white/10 transition-colors"
+                >
+                    Keep Editing
                 </button>
             </div>
-        </div>
-    </div>
+        </motion.div>
+    </motion.div>
 );
 
 export default StoryEditor;
