@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
 import { ArrowRight, Shield, Clock, EyeOff, Hash, Lock, Ghost, Heart, Cpu } from "lucide-react";
 
 /* ---------------- ANIMATIONS ---------------- */
@@ -40,6 +41,7 @@ const FeaturePost = ({ title, subtitle, color = "bg-[var(--accent)]" }) => (
 /* ---------------- PAGE ---------------- */
 export default function XwakedLanding() {
     const [activeIndex, setActiveIndex] = useState(0);
+    const { theme } = useTheme();
 
     useEffect(() => {
         const interval = setInterval(() => {
