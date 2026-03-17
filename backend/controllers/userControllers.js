@@ -274,11 +274,12 @@ export const userFollowerandFollowingData = tryCatch(async (req, res) => {
 export const updateProfile = tryCatch(async (req, res) => {
   const user = await User.findById(req.user._id);
 
-  const { name, bio, link, username } = req.body;
+  const { name, bio, link, username, gender } = req.body;
 
   if (name) user.name = name;
   if (bio !== undefined) user.bio = bio;
   if (link !== undefined) user.link = link;
+  if (gender !== undefined) user.gender = gender;
 
   if (username) {
     const usernameRegex = /^[a-z0-9_.]+$/;

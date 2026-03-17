@@ -128,9 +128,9 @@ export const UserContextProvider = ({ children }) => {
     }
   }, [fetchUser]);
 
-  const updateProfileInfo = useCallback(async (id, { name, username, bio, link }, setShowInput) => {
+  const updateProfileInfo = useCallback(async (id, { name, username, bio, link, gender }, setShowInput) => {
     try {
-      const { data } = await axios.put("/api/user/" + id, { name, username, bio, link });
+      const { data } = await axios.put("/api/user/" + id, { name, username, bio, link, gender });
       toast.success(data.message);
       fetchUser();
       if (setShowInput) setShowInput(false);

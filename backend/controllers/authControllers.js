@@ -24,10 +24,16 @@ const registerUser = tryCatch(async (req, res) => {
 
     const file = req.file;
 
-    if (!file) {
-        return res.status(400).json({
-            message: "Profile image is required",
-        });
+    // Profile pic is optional — use default if not provided
+    let profilePicData = {
+        id: "default",
+        url: "/images/default-avatar.png"
+    };
+
+    if (file) {
+        const fileUrl = getDataUrl(file);
+        const myCloud = await uploadFile(fileUrl.content, file.originalname, "profile-pics");
+        profilePicData = { id: myCloud.id, url: myCloud.url };
     }
 
     // Validate username is provided
@@ -69,11 +75,7 @@ const registerUser = tryCatch(async (req, res) => {
         });
     }
 
-    const fileUrl = getDataUrl(file)
-
     const hashPassword = await bcrypt.hash(password, 10)
-
-    const myCloud = await uploadFile(fileUrl.content, file.originalname, "profile-pics")
 
     let user;
     try {
@@ -81,12 +83,9 @@ const registerUser = tryCatch(async (req, res) => {
             name,
             email,
             password: hashPassword,
-            gender,
+            gender: gender || "",
             username: username || null,
-            profilePic: {
-                id: myCloud.id,
-                url: myCloud.url
-            }
+            profilePic: profilePicData
         })
     } catch (error) {
         if (error.code === 11000) {
@@ -417,6 +416,47 @@ export const checkUsername = tryCatch(async (req, res) => {
         available: true,
         message: "Username is available"
     });
+});
+
+// Suggest usernames based on name
+export const suggestUsernames = tryCatch(async (req, res) => {
+    const name = req.query.name?.trim();
+    if (!name || name.length < 2) {
+        return res.json({ suggestions: [] });
+    }
+
+    // Build slug from name: "Prince Mishra" → "prince_mishra"
+    const slug = name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '').slice(0, 15);
+    const firstName = name.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 10);
+    const lastName = (name.split(' ')[1] || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 10);
+
+    const rand2 = () => String(Math.floor(Math.random() * 90) + 10);       // 2-digit
+    const rand4 = () => String(Math.floor(Math.random() * 9000) + 1000);   // 4-digit
+
+    // Generate candidate suggestions
+    const candidates = [
+        slug,
+        `${firstName}${lastName ? '.' + lastName : ''}`,
+        `${firstName}_${rand2()}`,
+        `${slug}${rand4()}`,
+        `the.${firstName}`,
+        `${firstName}${rand4()}`,
+        `i.am.${firstName}`,
+        `${firstName}.${lastName || rand2()}`,
+    ]
+    .map(u => u.replace(/[^a-z0-9_.]/g, '').slice(0, 20))
+    .filter(u => /^[a-z0-9_.]{3,20}$/.test(u));
+
+    // Deduplicate
+    const unique = [...new Set(candidates)].slice(0, 6);
+
+    // Check availability in ONE query
+    const taken = await User.find({ username: { $in: unique } }).select('username').lean();
+    const takenSet = new Set(taken.map(u => u.username));
+
+    const suggestions = unique.filter(u => !takenSet.has(u)).slice(0, 4);
+
+    res.json({ suggestions });
 });
 
 // Forgot Password - Send OTP

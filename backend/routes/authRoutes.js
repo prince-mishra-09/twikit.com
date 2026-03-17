@@ -1,5 +1,5 @@
 import e from "express";
-import registerUser, { loginUser, logoutUser, sendOTP, verifyOTP, checkUsername, forgotPassword, resetPassword, refreshAccessToken } from '../controllers/authControllers.js'
+import registerUser, { loginUser, logoutUser, sendOTP, verifyOTP, checkUsername, suggestUsernames, forgotPassword, resetPassword, refreshAccessToken } from '../controllers/authControllers.js'
 import uploadFile from '../middlewares/multer.js'
 import otpEmailService from "../utils/otpEmailService.js";
 
@@ -20,6 +20,9 @@ router.post('/verify-otp', verifyOTP);
 
 // Username check
 router.post('/check-username', checkUsername);
+
+// Username suggestions based on name
+router.get('/suggest-username', suggestUsernames);
 
 // Forgot Password routes
 router.post('/forgot-password', forgotPassword);

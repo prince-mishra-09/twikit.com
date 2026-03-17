@@ -666,6 +666,7 @@ const EditProfile = ({ user, onBack }) => {
   const [username, setUsername] = useState(user.username || "");
   const [bio, setBio] = useState(user.bio || "");
   const [link, setLink] = useState(user.link || "");
+  const [gender, setGender] = useState(user.gender || "");
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(user.profilePic?.url || "https://placehold.co/400");
   const [loading, setLoading] = useState(false);
@@ -709,9 +710,9 @@ const EditProfile = ({ user, onBack }) => {
         }
       }
 
-      // Update Info (Name, Username, Bio, Link - passed object)
+      // Update Info (Name, Username, Bio, Link, Gender - passed object)
       // Only call if changed? Generic Update handles it.
-      await updateProfileInfo(user._id, { name, username, bio, link }, () => { });
+      await updateProfileInfo(user._id, { name, username, bio, link, gender }, () => { });
 
       if (file) {
         const formdata = new FormData();
@@ -814,6 +815,20 @@ const EditProfile = ({ user, onBack }) => {
             className="w-full bg-[var(--card-bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
             placeholder="Add a link (e.g. portfolio)"
           />
+        </div>
+
+        {/* Gender Input */}
+        <div className="w-full space-y-1 pb-4">
+          <label className="text-[var(--text-secondary)] text-sm ml-1">Gender</label>
+          <select
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+            className="w-full bg-[var(--card-bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+          >
+            <option value="">Prefer not to say</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
         </div>
       </div>
     </div>

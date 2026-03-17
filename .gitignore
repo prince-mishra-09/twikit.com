@@ -11,6 +11,7 @@ Thumbs.db
 #md files
 doc.md
 xwaked.md
+*.md
 # Logs
 *.log
 log.txt
