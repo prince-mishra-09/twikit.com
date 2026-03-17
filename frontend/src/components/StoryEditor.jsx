@@ -197,6 +197,7 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
                 const canvas = await html2canvas(canvasRef.current, {
                     useCORS: true,
                     scale: 3,
+                    logging: true,
                     backgroundColor: GEN_Z_COLORS[backgroundIndex],
                 });
                 canvas.toBlob((blob) => {
@@ -223,7 +224,7 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setShowExitModal(true)}
-                className="absolute top-4 left-4 z-[70] p-2.5 rounded-full bg-black/20 backdrop-blur-xl border border-white/10 text-white transition-all shadow-lg"
+                className="absolute top-4 left-4 z-[70] p-2.5 rounded-full bg-black/20 backdrop-blur-xl border border-white/10 text-white transition-all shadow-lg md:!text-white"
                 style={{ color: isDark(GEN_Z_COLORS[backgroundIndex]) ? '#FFF' : '#000' }}
             >
                 <AiOutlineArrowLeft size={22} />
@@ -284,9 +285,9 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
                     {bgMedia && (
                         <div className="absolute inset-0 w-full h-full">
                             {bgMedia.type === "video" ? (
-                                <video src={bgMedia.url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
+                                <video src={bgMedia.url} className="w-full h-full object-cover" autoPlay loop muted playsInline crossOrigin="anonymous" />
                             ) : (
-                                <img src={bgMedia.url} className="w-full h-full object-cover" alt="bg" draggable={false} />
+                                <img src={bgMedia.url} className="w-full h-full object-cover" alt="bg" draggable={false} crossOrigin="anonymous" />
                             )}
                         </div>
                     )}
@@ -345,6 +346,7 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
                                     src={user?.profilePic?.url || "https://placehold.co/100"} 
                                     className="w-full h-full object-cover" 
                                     alt="user"
+                                    crossOrigin="anonymous"
                                 />
                             </div>
                             <span className="text-sm font-extrabold tracking-tight">Your Story</span>
@@ -383,13 +385,13 @@ const ToolButton = ({ icon, onClick, label, isDarkBg }) => (
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={onClick}
-        className="group relative flex flex-col items-center gap-1"
+        className="group relative flex flex-col items-center gap-1 md:!text-white"
         style={{ color: isDarkBg ? '#FFF' : '#000' }}
     >
         <div className="p-2.5 rounded-full bg-black/20 backdrop-blur-xl border border-white/10 transition-all shadow-lg">
             {icon}
         </div>
-        <span className={`text-[10px] font-bold uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap ${isDarkBg ? 'text-white/70' : 'text-black/70'}`}>
+        <span className={`text-[10px] font-bold uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap md:!text-white/70 ${isDarkBg ? 'text-white/70' : 'text-black/70'}`}>
             {label}
         </span>
     </motion.button>

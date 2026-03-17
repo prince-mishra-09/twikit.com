@@ -244,11 +244,13 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
                                     setDuration(Math.min(vidDuration, 30000));
                                 }}
                                 onEnded={nextStory}
+                                crossOrigin="anonymous"
                             />
                         ) : (
                             <img
                                 src={currentStory.mediaUrl}
                                 className="w-full h-full object-cover"
+                                crossOrigin="anonymous"
                             />
                         )
                     ) : (

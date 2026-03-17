@@ -39,6 +39,7 @@ const StoryAvatar = ({ user: targetUser, size = "w-10 h-10", border = true, onCl
                 loading="lazy"
                 decoding="async"
                 className={`${size} rounded-full object-cover border-2 border-[#0B0F14]`}
+                crossOrigin="anonymous"
             />
         </div>
     );

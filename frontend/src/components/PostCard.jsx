@@ -633,6 +633,7 @@ const PostCard = ({
           src={value.post.url}
           className="w-full h-full object-contain"
           muted
+          crossOrigin="anonymous"
         />
         {/* Reel Indicator - Top Right (Optional) */}
         {showIcon && (
@@ -672,6 +673,7 @@ const PostCard = ({
           src={getOptimizedImg(value.post.url, 400)}
           alt=""
           className="w-full h-full object-cover"
+          crossOrigin="anonymous"
         />
         {/* Hover Overlay */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 text-white font-bold">
@@ -809,6 +811,7 @@ const PostCard = ({
                   if (duration > 0) setProgress((current / duration) * 100);
                 }
               }}
+              crossOrigin="anonymous"
             />
           </div>
 
@@ -1256,6 +1259,7 @@ const PostCard = ({
             decoding="async"
             onClick={() => setShowImage(true)}
             className="w-full h-full object-cover cursor-pointer active:opacity-95 transition-opacity"
+            crossOrigin="anonymous"
           />
         </div>
       </div>

@@ -68,22 +68,10 @@ app.use(helmet());
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-
-      const isLocalhost = origin.includes("localhost") || origin.includes("127.0.0.1");
-      // Match common local network IP patterns (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
-      const isLocalNetwork = /^http:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(origin);
-
-      if (allowedOrigins.indexOf(origin) !== -1 || isLocalhost || isLocalNetwork) {
-        callback(null, true);
-      } else {
-        console.log("CORS blocked origin:", origin);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: allowedOrigins,
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
   })
 );
 

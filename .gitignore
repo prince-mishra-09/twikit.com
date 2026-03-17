@@ -7,6 +7,9 @@ coverage/
 .DS_Store
 Thumbs.db
 .vscode/
+
+#md files
+doc.md
 xwaked.md
 # Logs
 *.log

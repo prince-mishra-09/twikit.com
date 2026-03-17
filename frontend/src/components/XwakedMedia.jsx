@@ -53,6 +53,7 @@ function XwakedImage({ url, alt, className }) {
                     onLoad={() => setLoaded(true)}
                     className={`xwaked-image ${loaded ? "xwaked-image--loaded" : ""}`}
                     style={{ aspectRatio: "3/4" }}
+                    crossOrigin="anonymous"
                 />
             </div>
         );
@@ -83,6 +84,7 @@ function XwakedImage({ url, alt, className }) {
                     onLoad={() => setLoaded(true)}
                     className={`xwaked-image ${loaded ? "xwaked-image--loaded" : ""}`}
                     style={{ aspectRatio: "3/4" }}
+                    crossOrigin="anonymous"
                 />
             </div>
         </IKContext>
@@ -131,6 +133,7 @@ function XwakedVideo({ url, thumbnailUrl, className }) {
                 controls
                 className="xwaked-video"
                 style={{ aspectRatio: "9/16" }}
+                crossOrigin="anonymous"
             />
         </div>
     );
