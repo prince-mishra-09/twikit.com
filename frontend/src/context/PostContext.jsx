@@ -116,7 +116,7 @@ export const PostContextProvider = ({ children }) => {
         }
       });
 
-      toast.success(data.message); // Should say "Post upload started"
+      // toast.success(data.message); // Removed as per user request (use progress bar instead)
 
       setFile("");
       setFilePrev("");
@@ -298,7 +298,7 @@ export const PostContextProvider = ({ children }) => {
 
     socket.on("post:ready", (newPost) => {
       console.log("[SOCKET EVENT RECEIVED] post:ready ->", newPost);
-      toast.success("Your post is ready!");
+      // toast.success("Your post is ready!"); // Removed as per user request
       // Always add to main feed (posts) regardless of type
       setPosts((prev) => [newPost, ...prev]);
       // If it's a reel, also add to reels specifically if UI sections need it
@@ -372,8 +372,9 @@ export const PostContextProvider = ({ children }) => {
     loadingMoreReels,
     reelsPagination,
     trackShare,
-    syncPostUpdate
-  }), [reels, posts, addPost, sendFeedback, addComment, loading, addLoading, fetchPosts, deletePost, deleteComment, fetchNextPage, loadingMore, pagination, uploadPreview, uploadType, updatePost, fetchReels, fetchNextReelsPage, loadingReels, loadingMoreReels, reelsPagination, trackShare, syncPostUpdate]);
+    syncPostUpdate,
+    uploadProgress // Exported to be visible in components
+  }), [reels, posts, addPost, sendFeedback, addComment, loading, addLoading, fetchPosts, deletePost, deleteComment, fetchNextPage, loadingMore, pagination, uploadPreview, uploadType, updatePost, fetchReels, fetchNextReelsPage, loadingReels, loadingMoreReels, reelsPagination, trackShare, syncPostUpdate, uploadProgress]);
 
   return (
     <PostContext.Provider value={value}>

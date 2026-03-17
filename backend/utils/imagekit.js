@@ -1,5 +1,6 @@
 import ImageKit from "imagekit";
 import { compressImage, compressVideo } from "./compressMedia.js";
+import fs from "fs";
 
 let _imagekit = null;
 
@@ -20,14 +21,14 @@ function getImageKit() {
 
 /**
  * Upload a file to ImageKit
- * @param {string} fileContent - base64 data URI string, URL, or Buffer
+ * @param {string|Buffer|Stream} fileSource - Path to file, Buffer, or Stream
  * @param {string} fileName - original file name
  * @param {string} folder - folder path in ImageKit (e.g., "profile-pics", "posts")
  * @returns {{ id: string, url: string }} - fileId and URL
  */
-export const uploadFile = async (fileContent, fileName, folder = "") => {
+export const uploadFile = async (fileSource, fileName, folder = "") => {
     const result = await getImageKit().upload({
-        file: fileContent,
+        file: fileSource,
         fileName: fileName || `file_${Date.now()}`,
         folder: folder,
         useUniqueFileName: true,
@@ -51,43 +52,48 @@ export const deleteFile = async (fileId) => {
     await getImageKit().deleteFile(fileId);
 };
 
+
 /**
  * Upload media to ImageKit with automatic compression.
  * Images → sharp WebP 3:4 | Videos → FFmpeg H.264 9:16 faststart
  *
- * @param {Buffer} buffer   - Raw file buffer from multer
+ * @param {string} filePath - Path to raw file from multer
  * @param {string} fileName - Original filename
  * @param {string} folder   - ImageKit folder ("posts" | "reels")
  * @param {string} mimeType - e.g. "image/jpeg" or "video/mp4"
  * @returns {{ id: string, url: string, mediaType: string }}
  */
-export const uploadMedia = async (buffer, fileName, folder, mimeType) => {
-    let uploadBuffer = buffer;
+export const uploadMedia = async (filePath, fileName, folder, mimeType) => {
+    let uploadSource = filePath;
     let finalFileName = fileName;
     let mediaType = "image";
+    let isTempFile = false;
 
     if (mimeType.startsWith("image/")) {
-        // Compress image: WebP, q-85, 3:4 crop
-        uploadBuffer = await compressImage(buffer);
+        // compressImage returns a Buffer
+        uploadSource = await compressImage(filePath);
         finalFileName = fileName.replace(/\.[^.]+$/, ".webp");
         mediaType = "image";
     } else if (mimeType.startsWith("video/")) {
-        // Compress video: H.264, CRF 26, 9:16, faststart
-        uploadBuffer = await compressVideo(buffer);
+        // compressVideo returns a path to a new temp file
+        uploadSource = await compressVideo(filePath);
         finalFileName = fileName.replace(/\.[^.]+$/, ".mp4");
         mediaType = "video";
+        isTempFile = true;
     }
 
-    const base64 = uploadBuffer.toString("base64");
-    const dataUri = `data:${mimeType.startsWith("video") ? "video/mp4" : "image/webp"};base64,${base64}`;
-
     const result = await getImageKit().upload({
-        file: dataUri,
+        file: isTempFile ? fs.createReadStream(uploadSource) : uploadSource,
         fileName: finalFileName,
         folder: `/xwaked/${folder}`,
         useUniqueFileName: true,
         tags: [folder, mediaType],
     });
+
+    // Cleanup the temporary compressed video file if created
+    if (isTempFile) {
+        try { fs.unlinkSync(uploadSource); } catch (_) {}
+    }
 
     const finalUrl = result.url.replace("ik.imagekit.io", "ik.imgkit.net");
 

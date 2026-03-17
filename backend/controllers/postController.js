@@ -2,13 +2,13 @@ import { Post } from "../models/postModel.js";
 import mongoose from "mongoose";
 import User from "../models/userModel.js";
 import TryCatch from "../utils/tryCatch.js";
-import getDataUrl from "../utils/urlGenerator.js";
 import { uploadFile, deleteFile, uploadMedia } from '../utils/imagekit.js';
 import { getIO } from "../socket/socketIO.js";
 import { Notification } from "../models/Notification.js";
 import { sendPushNotification } from "./notificationController.js";
 import redis from "../utils/redis.js";
 import { logToFile } from "../utils/logToFile.js";
+import fs from "fs";
 
 
 // ==============================================================================
@@ -51,17 +51,16 @@ export const newPost = TryCatch(async (req, res) => {
     // 2. Process in Background (Non-blocking)
     setImmediate(async () => {
         try {
-            logToFile(`[BACKGROUND UPLOAD] Starting upload for user ${ownerIdStr}, type: ${type}`);
-            const fileUrl = getDataUrl(file);
-            const option = type === "reel" ? { resource_type: "video" } : {};
-
             // Compress + Upload to ImageKit (images: WebP 3:4 | videos: H.264 9:16)
             const myCloud = await uploadMedia(
-                file.buffer,
+                file.path,
                 file.originalname,
                 type === "reel" ? "reels" : "posts",
                 file.mimetype
             );
+
+            // Cleanup the original uploaded file from multer
+            try { fs.unlinkSync(file.path); } catch (_) {}
             logToFile(`[BACKGROUND UPLOAD] ImageKit upload success for user ${ownerIdStr}`);
 
             // Heavy: DB Creation
@@ -500,7 +499,7 @@ export const handleFeedback = TryCatch(async (req, res) => {
                 postId: updatedPost._id,
                 vibesUp: updatedPost.vibesUp,
                 vibesUpCount: updatedPost.vibesUp.length,
-                vibesDownCount: updatedPost.vibesDown.length,  // here i am sagar added this line to get count of down 
+                vibesDownCount: updatedPost.vibesDown.length,
                 action: feedbackType === "vibeUp" ? action : "removed",
             });
         }
@@ -521,7 +520,7 @@ export const handleFeedback = TryCatch(async (req, res) => {
     res.json({
         message: `${feedbackType} ${action}`,
         action,
-        post: updatedPost, // Return the full post object as 'post'
+        post: updatedPost,
         vibesUpCount: updatedPost.vibesUp.length,
         vibesDownCount: updatedPost.vibesDown.length,
         isVibedUp: updatedPost.vibesUp.some(id => id && id.toString() === userId.toString()),
@@ -576,16 +575,12 @@ export const addPostView = TryCatch(async (req, res) => {
     const identifier = req.user ? req.user._id.toString() : req.ip;
     const viewKey = `post_view:${postId}:${identifier}`;
 
-    // Redis: Check if already viewed (fast distributed check)
-    // using set(key, val, 'EX', ttl, 'NX') -> returns 'OK' if set, null if already exists
-    // Upstash/IORedis compatible
     const isNewView = await redis.set(viewKey, "1", "EX", 600, "NX");
 
     if (!isNewView) {
         return res.json({ message: "View already counted" });
     }
 
-    // Increment view count directly
     await Post.findByIdAndUpdate(postId, { $inc: { views: 1 } });
 
     res.json({
@@ -646,7 +641,6 @@ export const getRandomPosts = async (req, res) => {
 
     res.json(posts);
 };
-// ... existing exports
 
 export const saveUnsavePost = TryCatch(async (req, res) => {
     const post = await Post.findById(req.params.id);
@@ -698,7 +692,6 @@ export const saveUnsavePost = TryCatch(async (req, res) => {
         post: updatedPost
     });
 });
-// ... existing code ...
 
 export const getPost = TryCatch(async (req, res) => {
     try {
@@ -730,7 +723,6 @@ export const getPost = TryCatch(async (req, res) => {
             post.vibesDown = []; // Clean data before sending
         }
 
-        // ... existing getPost ...
         res.json(post);
     } catch (error) {
         console.error("getPost Error:", error);
@@ -753,9 +745,6 @@ export const getUserPosts = TryCatch(async (req, res) => {
     if (!targetUser) return res.status(404).json({ message: "User not found" });
 
     // 2. PRIVACY CHECK
-    // If own profile -> Allow
-    // If public -> Allow
-    // If private -> Must be follower
     let isAllowed = false;
 
     if (!isGuest && req.user._id.toString() === userId.toString()) {
@@ -781,17 +770,14 @@ export const getUserPosts = TryCatch(async (req, res) => {
     }
 
     // 3. Fetch Content (Unified Query for Posts + Reels)
-    const requestedType = req.query.type; // "post" (grid), "reel" (reels tab), or undefined
+    const requestedType = req.query.type;
     
     let matchQuery = { owner: userId };
     if (requestedType === "reel") {
         matchQuery.type = "reel";
     } else if (requestedType === "post") {
-        // If "post" is requested, usually means the main grid. 
-        // We'll return both posts and reels for the integrated grid view.
         matchQuery.type = { $in: ["post", "reel"] };
     } else {
-        // Default to all content if no type specified
         matchQuery.type = { $in: ["post", "reel"] };
     }
 
@@ -802,19 +788,17 @@ export const getUserPosts = TryCatch(async (req, res) => {
         .populate("owner", "name username profilePic isPrivate")
         .lean();
 
-    // Map to ensure saves/shares count exist (defensive)
     const processedPosts = posts.map(p => ({
         ...p,
         savesCount: p.savesCount || 0,
         sharesCount: p.sharesCount || 0
     }));
 
-    // Count for pagination
     const totalCount = await Post.countDocuments(matchQuery);
 
     res.json({ 
-        posts: processedPosts, // Unified array
-        reels: requestedType === "reel" ? processedPosts : [], // Backward compat
+        posts: processedPosts,
+        reels: requestedType === "reel" ? processedPosts : [],
         pagination: {
             page,
             limit,
@@ -839,16 +823,13 @@ export const sharePost = TryCatch(async (req, res) => {
         { new: true }
     ).populate("owner", "name username profilePic isPrivate");
 
-    // Socket Broadcast for Real-Time Share Update
     try {
         const io = getIO();
         io.to("post:" + req.params.id).emit("postShareUpdated", {
             postId: req.params.id,
             sharesCount: updatedPost.sharesCount
         });
-    } catch (error) {
-        // Silently fail if socket isn't ready
-    }
+    } catch (error) {}
 
     res.json({
         message: "Share recorded",

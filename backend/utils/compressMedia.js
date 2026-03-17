@@ -1,26 +1,30 @@
 import sharp from "sharp";
+import ffmpegPath from "ffmpeg-static";
 import ffmpeg from "fluent-ffmpeg";
 import fs from "fs";
 import path from "path";
 import os from "os";
+
+// Configure FFmpeg path
+ffmpeg.setFfmpegPath(ffmpegPath);
 
 // ─────────────────────────────────────────────
 // IMAGE COMPRESSION — 3:4 aspect ratio, WebP
 // ─────────────────────────────────────────────
 
 /**
- * Compresses an image buffer to WebP format enforcing a 3:4 aspect ratio.
+ * Compresses an image from disk to WebP format enforcing a 3:4 aspect ratio.
  * Reduces file size by 60-80% with no visible quality loss.
  *
- * @param {Buffer} inputBuffer  - Raw file buffer from multer
+ * @param {string} inputPath   - Path to the raw file
  * @returns {Buffer}            - Compressed WebP buffer
  */
-export const compressImage = async (inputBuffer) => {
+export const compressImage = async (inputPath) => {
     // Target dimensions: max 2048px wide, 3:4 ratio = height is (4/3) * width
     const MAX_WIDTH = 2048;
     const MAX_HEIGHT = Math.round((4 / 3) * MAX_WIDTH); // 2731
 
-    return await sharp(inputBuffer)
+    return await sharp(inputPath)
         .resize({
             width: MAX_WIDTH,
             height: MAX_HEIGHT,
@@ -41,20 +45,16 @@ export const compressImage = async (inputBuffer) => {
 // ─────────────────────────────────────────────
 
 /**
- * Compresses a video buffer using FFmpeg for 9:16 vertical reels.
+ * Compresses a video from disk using FFmpeg for 9:16 vertical reels.
  * Enforces H.264, CRF 26, faststart for instant play.
  *
- * @param {Buffer} inputBuffer  - Raw video buffer from multer
- * @returns {Buffer}            - Compressed MP4 buffer
+ * @param {string} inputPath  - Path to input video file
+ * @returns {string}          - Path to compressed MP4 file
  */
-export const compressVideo = (inputBuffer) => {
+export const compressVideo = (inputPath) => {
     return new Promise((resolve, reject) => {
-        // Write buffer to a temp file (FFmpeg needs a seekable source)
         const tmpDir = os.tmpdir();
-        const inputPath = path.join(tmpDir, `xwaked_in_${Date.now()}.mp4`);
         const outputPath = path.join(tmpDir, `xwaked_out_${Date.now()}.mp4`);
-
-        fs.writeFileSync(inputPath, inputBuffer);
 
         ffmpeg(inputPath)
             // ── Video Settings ──────────────────────────────────────────
@@ -76,15 +76,10 @@ export const compressVideo = (inputBuffer) => {
             .format("mp4")
             .output(outputPath)
             .on("end", () => {
-                const outputBuffer = fs.readFileSync(outputPath);
-                // Cleanup temp files
-                try { fs.unlinkSync(inputPath); } catch (_) {}
-                try { fs.unlinkSync(outputPath); } catch (_) {}
-                resolve(outputBuffer);
+                resolve(outputPath); // Return the PATH not the buffer
             })
             .on("error", (err) => {
-                try { fs.unlinkSync(inputPath); } catch (_) {}
-                try { fs.unlinkSync(outputPath); } catch (_) {}
+                try { if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath); } catch (_) {}
                 reject(new Error(`FFmpeg compression failed: ${err.message}`));
             })
             .run();

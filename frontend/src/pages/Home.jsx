@@ -199,40 +199,6 @@ const Home = () => {
             <StoryRow />
           </div>
 
-          {/* Global Upload Progress */}
-          {addLoading && uploadProgress > 0 && (
-            <div className="w-full px-4 md:px-0 mt-2 mb-4 relative z-50 animate-in fade-in slide-in-from-top-2 duration-300">
-              <div className="flex items-center gap-4 py-2">
-                {uploadPreview && (
-                  <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border)]">
-                    {uploadType === "reel" ? (
-                      <video src={uploadPreview} className="w-full h-full object-cover" />
-                    ) : (
-                      <img src={uploadPreview} alt="uploading" className="w-full h-full object-cover" />
-                    )}
-                  </div>
-                )}
-
-                <div className="flex-1 flex flex-col justify-center gap-1.5 min-w-0">
-                  <div className="flex justify-between items-center text-sm font-medium">
-                    <span className="text-[var(--text-primary)] truncate font-semibold capitalize">
-                      {uploadProgress === 100 ? "Finishing up..." : `Uploading ${uploadType}...`}
-                    </span>
-                    <span className="text-[var(--text-secondary)] font-bold">{uploadProgress}%</span>
-                  </div>
-                  <div className="h-2 w-full bg-[var(--bg-secondary)] rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-[var(--accent)] transition-all duration-300 ease-out relative"
-                      style={{ width: `${uploadProgress}%` }}
-                    >
-                      <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
           {loading ? (
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => <SkeletonPost key={i} />)}

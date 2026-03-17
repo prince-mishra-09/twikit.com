@@ -3,11 +3,11 @@ import { Post } from "../models/postModel.js";
 import { Notification } from "../models/Notification.js";
 import tryCatch from "../utils/tryCatch.js";
 import bcrypt from 'bcrypt'
-import getDataUrl from "../utils/urlGenerator.js";
 import { uploadFile, deleteFile } from '../utils/imagekit.js';
 import { sendPushNotification } from "./notificationController.js";
 import { getIO } from "../socket/socketIO.js";
 import redis from "../utils/redis.js";
+import fs from "fs";
 
 export const myProfile = tryCatch(async (req, res) => {
   const user = await User.findById(req.user._id)
@@ -257,17 +257,30 @@ export const userFollowerandFollowingData = tryCatch(async (req, res) => {
     return res.status(403).json({ message: "This account is private. Follow to see followers." });
   }
 
-  const user = await User.findById(req.params.id)
-    .select("-password")
-    .populate("followers", "name username profilePic bio isPrivate")
-    .populate("followings", "name username profilePic bio isPrivate");
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
 
-  const followers = user.followers;
-  const followings = user.followings;
+  // Paginated Fetch for Followers and Followings
+  const followers = await User.find({ _id: { $in: targetUser.followers } })
+    .select("name username profilePic bio isPrivate")
+    .skip(skip)
+    .limit(limit);
+
+  const followings = await User.find({ _id: { $in: targetUser.followings } })
+    .select("name username profilePic bio isPrivate")
+    .skip(skip)
+    .limit(limit);
 
   res.json({
     followers,
     followings,
+    pagination: {
+      totalFollowers: targetUser.followers.length,
+      totalFollowings: targetUser.followings.length,
+      currentPage: page,
+      limit
+    }
   });
 });
 
@@ -298,14 +311,15 @@ export const updateProfile = tryCatch(async (req, res) => {
 
   const file = req.file;
   if (file) {
-    const fileUrl = getDataUrl(file);
-
     await deleteFile(user.profilePic.id);
 
-    const myCloud = await uploadFile(fileUrl.content, file.originalname, "profile-pics");
+    const myCloud = await uploadFile(file.path, file.originalname, "profile-pics");
 
     user.profilePic.id = myCloud.id;
     user.profilePic.url = myCloud.url;
+
+    // Cleanup local file
+    try { fs.unlinkSync(file.path); } catch (_) {}
   }
 
   await user.save();
@@ -399,7 +413,15 @@ export const searchUsers = tryCatch(async (req, res) => {
     }
   }
 
-  const users = await User.find(query).select("name username profilePic bio isPrivate");
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const usersCount = await User.countDocuments(query);
+  const users = await User.find(query)
+    .select("name username profilePic bio isPrivate")
+    .skip(skip)
+    .limit(limit);
 
   // Priority Sort: Exact Username > StartsWith Username > Name
   users.sort((a, b) => {
@@ -431,7 +453,16 @@ export const searchUsers = tryCatch(async (req, res) => {
     return post;
   });
 
-  res.json({ users, posts });
+  res.json({ 
+    users, 
+    posts,
+    pagination: {
+      totalUsers: usersCount,
+      totalPages: Math.ceil(usersCount / limit),
+      currentPage: page,
+      limit
+    }
+  });
 });
 
 

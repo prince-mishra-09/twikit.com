@@ -13,6 +13,20 @@ axios.defaults.baseURL = import.meta.env.MODE === "development" ? "" : import.me
 axios.defaults.withCredentials = true;
 
 // Silent Refresh Interceptor
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 axios.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -26,13 +40,28 @@ axios.interceptors.response.use(
       !originalRequest.url.includes("/api/auth/register") &&
       !originalRequest.url.includes("/api/auth/refresh-token")
     ) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => axios(originalRequest))
+          .catch((err) => Promise.reject(err));
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
+
       try {
         await axios.post("/api/auth/refresh-token");
+        processQueue(null);
         return axios(originalRequest);
       } catch (refreshError) {
-        // If refresh fails, the session is dead
+        processQueue(refreshError);
+        // If refresh fails, session is dead — trigger global logout
+        window.dispatchEvent(new Event("auth:logout"));
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
     return Promise.reject(error);

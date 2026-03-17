@@ -337,6 +337,16 @@ export const UserContextProvider = ({ children }) => {
     fetchUser();
   }, [fetchUser]);
 
+  // Sync logout with interceptor
+  useEffect(() => {
+    const handleLogout = () => {
+      setUser(null);
+      setIsAuth(false);
+    };
+    window.addEventListener("auth:logout", handleLogout);
+    return () => window.removeEventListener("auth:logout", handleLogout);
+  }, []);
+
   const value = useMemo(() => ({
     loginUser, isAuth, setIsAuth, user, setUser, loading,
     logoutUser, registerUser, followUser, updateProfilePic,

@@ -1,7 +1,7 @@
 import { AuraX } from "../models/AuraX.js";
 import User from "../models/userModel.js";
-import getDataUrl from "../utils/urlGenerator.js";
 import { uploadFile, deleteFile } from '../utils/imagekit.js';
+import fs from "fs";
 import { getAuraIdentity } from "../utils/auraIdentity.js";
 import {
     checkAuraRateLimit,
@@ -46,14 +46,16 @@ export const createAuraX = async (req, res) => {
 
         if (req.file) {
             // 4. Upload media to ImageKit if file exists
-            const fileUri = getDataUrl(req.file);
             const isVideo = req.file.mimetype.startsWith("video");
 
             const myCloud = await uploadFile(
-                fileUri.content,
+                req.file.path,
                 req.file.originalname,
                 "aurax"
             );
+
+            // Cleanup local file
+            try { fs.unlinkSync(req.file.path); } catch (_) {}
 
             mediaData = {
                 id: myCloud.id,

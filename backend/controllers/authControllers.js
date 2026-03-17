@@ -1,5 +1,5 @@
-import getDataUrl from "../utils/urlGenerator.js";
 import bcrypt from 'bcrypt'
+import fs from "fs";
 import { uploadFile } from '../utils/imagekit.js';
 import generateToken from "../utils/generateToken.js";
 import User from '../models/userModel.js'
@@ -31,9 +31,11 @@ const registerUser = tryCatch(async (req, res) => {
     };
 
     if (file) {
-        const fileUrl = getDataUrl(file);
-        const myCloud = await uploadFile(fileUrl.content, file.originalname, "profile-pics");
+        const myCloud = await uploadFile(file.path, file.originalname, "profile-pics");
         profilePicData = { id: myCloud.id, url: myCloud.url };
+
+        // Cleanup local file
+        try { fs.unlinkSync(file.path); } catch (_) {}
     }
 
     // Validate username is provided

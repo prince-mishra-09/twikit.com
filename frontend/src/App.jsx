@@ -5,6 +5,7 @@ import { UserData } from "./context/UserContext";
 import { SocketData } from "./context/SocketContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { StoriesProvider } from "./context/StoriesContext";
+import { PostData } from "./context/PostContext";
 import { useEffect, Suspense, lazy } from "react";
 import LoginPromptModal from "./components/LoginPromptModal";
 import ScrollToTop from "./components/ScrollToTop";
@@ -33,6 +34,7 @@ const AuraXOnboarding = lazy(() => import("./pages/AuraXOnboarding"));
 
 function App() {
   const { loading, isAuth, user, setUser, showUpdateModal, setShowUpdateModal, applyUpdate } = UserData();
+  const { addLoading, uploadProgress, uploadPreview, uploadType } = PostData();
   const { socket } = SocketData();
 
   // Maintenance Mode (Toggle this to true to enable)
@@ -147,6 +149,43 @@ function App() {
               onUpdate={applyUpdate}
               onLater={() => setShowUpdateModal(false)}
             />
+
+            {/* Global Upload Progress */}
+            {addLoading && (
+              <div className="fixed bottom-20 md:bottom-6 left-0 w-full px-4 z-[2000] animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="max-w-[400px] mx-auto bg-[var(--card-bg)]/80 backdrop-blur-2xl border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden">
+                  <div className="flex items-center gap-3 p-2">
+                    {uploadPreview && (
+                      <div className="w-10 h-10 shrink-0 rounded-lg overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border)]">
+                        {uploadType === "reel" ? (
+                          <video src={uploadPreview} className="w-full h-full object-cover" />
+                        ) : (
+                          <img src={uploadPreview} alt="uploading" className="w-full h-full object-cover" />
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex-1 flex flex-col justify-center gap-1 min-w-0">
+                      <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
+                        <span className="text-[var(--text-primary)] truncate">
+                          {uploadProgress === 100 ? "Finishing up..." : `Uploading ${uploadType}`}
+                        </span>
+                        <span className="text-[var(--accent)]">{uploadProgress}%</span>
+                      </div>
+                      <div className="h-1 w-full bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[var(--accent)] transition-all duration-300 ease-out relative"
+                          style={{ width: `${uploadProgress}%` }}
+                        >
+                          <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <Layout>
               <Suspense fallback={<RouteAwareSkeleton />}>
                 <Routes>
