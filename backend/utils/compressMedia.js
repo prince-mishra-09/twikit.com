@@ -13,27 +13,26 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 // ─────────────────────────────────────────────
 
 /**
- * Compresses an image from disk to WebP format enforcing a 3:4 aspect ratio.
+ * Compresses an image from disk to WebP format enforcing a specific aspect ratio.
  * Reduces file size by 60-80% with no visible quality loss.
  *
  * @param {string} inputPath   - Path to the raw file
+ * @param {Object} options      - { width, height, ratio }
  * @returns {Buffer}            - Compressed WebP buffer
  */
-export const compressImage = async (inputPath) => {
-    // Target dimensions: max 2048px wide, 3:4 ratio = height is (4/3) * width
-    const MAX_WIDTH = 2048;
-    const MAX_HEIGHT = Math.round((4 / 3) * MAX_WIDTH); // 2731
+export const compressImage = async (inputPath, options = { width: 1200, height: 1600, ratio: "3:4" }) => {
+    const { width, height } = options;
 
     return await sharp(inputPath)
         .resize({
-            width: MAX_WIDTH,
-            height: MAX_HEIGHT,
-            fit: "cover",           // Crop to fill 3:4 exactly
+            width: width,
+            height: height,
+            fit: "cover",           // Crop to fill exactly
             position: "centre",     // Center the crop
             withoutEnlargement: true, // Never upscale small images
         })
         .webp({
-            quality: 85,            // Sweet spot: invisible quality loss vs file size
+            quality: 80,            // Reduced from 85 for better bandwidth savings
             effort: 4,              // Encoding effort (0-6), 4 = fast+good
             smartSubsample: true,   // Better color subsampling
         })

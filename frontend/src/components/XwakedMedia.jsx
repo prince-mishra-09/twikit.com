@@ -98,8 +98,8 @@ function XwakedVideo({ url, thumbnailUrl, className }) {
     const videoRef = useRef(null);
     const [showPoster, setShowPoster] = useState(true);
 
-    // Poster: auto-generated ImageKit thumbnail or from props
-    const poster = thumbnailUrl || getVideoUrl(url, "thumbnail");
+    // Poster: Use pre-stored thumbnailUrl from DB, or fallback to on-the-fly generation
+    const poster = (thumbnailUrl && thumbnailUrl.replace("ik.imagekit.io", "ik.imgkit.net")) || getVideoUrl(url, "thumbnail");
 
     // Lazy play: only load video source when near viewport
     useEffect(() => {

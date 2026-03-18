@@ -54,14 +54,14 @@ export const deleteFile = async (fileId) => {
 
 
 /**
- * Upload media to ImageKit with automatic compression.
- * Images → sharp WebP 3:4 | Videos → FFmpeg H.264 9:16 faststart
+ * Upload media to ImageKit with automatic local compression.
+ * Enforces specific aspect ratios and formats based on folder/profile.
  *
  * @param {string} filePath - Path to raw file from multer
  * @param {string} fileName - Original filename
- * @param {string} folder   - ImageKit folder ("posts" | "reels")
+ * @param {string} folder   - ImageKit folder ("posts" | "reels" | "stories" | "profile-pics")
  * @param {string} mimeType - e.g. "image/jpeg" or "video/mp4"
- * @returns {{ id: string, url: string, mediaType: string }}
+ * @returns {{ id: string, url: string, thumbnailUrl: string, mediaType: string }}
  */
 export const uploadMedia = async (filePath, fileName, folder, mimeType) => {
     let uploadSource = filePath;
@@ -69,27 +69,36 @@ export const uploadMedia = async (filePath, fileName, folder, mimeType) => {
     let mediaType = "image";
     let isTempFile = false;
 
+    // Remove leading/trailing slashes for consistency
+    const cleanFolder = folder.replace(/^\/+|\/+$/g, "");
+
     if (mimeType.startsWith("image/")) {
-        // compressImage returns a Buffer
-        uploadSource = await compressImage(filePath);
+        // Use Sharp for local compression
+        // Default to 3:4 for posts/stories/reels, square for profile-pics
+        const isProfilePic = cleanFolder === "profile-pics";
+        const options = isProfilePic
+            ? { width: 500, height: 500, ratio: "1:1" }
+            : { width: 1200, height: 1600, ratio: "3:4" };
+
+        uploadSource = await compressImage(filePath, options);
         finalFileName = fileName.replace(/\.[^.]+$/, ".webp");
         mediaType = "image";
     } else if (mimeType.startsWith("video/")) {
-        // compressVideo returns a path to a new temp file
+        // Use FFmpeg for local compression (9:16 vertical)
         uploadSource = await compressVideo(filePath);
         finalFileName = fileName.replace(/\.[^.]+$/, ".mp4");
         mediaType = "video";
         isTempFile = true;
     }
 
-    console.log(`[IMAGEKIT] Uploading ${mediaType} to folder ${folder}. Source: ${isTempFile ? "Optimized Temp File" : "Raw Buffer/File"}`);
-    
+    console.log(`[IMAGEKIT] Uploading ${mediaType} to folder xwaked/${cleanFolder}. Source: ${isTempFile ? "Optimized Temp File" : "Raw Buffer"}`);
+
     const result = await getImageKit().upload({
         file: isTempFile ? fs.createReadStream(uploadSource) : uploadSource,
         fileName: finalFileName,
-        folder: `/xwaked/${folder}`,
+        folder: `/xwaked/${cleanFolder}`,
         useUniqueFileName: true,
-        tags: [folder, mediaType],
+        tags: [cleanFolder, mediaType],
     });
 
     // Cleanup the temporary compressed video file if created

@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt'
 import fs from "fs";
-import { uploadFile } from '../utils/imagekit.js';
+import { uploadFile, uploadMedia } from '../utils/imagekit.js';
 import generateToken from "../utils/generateToken.js";
 import User from '../models/userModel.js'
 import tryCatch from "../utils/tryCatch.js";
@@ -31,7 +31,7 @@ const registerUser = tryCatch(async (req, res) => {
     };
 
     if (file) {
-        const myCloud = await uploadFile(file.path, file.originalname, "profile-pics");
+        const myCloud = await uploadMedia(file.path, file.originalname, "profile-pics", file.mimetype);
         profilePicData = { id: myCloud.id, url: myCloud.url };
 
         // Cleanup local file

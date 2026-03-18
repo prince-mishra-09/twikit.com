@@ -1,6 +1,6 @@
 import { Story } from "../models/storyModel.js";
 import User from "../models/userModel.js";
-import { uploadFile } from '../utils/imagekit.js';
+import { uploadFile, uploadMedia } from '../utils/imagekit.js';
 import fs from "fs";
 import { getReceiverSocketId, getIO } from "../socket/socketIO.js";
 
@@ -12,7 +12,7 @@ export const createStory = async (req, res) => {
         let mediaUrl = "";
 
         if (file) {
-            const myCloud = await uploadFile(file.path, file.originalname, "stories");
+            const myCloud = await uploadMedia(file.path, file.originalname, "stories", file.mimetype);
             mediaUrl = myCloud.url;
 
             // Cleanup local file

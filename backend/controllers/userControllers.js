@@ -3,7 +3,7 @@ import { Post } from "../models/postModel.js";
 import { Notification } from "../models/Notification.js";
 import tryCatch from "../utils/tryCatch.js";
 import bcrypt from 'bcrypt'
-import { uploadFile, deleteFile } from '../utils/imagekit.js';
+import { uploadFile, deleteFile, uploadMedia } from '../utils/imagekit.js';
 import { sendPushNotification } from "./notificationController.js";
 import { getIO } from "../socket/socketIO.js";
 import redis from "../utils/redis.js";
@@ -313,7 +313,7 @@ export const updateProfile = tryCatch(async (req, res) => {
   if (file) {
     await deleteFile(user.profilePic.id);
 
-    const myCloud = await uploadFile(file.path, file.originalname, "profile-pics");
+    const myCloud = await uploadMedia(file.path, file.originalname, "profile-pics", file.mimetype);
 
     user.profilePic.id = myCloud.id;
     user.profilePic.url = myCloud.url;
