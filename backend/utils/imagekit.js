@@ -102,7 +102,7 @@ export const uploadMedia = async (filePath, fileName, folder, mimeType) => {
     });
 
     // Cleanup the temporary compressed video file if created
-    if (isTempFile) {
+    if (isTempFile && uploadSource !== filePath) {
         try { fs.unlinkSync(uploadSource); } catch (_) {}
     }
 

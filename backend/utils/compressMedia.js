@@ -22,21 +22,38 @@ ffmpeg.setFfmpegPath(ffmpegPath);
  */
 export const compressImage = async (inputPath, options = { width: 1200, height: 1600, ratio: "3:4" }) => {
     const { width, height } = options;
+    const stats = fs.statSync(inputPath);
 
-    return await sharp(inputPath)
-        .resize({
-            width: width,
-            height: height,
-            fit: "cover",           // Crop to fill exactly
-            position: "centre",     // Center the crop
-            withoutEnlargement: true, // Never upscale small images
-        })
-        .webp({
-            quality: 80,            // Reduced from 85 for better bandwidth savings
-            effort: 4,              // Encoding effort (0-6), 4 = fast+good
-            smartSubsample: true,   // Better color subsampling
-        })
-        .toBuffer();
+    try {
+        const buffer = await sharp(inputPath)
+            .resize({
+                width: width,
+                height: height,
+                fit: "cover",
+                position: "centre",
+                withoutEnlargement: true,
+            })
+            .webp({
+                quality: 80,
+                effort: 4,
+                smartSubsample: true,
+            })
+            .toBuffer();
+
+        // Fallback Logic: If optimized size is larger than original, return original path (or buffer of original)
+        // Note: controllers expect a buffer for images if using uploadMedia correctly with Sharp.
+        // Actually, if it returns a buffer, we should compare buffer length.
+        if (buffer.length > stats.size) {
+            console.log(`[SHARP] Optimized image (${(buffer.length / 1024).toFixed(2)} KB) is larger than original (${(stats.size / 1024).toFixed(2)} KB). Falling back.`);
+            return fs.readFileSync(inputPath);
+        }
+
+        console.log(`[SHARP] Compression complete. ${(stats.size / 1024).toFixed(2)} KB -> ${(buffer.length / 1024).toFixed(2)} KB`);
+        return buffer;
+    } catch (error) {
+        console.error("Error compressing image:", error);
+        return fs.readFileSync(inputPath);
+    }
 };
 
 // ─────────────────────────────────────────────
@@ -61,31 +78,41 @@ export const compressVideo = (inputPath) => {
         ffmpeg(inputPath)
             // ── Video Settings ──────────────────────────────────────────
             .videoCodec("libx264")          // H.264
-            .addOption("-crf", "30")         // Higher CRF = Lower size (30 is safe for web)
-            .addOption("-preset", "medium")  
-            .addOption("-profile:v", "main") // Main profile for better compatibility/size
+            .addOption("-crf", "28")         // User requested 28 (Better quality/size balance)
+            .addOption("-preset", "fast")    // Faster encoding for better server performance
+            .addOption("-profile:v", "main")
             .addOption("-level", "4.0")
             .addOption("-pix_fmt", "yuv420p")
-            // Cap bitrate to prevent size explosion (e.g., 2.5 Mbps max)
-            .addOption("-maxrate", "2.5M")
-            .addOption("-bufsize", "5M")
-            // 9:16 Scale: Always fill 1080x1920 (Instagram style)
-            // Scale to fill width/height (increase) then crop to center 1080x1920
-            .addOption(
-                "-vf",
-                "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920"
-            )
+            // Strict bitrate limits to prevent size explosion
+            .addOption("-maxrate", "2M")     // User requested 2M
+            .addOption("-bufsize", "4M")
+            // 9:16 Crop-to-Fill: Ensures the video fills the 1080x1920 screen (Instagram/Reels Style)
+            .videoFilters("scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920")
             // ── Audio Settings ───────────────────────────────────────────
             .audioCodec("aac")
-            .audioBitrate("96k")            // Lower audio bitrate for social media
+            .audioBitrate("128k")            
             // ── Container/Streaming ──────────────────────────────────────
             .addOption("-movflags", "+faststart") // Moov atom first → instant play
             .format("mp4")
             .output(outputPath)
+            .on("start", (cmd) => {
+                console.log(`[FFMPEG] Running: ${cmd}`);
+            })
             .on("end", () => {
-                const outStats = fs.statSync(outputPath);
-                console.log(`[FFMPEG] Compression complete. Optimized size: ${(outStats.size / (1024 * 1024)).toFixed(2)} MB`);
-                resolve(outputPath); // Return the PATH not the buffer
+                const originalStats = fs.statSync(inputPath);
+                const optimizedStats = fs.statSync(outputPath);
+
+                const originalMB = (originalStats.size / (1024 * 1024)).toFixed(2);
+                const optimizedMB = (optimizedStats.size / (1024 * 1024)).toFixed(2);
+
+                if (optimizedStats.size > originalStats.size) {
+                    console.log(`[FFMPEG] Optimized file (${optimizedMB} MB) is larger than original (${originalMB} MB). Falling back to original.`);
+                    try { fs.unlinkSync(outputPath); } catch (_) { }
+                    resolve(inputPath);
+                } else {
+                    console.log(`[FFMPEG] Compression complete. ${originalMB} MB -> ${optimizedMB} MB`);
+                    resolve(outputPath);
+                }
             })
             .on("error", (err) => {
                 try { if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath); } catch (_) {}
