@@ -631,7 +631,7 @@ const PostCard = ({
       <div className="w-full h-full relative cursor-pointer bg-black flex items-center justify-center group/grid" onClick={onClick}>
         <video
           src={value.post.url}
-          className="w-full h-full object-contain"
+          className="w-full h-full object-cover"
           muted
           crossOrigin="anonymous"
         />

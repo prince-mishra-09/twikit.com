@@ -119,7 +119,6 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/feed", feedRoutes);
 app.use("/api/story", storyRoutes);
-app.use("/api/story", storyRoutes);
 app.use("/api/comment", commentRoutes);
 app.use("/api/aurax", auraXRoutes);
 import testRoutes from "./routes/testRoutes.js";

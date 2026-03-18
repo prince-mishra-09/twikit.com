@@ -158,7 +158,7 @@ function App() {
                     {uploadPreview && (
                       <div className="w-10 h-10 shrink-0 rounded-lg overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border)]">
                         {uploadType === "reel" ? (
-                          <video src={uploadPreview} className="w-full h-full object-cover" />
+                          <video src={uploadPreview} muted autoPlay loop className="w-full h-full object-cover" />
                         ) : (
                           <img src={uploadPreview} alt="uploading" className="w-full h-full object-cover" />
                         )}
@@ -168,7 +168,11 @@ function App() {
                     <div className="flex-1 flex flex-col justify-center gap-1 min-w-0">
                       <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
                         <span className="text-[var(--text-primary)] truncate">
-                          {uploadProgress === 100 ? "Finishing up..." : `Uploading ${uploadType}`}
+                          {uploadProgress >= 100 
+                            ? "Finishing up..." 
+                            : uploadProgress >= 90 
+                              ? "Processing on server..." 
+                              : `Uploading ${uploadType}`}
                         </span>
                         <span className="text-[var(--accent)]">{uploadProgress}%</span>
                       </div>

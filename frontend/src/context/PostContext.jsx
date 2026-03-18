@@ -108,11 +108,19 @@ export const PostContextProvider = ({ children }) => {
     }
 
     try {
+      // Set initial progress to 1% to show activity immediately
+      setUploadProgress(1);
+
       const { data } = await axios.post("/api/post/new?type=" + type, formdata, {
         onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          // Scale client upload progress to 90% to leave room for background ImageKit processing
-          setUploadProgress(Math.floor(percentCompleted * 0.9));
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            // Scale client upload progress to 90%
+            setUploadProgress(Math.max(1, Math.floor(percentCompleted * 0.9)));
+          } else {
+            // Fallback if total is unknown: slowly move to 45% then 90%
+            setUploadProgress((prev) => Math.min(prev + 1, 90));
+          }
         }
       });
 

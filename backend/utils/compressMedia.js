@@ -56,26 +56,36 @@ export const compressVideo = (inputPath) => {
         const tmpDir = os.tmpdir();
         const outputPath = path.join(tmpDir, `xwaked_out_${Date.now()}.mp4`);
 
+        const stats = fs.statSync(inputPath);
+        console.log(`[FFMPEG] Starting compression. Original size: ${(stats.size / (1024 * 1024)).toFixed(2)} MB`);
+
         ffmpeg(inputPath)
             // ── Video Settings ──────────────────────────────────────────
-            .videoCodec("libx264")          // H.264: Universal device support
-            .addOption("-crf", "26")         // Quality (18-28). 26 = sweet spot for mobile
-            .addOption("-preset", "fast")    // Compression speed/ratio balance
-            // 9:16 Scale: scale to 1080 wide, pad vertically to maintain 9:16 = 1920px height
+            .videoCodec("libx264")          // H.264
+            .addOption("-crf", "30")         // Higher CRF = Lower size (30 is safe for web)
+            .addOption("-preset", "medium")  
+            .addOption("-profile:v", "main") // Main profile for better compatibility/size
+            .addOption("-level", "4.0")
+            .addOption("-pix_fmt", "yuv420p")
+            // Cap bitrate to prevent size explosion (e.g., 2.5 Mbps max)
+            .addOption("-maxrate", "2.5M")
+            .addOption("-bufsize", "5M")
+            // 9:16 Scale: Always fill 1080x1920 (Instagram style)
+            // Scale to fill width/height (increase) then crop to center 1080x1920
             .addOption(
                 "-vf",
-                "scale=1080:1920:force_original_aspect_ratio=decrease," +
-                "pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black"
+                "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920"
             )
-            .addOption("-r", "30")           // 30fps: smooth + low data
             // ── Audio Settings ───────────────────────────────────────────
-            .audioCodec("aac")              // AAC: Best quality/size
-            .audioBitrate("128k")           // 128kbps stereo
+            .audioCodec("aac")
+            .audioBitrate("96k")            // Lower audio bitrate for social media
             // ── Container/Streaming ──────────────────────────────────────
             .addOption("-movflags", "+faststart") // Moov atom first → instant play
             .format("mp4")
             .output(outputPath)
             .on("end", () => {
+                const outStats = fs.statSync(outputPath);
+                console.log(`[FFMPEG] Compression complete. Optimized size: ${(outStats.size / (1024 * 1024)).toFixed(2)} MB`);
                 resolve(outputPath); // Return the PATH not the buffer
             })
             .on("error", (err) => {

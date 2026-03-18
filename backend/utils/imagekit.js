@@ -82,6 +82,8 @@ export const uploadMedia = async (filePath, fileName, folder, mimeType) => {
         isTempFile = true;
     }
 
+    console.log(`[IMAGEKIT] Uploading ${mediaType} to folder ${folder}. Source: ${isTempFile ? "Optimized Temp File" : "Raw Buffer/File"}`);
+    
     const result = await getImageKit().upload({
         file: isTempFile ? fs.createReadStream(uploadSource) : uploadSource,
         fileName: finalFileName,
