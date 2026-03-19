@@ -83,18 +83,28 @@ const Reels = () => {
         </div>
       ) : displayReels && displayReels.length > 0 ? (
         <div className="w-full h-full max-w-md md:max-w-lg lg:max-w-xl relative">
-          {displayReels.map((reel) => (
-            <div
-              key={reel._id}
-              id={reel._id}
-              className="reel-container h-[100dvh] w-full snap-start snap-always flex justify-center items-center py-4"
-            >
-              <div className="w-full h-full relative flex items-center justify-center bg-[var(--bg-primary)] rounded-lg overflow-hidden shadow-2xl shadow-[var(--overlay)]/20">
-                {/* Pass isReelPage prop if needed for specific styling in PostCard */}
-                <PostCard value={reel} type="reel" isActive={currentReelId === reel._id} />
+          {displayReels.map((reel) => {
+            const currentIdx = displayReels.findIndex(r => r._id === currentReelId);
+            const nextReelId = currentIdx !== -1 && currentIdx < displayReels.length - 1 ? displayReels[currentIdx + 1]._id : null;
+
+            return (
+              <div
+                key={reel._id}
+                id={reel._id}
+                className="reel-container h-[100dvh] w-full snap-start snap-always flex justify-center items-center py-4"
+              >
+                <div className="w-full h-full relative flex items-center justify-center bg-[var(--bg-primary)] rounded-lg overflow-hidden shadow-2xl shadow-[var(--overlay)]/20">
+                  {/* Pass isReelPage prop if needed for specific styling in PostCard */}
+                  <PostCard 
+                    value={reel} 
+                    type="reel" 
+                    isActive={currentReelId === reel._id} 
+                    isNext={reel._id === nextReelId}
+                  />
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {/* End of Reels Message */}
           <div className="h-[100dvh] w-full snap-start snap-always flex flex-col items-center justify-center p-8 text-center bg-[var(--bg-primary)]">

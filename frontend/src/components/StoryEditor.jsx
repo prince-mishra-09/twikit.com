@@ -20,6 +20,8 @@ import { BsImage, BsCheck2 } from "react-icons/bs";
 import { IoText, IoColorPaletteOutline, IoImagesOutline } from "react-icons/io5";
 import { FaTrash, FaCheck } from "react-icons/fa";
 import { LoadingAnimation } from "./Loading";
+import axios from "axios";
+import { getOptimizedImage } from "../utils/imagekitUtils";
 import toast from "react-hot-toast";
 
 // Gen Z / Modern Colors
@@ -343,7 +345,7 @@ const StoryEditor = ({ file, type, onSave, onCancel }) => {
                         <>
                             <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/10">
                                 <img 
-                                    src={user?.profilePic?.url || "https://placehold.co/100"} 
+                                    src={getOptimizedImage(user?.profilePic?.url, { isProfilePic: true, updatedAt: user?.updatedAt, width: 100 }) || "https://placehold.co/100"} 
                                     className="w-full h-full object-cover" 
                                     alt="user"
                                     crossOrigin="anonymous"

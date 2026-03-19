@@ -7,15 +7,38 @@
   <link rel="shortcut icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/images/xwaked-fev.png">
 
-  <!-- <link href="style.css" rel="stylesheet"> -->
+  <!-- Resource Hints: preconnect to reduce DNS lookup time on first request -->
+  <link rel="preconnect" href="https://ik.imagekit.io" crossorigin>
+  <link rel="dns-prefetch" href="https://ik.imagekit.io">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800&display=swap"
     rel="stylesheet">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="xwaked — Reels, Stories & Social Media for the new generation.">
   <link rel="manifest" href="/site.webmanifest">
   <meta name="theme-color" content="#000000">
   <title>xwaked</title>
+  <!-- Inline skeleton for instant FOUC prevention -->
+  <style>
+    body { background: #000; margin: 0; }
+    #root:empty::before {
+      content: "";
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(135deg, #0a0a0a 0%, #111 50%, #0a0a0a 100%);
+      background-size: 400% 400%;
+      animation: sk 1.5s ease infinite;
+    }
+    @keyframes sk {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+  </style>
 </head>
 
 <body>

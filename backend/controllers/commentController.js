@@ -33,13 +33,13 @@ export const createComment = TryCatch(async (req, res) => {
     post.commentsCount += 1;
     await post.save();
 
-    await newComment.populate("user", "name profilePic username");
+    await newComment.populate("user", "name profilePic username updatedAt");
 
     // Real-time Emit
     getIO().to("post:" + postId).emit("postCommentUpdated", {
         postId,
         comments: await Comment.find({ post: postId })
-            .populate("user", "name profilePic username")
+            .populate("user", "name profilePic username updatedAt")
             .sort({ createdAt: -1 }) // We might need to handle grouping in frontend or send structured data
         // For simplicity, let's just trigger a refetch or send the new comment?
         // Sending the whole list is heavy but consistent with frontend expectation "postCommentUpdated" which expects "comments" array.
@@ -58,7 +58,7 @@ export const createComment = TryCatch(async (req, res) => {
     // We need to send the updated list.
     // Optimization: In a real app, we'd append. But here we follow the existing pattern.
     const updatedComments = await Comment.find({ post: postId })
-        .populate("user", "name profilePic username")
+        .populate("user", "name profilePic username updatedAt")
         .sort({ createdAt: -1 });
 
     // Grouping logic is duplicated here? The frontend expects simple list or grouped?
@@ -101,7 +101,7 @@ export const createComment = TryCatch(async (req, res) => {
             relatedComment: newComment._id,
         });
 
-        await notification.populate("sender", "name profilePic");
+        await notification.populate("sender", "name profilePic username updatedAt");
         await notification.populate("postId", "post");
 
         getIO().to("user:" + receiverId.toString()).emit("notification:new", notification);
@@ -149,7 +149,7 @@ export const getPostComments = TryCatch(async (req, res) => {
     const { postId } = req.params;
 
     const comments = await Comment.find({ post: postId })
-        .populate("user", "name profilePic username")
+        .populate("user", "name profilePic username updatedAt")
         .sort({ createdAt: -1 }); // Newest first
 
     // Grouping

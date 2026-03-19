@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
+import { getOptimizedImage } from "../utils/imagekitUtils";
 
 const Modal = ({ value, title, setShow, onRemove }) => {
   return (
@@ -50,7 +51,7 @@ const Modal = ({ value, title, setShow, onRemove }) => {
                     <img
                       loading="lazy"
                       decoding="async"
-                      src={e?.profilePic?.url ? e.profilePic.url.replace("/upload/", "/upload/f_auto,q_auto/") : "https://placehold.co/400"}
+                      src={getOptimizedImage(e?.profilePic?.url, { isProfilePic: true, updatedAt: e?.updatedAt, width: 100 }) || "https://placehold.co/400"}
                       alt=""
                       className="w-9 h-9 rounded-full object-cover border border-white/10"
                     />

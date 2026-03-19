@@ -12,7 +12,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { IKContext, IKImage } from "imagekitio-react";
-import { getVideoUrl } from "../utils/imagekitUrl.js";
+import { getOptimizedImage, getOptimizedVideoThumbnail } from "../utils/imagekitUtils.js";
+import useIntersectionObserver from "../hooks/useIntersectionObserver.js";
 import "./XwakedMedia.css";
 
 const IMAGEKIT_URL = import.meta.env.VITE_IMAGEKIT_URL_ENDPOINT || "";
@@ -31,8 +32,8 @@ function XwakedImage({ url, alt, className }) {
 
     const buildSrcSetUrl = (width) => {
         const height = Math.round((4 / 3) * width);
-        const sep = url.includes("?") ? "&" : "?";
-        return `${url}${sep}tr=w-${width},h-${height},c-maintain_ratio,q-auto,f-auto`;
+        // Use unified optimized utility even in fallback for consistent domain/params
+        return getOptimizedImage(url, { width, height, cropMode: "at_max" });
     };
 
     if (isFallback && url) {
@@ -66,16 +67,16 @@ function XwakedImage({ url, alt, className }) {
                 <IKImage
                     path={ikPath}
                     transformation={[{
-                        width: "900",
-                        height: "1200",        // 3:4
-                        cropMode: "maintain_ratio",
+                        width: "600",
+                        height: "800",        // 3:4 Unified
+                        cropMode: "at_max",
                         quality: "auto",
                         format: "auto",
                     }]}
                     srcSet={[
                         { width: "480",  height: "640"  },  // Mobile  3:4
+                        { width: "600",  height: "800" },  // Unified default
                         { width: "900",  height: "1200" },  // Tablet  3:4
-                        { width: "1200", height: "1600" },  // Desktop 3:4
                     ]}
                     sizes="(max-width: 640px) 480px, (max-width: 1024px) 900px, 1200px"
                     lqip={{ active: true, quality: 10, blur: 20 }}
@@ -94,28 +95,35 @@ function XwakedImage({ url, alt, className }) {
 // ─────────────────────────────────────────────────────────────────
 // Sub-component: Optimized Video/Reel (9:16)
 // ─────────────────────────────────────────────────────────────────
-function XwakedVideo({ url, thumbnailUrl, className }) {
+function XwakedVideo({ url, thumbnailUrl, updatedAt, isNext, className }) {
     const videoRef = useRef(null);
-    const [showPoster, setShowPoster] = useState(true);
+    const isIntersecting = useIntersectionObserver(videoRef);
 
-    // Poster: Use pre-stored thumbnailUrl from DB, or fallback to on-the-fly generation
-    const poster = (thumbnailUrl && thumbnailUrl.replace("ik.imagekit.io", "ik.imgkit.net")) || getVideoUrl(url, "thumbnail");
+    // Poster: Always use optimized version
+    const poster = getOptimizedVideoThumbnail(thumbnailUrl || url, { updatedAt });
 
-    // Lazy play: only load video source when near viewport
+    // Enforce fixed versioning even for raw MP4 URLs if possible
+    const videoSrc = url && url.includes("?") ? url : (updatedAt ? `${url}?v=${new Date(updatedAt).getTime()}` : url);
+
+    // Dynamic Playback & Aggressive Memory Management
     useEffect(() => {
-        if (!videoRef.current) return;
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setShowPoster(false);
-                    observer.disconnect();
-                }
-            },
-            { threshold: 0.3 }
-        );
-        observer.observe(videoRef.current);
-        return () => observer.disconnect();
-    }, []);
+        const video = videoRef.current;
+        if (!video) return;
+        
+        if (isIntersecting) {
+            video.play().catch(() => {
+                /* Silent fail: Autoplay often blocked until user interaction */
+            });
+        } else if (isNext) {
+            video.pause();
+        } else {
+            // "The Nuclear Option": Force browser to kill the connection
+            video.pause();
+            video.removeAttribute("src");
+            video.load();
+            video.currentTime = 0;
+        }
+    }, [isIntersecting, isNext]);
 
     return (
         <div
@@ -124,9 +132,10 @@ function XwakedVideo({ url, thumbnailUrl, className }) {
         >
             <video
                 ref={videoRef}
-                src={showPoster ? undefined : url}
+                // Strict Source Guard: Omit src attribute entirely if not intersecting/next
+                src={(isIntersecting || isNext) ? videoSrc : undefined}
                 poster={poster}
-                preload={showPoster ? "none" : "metadata"}
+                preload={isIntersecting ? "auto" : isNext ? "metadata" : "none"}
                 playsInline
                 loop
                 muted
@@ -146,9 +155,10 @@ function XwakedVideo({ url, thumbnailUrl, className }) {
  * @param {{ url: string, thumbnailUrl?: string, mediaType?: "image"|"video" }} post
  * @param {"post"|"reel"} type
  * @param {string} alt
+ * @param {boolean} isNext
  * @param {string} className
  */
-function XwakedMedia({ post, type, alt, className }) {
+function XwakedMedia({ post, type, alt, isNext, className }) {
     if (!post || !post.url) return null;
 
     // Detect media type: use stored mediaType or infer from type/URL
@@ -162,6 +172,8 @@ function XwakedMedia({ post, type, alt, className }) {
             <XwakedVideo
                 url={post.url}
                 thumbnailUrl={post.thumbnailUrl}
+                updatedAt={post.updatedAt}
+                isNext={isNext}
                 className={className}
             />
         );

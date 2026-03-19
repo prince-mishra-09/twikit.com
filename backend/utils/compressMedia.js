@@ -92,7 +92,7 @@ export const compressVideo = (inputPath) => {
             .audioCodec("aac")
             .audioBitrate("128k")            
             // ── Container/Streaming ──────────────────────────────────────
-            .addOption("-movflags", "+faststart") // Moov atom first → instant play
+            .outputOptions("-movflags +faststart") // Moov atom first → instant play
             .format("mp4")
             .output(outputPath)
             .on("start", (cmd) => {

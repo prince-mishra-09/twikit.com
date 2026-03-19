@@ -25,6 +25,7 @@ import ShareModal from "../components/ShareModal";
 import FeedModal from "../components/FeedModal";
 import ThemeModal from "../components/ThemeModal";
 import { getOptimizedImg } from "../utils/imagekit";
+import { getOptimizedImage } from "../utils/imagekitUtils";
 import { RiRecordCircleFill } from "react-icons/ri";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { useTheme } from "../context/ThemeContext";
@@ -209,7 +210,8 @@ const Account = ({ user }) => {
                       <img
                         loading="lazy"
                         decoding="async"
-                        src={u.profilePic?.url ? getOptimizedImg(u.profilePic.url) : "https://placehold.co/400"}
+                        src={u.profilePic?.url ? getOptimizedImage(u.profilePic.url, { isProfilePic: true, updatedAt: u.updatedAt, width: 100
+ }) : "https://placehold.co/400"}
                         alt=""
                         className="w-10 h-10 rounded-full border border-[var(--border)] object-cover"
                       />
@@ -752,7 +754,7 @@ const EditProfile = ({ user, onBack }) => {
           <img
             loading="lazy"
             decoding="async"
-            src={preview ? getOptimizedImg(preview) : "https://placehold.co/400"}
+            src={preview ? getOptimizedImage(preview, { isProfilePic: true, updatedAt: user.updatedAt, width: 300 }) : "https://placehold.co/400"}
             alt="Profile"
             className="w-32 h-32 rounded-full object-cover border-4 border-[var(--card-bg)] shadow-xl group-hover:opacity-80 transition-opacity"
           />

@@ -16,6 +16,8 @@ import StoryAvatar from "./StoryAvatar";
 import ReelsIcon from "./ReelsIcon";
 import { Suspense } from "react";
 import { getOptimizedImg } from "../utils/imagekit";
+import { getOptimizedImage } from "../utils/imagekitUtils";
+import useIntersectionObserver from "../hooks/useIntersectionObserver";
 import { isSameId, includesId } from "../utils/idUtils";
 
 const CommentItem = React.lazy(() => import("./CommentItem"));
@@ -68,6 +70,7 @@ const PostCard = ({
   openComments, 
   isGrid, 
   isFeed, 
+  isNext,
   onClick, 
   onUpdate,
   showViews = false,
@@ -418,38 +421,30 @@ const PostCard = ({
     }
   }, [isActive, type]);
 
-  // Auto-play for Feed Reels using IntersectionObserver
+  // Auto-play and Visibility Tracking for Feed Reels
+  const isIntersecting = useIntersectionObserver(videoRef);
+
   useEffect(() => {
-    if (!isFeed || type !== "reel" || !videoRef.current) return;
+    const video = videoRef.current;
+    if (!isFeed || type !== "reel" || !video) return;
 
-    const options = {
-      root: null,
-      rootMargin: "0px",
-      threshold: 0.6, // Play when 60% visible
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!videoRef.current) return;
-
-        if (entry.isIntersecting) {
-          const playPromise = videoRef.current.play();
-          if (playPromise !== undefined) {
-            playPromise.then(() => setIsPlaying(true)).catch(() => { });
-          }
-        } else {
-          videoRef.current.pause();
-          setIsPlaying(false);
-        }
-      });
-    }, options);
-
-    observer.observe(videoRef.current);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [isFeed, type]);
+    if (isIntersecting) {
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => setIsPlaying(true)).catch(() => { });
+      }
+    } else if (isNext) {
+      video.pause();
+      setIsPlaying(false);
+    } else {
+      // "The Nuclear Option": Force browser to kill the connection
+      video.pause();
+      setIsPlaying(false);
+      video.removeAttribute("src");
+      video.load();
+      video.currentTime = 0;
+    }
+  }, [isIntersecting, isNext, isFeed, type]);
 
 
 
@@ -630,7 +625,8 @@ const PostCard = ({
     return (
       <div className="w-full h-full relative cursor-pointer bg-black flex items-center justify-center group/grid" onClick={onClick}>
         <video
-          src={value.post.url}
+          src={isIntersecting ? (value.post.url.includes("?") ? value.post.url : (value.updatedAt ? `${value.post.url}?v=${new Date(value.updatedAt).getTime()}` : value.post.url)) : ""}
+          preload={isIntersecting ? "metadata" : "none"}
           className="w-full h-full object-cover"
           muted
           crossOrigin="anonymous"
@@ -798,8 +794,10 @@ const PostCard = ({
           }} onDoubleClick={handleDoubleClick} className="w-full h-full cursor-pointer bg-black flex items-center justify-center">
             <video
               ref={videoRef}
-              src={value.post.url}
+              // Strict Source Guard: Omit src attribute entirely if not intersecting/next
+              src={(isIntersecting || isNext) || type !== "reel" ? (value.post.url.includes("?") ? value.post.url : (value.updatedAt ? `${value.post.url}?v=${new Date(value.updatedAt).getTime()}` : value.post.url)) : undefined}
               className="w-full h-full object-contain"
+              preload={(isIntersecting || type !== "reel") ? "auto" : isNext ? "metadata" : "none"}
               loop
               playsInline
               muted={isFeed ? true : false}
@@ -960,7 +958,7 @@ const PostCard = ({
                   <img
                     loading="lazy"
                     decoding="async"
-                    src={value.owner?.profilePic?.url ? value.owner.profilePic.url.replace("/upload/", "/upload/f_auto,q_auto/") : "https://placehold.co/100"}
+                    src={getOptimizedImage(value.owner?.profilePic?.url, { isProfilePic: true, updatedAt: value.owner?.updatedAt, width: 100 }) || "https://placehold.co/100"}
                     className="w-9 h-9 rounded-full border border-white/20 object-cover shrink-0"
                     alt=""
                   />
@@ -1539,7 +1537,7 @@ const PostCardOverlays = React.memo(({
                     <img
                       loading="lazy"
                       decoding="async"
-                      src={user?.profilePic?.url ? getOptimizedImg(user.profilePic.url) : "https://placehold.co/100"}
+                      src={getOptimizedImage(user?.profilePic?.url, { isProfilePic: true, updatedAt: user?.updatedAt, width: 100 }) || "https://placehold.co/100"}
                       className="w-10 h-10 rounded-full border border-[var(--border)] object-cover"
                       alt=""
                     />

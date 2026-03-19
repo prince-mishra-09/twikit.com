@@ -1,6 +1,7 @@
 import React from "react";
 import { UserData } from "../../context/UserContext";
 import { BsSendCheck } from "react-icons/bs";
+import { getOptimizedImage } from "../../utils/imagekitUtils";
 
 const Chat = ({ chat, setSelectedChat, isOnline, unreadCount }) => {
   const { user: loggedInUser } = UserData();
@@ -18,7 +19,12 @@ const Chat = ({ chat, setSelectedChat, isOnline, unreadCount }) => {
           {/* Avatar */}
           <div className="relative">
             <img
-              src={user.profilePic?.url}
+              src={getOptimizedImage(user.profilePic?.url, { 
+                isProfilePic: true, 
+                updatedAt: user.updatedAt,
+                width: 100, 
+                height: 100 
+              })}
               alt=""
               className="w-10 h-10 rounded-full object-cover"
             />

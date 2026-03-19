@@ -6,6 +6,7 @@ import { FaReply } from "react-icons/fa";
 import { UserData } from "../../context/UserContext";
 import axios from "axios";
 import { toast } from "react-hot-toast";
+import { getOptimizedImage, getOptimizedVideoThumbnail } from "../../utils/imagekitUtils";
 
 const ReactionPicker = ({ onSelect, onClose }) => {
   const emojis = ["❤️", "😂", "😮", "😢", "👍"];
@@ -250,14 +251,14 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
                   {message.sharedContent.preview?.image && (
                     message.sharedContent.type === 'reel' ? (
                       <video
-                        src={message.sharedContent.preview.image}
+                        src={getOptimizedVideoThumbnail(message.sharedContent.preview.image, { isChatThumbnail: true })}
                         className="w-full h-full object-cover"
                         muted
                         playsInline
                       />
                     ) : (
                       <img
-                        src={message.sharedContent.preview.image}
+                        src={getOptimizedImage(message.sharedContent.preview.image, { isChatThumbnail: true })}
                         alt="Shared"
                         className="w-full h-full object-cover"
                       />
@@ -282,7 +283,13 @@ const Message = ({ ownMessage, message, isRead, deleteHandler, activeMessageId, 
                 <div className="flex items-center gap-3 py-1 w-56 sm:w-80 pr-16 relative group">
                   <div className="w-10 h-10 shrink-0">
                     <img
-                      src={message.sharedContent.preview?.image || "/default-avatar.png"}
+                      src={getOptimizedImage(message.sharedContent.preview?.image || "/default-avatar.png", { 
+                        isProfilePic: true,
+                        // We might not have updatedAt for the shared profile, but we can try
+                        updatedAt: message.sharedContent.updatedAt,
+                        width: 100,
+                        height: 100
+                      })}
                       alt="Profile"
                       className="w-full h-full rounded-full object-cover border border-[var(--border)]/30"
                     />

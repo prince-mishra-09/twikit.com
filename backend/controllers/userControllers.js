@@ -12,8 +12,8 @@ import fs from "fs";
 export const myProfile = tryCatch(async (req, res) => {
   const user = await User.findById(req.user._id)
     .select("-password")
-    .populate("mutedUsers", "name profilePic username")
-    .populate("blockedUsers", "name profilePic username");
+    .populate("mutedUsers", "name profilePic username updatedAt")
+    .populate("blockedUsers", "name profilePic username updatedAt");
 
   res.json(user);
 });
@@ -184,7 +184,7 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
         actionRequired: true,
       });
 
-      await notification.populate("sender", "name profilePic username");
+      await notification.populate("sender", "name profilePic username updatedAt");
       io.to("user:" + user._id.toString()).emit("notification:new", notification);
 
       await sendPushNotification(user._id, {
@@ -213,7 +213,7 @@ export const followAndUnfollowUser = tryCatch(async (req, res) => {
 
     try {
       // Try/Catch mainly for notification/socket failures not to block response
-      await notification.populate("sender", "name profilePic username");
+      await notification.populate("sender", "name profilePic username updatedAt");
       io.to("user:" + user._id.toString()).emit("notification:new", notification);
 
       await sendPushNotification(user._id, {
@@ -263,12 +263,12 @@ export const userFollowerandFollowingData = tryCatch(async (req, res) => {
 
   // Paginated Fetch for Followers and Followings
   const followers = await User.find({ _id: { $in: targetUser.followers } })
-    .select("name username profilePic bio isPrivate")
+    .select("name username profilePic bio isPrivate updatedAt")
     .skip(skip)
     .limit(limit);
 
   const followings = await User.find({ _id: { $in: targetUser.followings } })
-    .select("name username profilePic bio isPrivate")
+    .select("name username profilePic bio isPrivate updatedAt")
     .skip(skip)
     .limit(limit);
 
@@ -374,7 +374,7 @@ export const searchUsers = tryCatch(async (req, res) => {
     const users = await User.aggregate([
       { $match: matchStage },
       { $sample: { size: 5 } }, // Get 5 random users
-      { $project: { name: 1, username: 1, profilePic: 1, bio: 1, isPrivate: 1 } }
+      { $project: { name: 1, username: 1, profilePic: 1, bio: 1, isPrivate: 1, updatedAt: 1 } }
     ]);
 
     // Also fetch some recent posts for "Explore" if needed, or just return users
@@ -419,7 +419,7 @@ export const searchUsers = tryCatch(async (req, res) => {
 
   const usersCount = await User.countDocuments(query);
   const users = await User.find(query)
-    .select("name username profilePic bio isPrivate")
+    .select("name username profilePic bio isPrivate updatedAt")
     .skip(skip)
     .limit(limit);
 
@@ -442,7 +442,7 @@ export const searchUsers = tryCatch(async (req, res) => {
   })
     .sort({ createdAt: -1 })
     .limit(10)
-    .populate("owner", "name username profilePic isPrivate");
+    .populate("owner", "name username profilePic isPrivate updatedAt");
 
   // Sanitize reflections for privacy
   posts = posts.map(post => {
@@ -561,7 +561,7 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
     { sender: sender._id, receiver: loggedInUser._id, type: "follow_request" },
     { type: "follow", actionRequired: false, isRead: true },
     { new: true }
-  ).populate("sender", "name profilePic username");
+  ).populate("sender", "name profilePic username updatedAt");
 
   if (requestNotification) {
     io.to(loggedInUser._id.toString()).emit("notification:update", requestNotification);
@@ -575,7 +575,7 @@ export const acceptFollowRequest = tryCatch(async (req, res) => {
     isRead: false
   });
 
-  await notification.populate("sender", "name profilePic username");
+  await notification.populate("sender", "name profilePic username updatedAt");
 
   io.to("user:" + sender._id.toString()).emit("notification:new", notification);
 

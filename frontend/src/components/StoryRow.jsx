@@ -6,6 +6,7 @@ import { SkeletonStory } from "./Skeleton";
 import { AiOutlinePlus } from "react-icons/ai";
 import CreatePostModal from "./CreatePostModal";
 import { useNavigate } from "react-router-dom";
+import { getOptimizedImage } from "../utils/imagekitUtils";
 
 const StoryRow = () => {
     const { stories, loading } = StoriesData();
@@ -50,7 +51,7 @@ const StoryRow = () => {
                                 }`}
                         >
                             <img
-                                src={user?.profilePic?.url ? user.profilePic.url.replace("/upload/", "/upload/f_auto,q_auto/") : "https://placehold.co/400"}
+                                src={getOptimizedImage(user?.profilePic?.url, { isProfilePic: true, updatedAt: user?.updatedAt, width: 100 }) || "https://placehold.co/400"}
                                 alt={user?.name}
                                 loading="lazy"
                                 decoding="async"
@@ -97,7 +98,7 @@ const StoryRow = () => {
                                     : "bg-gradient-to-tr from-indigo-500 via-purple-500 to-orange-500"
                                     }`}>
                                     <img
-                                        src={group.user.profilePic?.url ? group.user.profilePic.url.replace("/upload/", "/upload/f_auto,q_auto/") : "https://placehold.co/400"}
+                                        src={getOptimizedImage(group.user.profilePic?.url, { isProfilePic: true, updatedAt: group.user.updatedAt, width: 100 }) || "https://placehold.co/400"}
                                         alt={group.user.name}
                                         loading="lazy"
                                         decoding="async"

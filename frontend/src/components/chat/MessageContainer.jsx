@@ -10,6 +10,7 @@ import { ChatData } from "../../context/ChatContext";
 
 import { FaArrowLeft, FaTimes, FaReply } from "react-icons/fa";
 import { IoClose, IoBugOutline } from "react-icons/io5";
+import { getOptimizedImage } from "../../utils/imagekitUtils";
 
 const MessageContainer = ({ selectedChat, setChats }) => {
   const [messages, setMessages] = useState([]);
@@ -191,7 +192,7 @@ const MessageContainer = ({ selectedChat, setChats }) => {
           {otherUser && (
             <>
               <img
-                src={otherUser.profilePic?.url}
+                src={getOptimizedImage(otherUser.profilePic?.url, { isProfilePic: true, updatedAt: otherUser.updatedAt, width: 100 })}
                 className="w-9 h-9 rounded-full object-cover"
                 alt=""
               />

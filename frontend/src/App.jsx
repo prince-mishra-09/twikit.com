@@ -15,8 +15,6 @@ import NotFound from "./components/NotFound";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { SkeletonPost } from "./components/Skeleton";
 import RouteAwareSkeleton, { SkeletonFullPage } from "./components/Loading";
-import Maintenance from "./pages/Maintenance";
-
 // Lazy Imports
 const Home = lazy(() => import("./pages/Home"));
 const Register = lazy(() => import("./pages/Register"));
@@ -31,6 +29,7 @@ const PostDetail = lazy(() => import("./pages/PostDetail"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const AuraX = lazy(() => import("./pages/AuraX"));
 const AuraXOnboarding = lazy(() => import("./pages/AuraXOnboarding"));
+const Maintenance = lazy(() => import("./pages/Maintenance"));
 
 function App() {
   const { loading, isAuth, user, setUser, showUpdateModal, setShowUpdateModal, applyUpdate } = UserData();
@@ -98,7 +97,13 @@ function App() {
   }, [socket, user, setUser]);
 
   if (isMaintenanceMode && !isBypass) {
-    return <BrowserRouter><Maintenance /></BrowserRouter>;
+    return (
+      <BrowserRouter>
+        <Suspense fallback={<div className="h-screen w-screen bg-black" />}>
+          <Maintenance />
+        </Suspense>
+      </BrowserRouter>
+    );
   }
 
   return (

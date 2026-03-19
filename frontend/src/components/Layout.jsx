@@ -1,9 +1,11 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { useLocation } from "react-router-dom";
 import { UserData } from "../context/UserContext";
 import NavigationBar from "./NavigationBar";
 import Sidebar from "./Sidebar";
-import RightBar from "./RightBar";
+
+// RightBar is desktop-only and non-critical: lazy load it
+const RightBar = lazy(() => import("./RightBar"));
 
 const Layout = ({ children }) => {
     const { isAuth } = UserData();
@@ -75,7 +77,11 @@ const Layout = ({ children }) => {
             </div>
 
             {/* Right Sidebar - Desktop Only & Conditionally Rendered */}
-            {showRightSidebar && <RightBar />}
+            {showRightSidebar && (
+                <Suspense fallback={null}>
+                    <RightBar />
+                </Suspense>
+            )}
 
         </div>
     );

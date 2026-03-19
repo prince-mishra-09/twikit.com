@@ -98,7 +98,7 @@ export const sendMessage = TryCatch(async (req, res) => {
   // IF NO MESSAGE AND NO SHARED CONTENT, JUST RETURN CHAT
   if (!message && !sharedContent) {
     // Populate users to avoid frontend crash
-    await chat.populate("users", "name username profilePic lastSeen showLastSeen");
+    await chat.populate("users", "name username profilePic lastSeen showLastSeen updatedAt");
 
     const chatObj = chat.toObject();
     chatObj.users = chatObj.users.map(u => {
@@ -304,7 +304,8 @@ export const getAllChats = TryCatch(async (req, res) => {
         "users.blockedUsers": 0,
         "users.mutedUsers": 0,
         "users.savedPosts": 0,
-        "users.email": 0
+        "users.email": 0,
+        // Ensure updatedAt is EXPLICITLY kept or not deleted
       }
     },
     // 6. Sort by latest interaction
@@ -436,7 +437,7 @@ export const toggleReaction = TryCatch(async (req, res) => {
   await message.save();
 
   // Populate reactions for socket update
-  await message.populate("reactions.user", "name username profilePic");
+  await message.populate("reactions.user", "name username profilePic updatedAt");
 
   // Notify participants via Socket
   const chat = await Chat.findById(message.chatId);

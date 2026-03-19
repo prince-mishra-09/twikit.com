@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { UserData } from "../context/UserContext";
 import { isSameId, includesId } from "../utils/idUtils";
+import { getOptimizedImage } from "../utils/imagekitUtils";
 
 const RightBar = () => {
     const { user, isAuth, searchUser, followUser } = UserData();
@@ -60,7 +61,7 @@ const RightBar = () => {
                 <Link to={`/user/${user._id}`} className="flex items-center gap-3 group">
                     <div className="w-11 h-11 rounded-full overflow-hidden border border-[var(--border)] group-hover:border-[var(--accent)] transition-colors bg-[var(--bg-secondary)]">
                         {user.profilePic?.url ? (
-                            <img src={user.profilePic.url} alt="" className="w-full h-full object-cover" />
+                            <img src={getOptimizedImage(user.profilePic.url, { isProfilePic: true, updatedAt: user.updatedAt, width: 100 })} alt="" className="w-full h-full object-cover" />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-[var(--text-secondary)] font-bold text-lg">
                                 {user.name?.[0]}
@@ -104,7 +105,7 @@ const RightBar = () => {
                             <Link to={`/user/${s._id}`} className="flex items-center gap-3 group">
                                 <div className="w-8 h-8 rounded-full bg-[var(--bg-secondary)] overflow-hidden border border-[var(--border)] group-hover:border-[var(--text-primary)] transition-colors">
                                     {s.profilePic?.url ? (
-                                        <img src={s.profilePic.url} alt="" className="w-full h-full object-cover" />
+                                        <img src={getOptimizedImage(s.profilePic.url, { isProfilePic: true, updatedAt: s.updatedAt, width: 100 })} alt="" className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-[var(--text-secondary)] text-xs font-bold">
                                             {s.name?.[0]}

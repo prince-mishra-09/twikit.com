@@ -77,7 +77,7 @@ export const newPost = TryCatch(async (req, res) => {
             });
 
             // Populate for frontend (match getAllPosts projection)
-            await post.populate("owner", "name username profilePic isPrivate");
+            await post.populate("owner", "name username profilePic isPrivate updatedAt");
 
             // 3. Emit "Ready" Event to User
             try {
@@ -186,7 +186,8 @@ export const getAllPosts = TryCatch(async (req, res) => {
             name: 1,
             username: 1,
             profilePic: 1,
-            isPrivate: 1
+            isPrivate: 1,
+            updatedAt: 1
         },
         vibesUp: 1,
         vibesDown: {
@@ -342,7 +343,8 @@ export const getReels = TryCatch(async (req, res) => {
             name: 1,
             username: 1,
             profilePic: 1,
-            isPrivate: 1
+            isPrivate: 1,
+            updatedAt: 1
         },
         vibesUp: 1,
         vibesDown: {
@@ -484,7 +486,7 @@ export const handleFeedback = TryCatch(async (req, res) => {
     const action = isRemoving ? "removed" : "added";
 
     // Populate owner before sending to client to prevent "Deleted User" bug
-    await updatedPost.populate("owner", "name username profilePic isPrivate");
+    await updatedPost.populate("owner", "name username profilePic isPrivate updatedAt");
 
     // 🔥 REAL-TIME EMIT (SAFE)
     try {
@@ -545,7 +547,7 @@ export const handleFeedback = TryCatch(async (req, res) => {
                     postId: updatedPost._id,
                 });
 
-                await notification.populate("sender", "name profilePic");
+                await notification.populate("sender", "name profilePic username updatedAt");
                 await notification.populate("postId", "post");
 
                 try {
@@ -635,6 +637,7 @@ export const getRandomPosts = async (req, res) => {
             $project: {
                 vibesDown: 0,
                 "owner.password": 0,
+                "owner.__v": 0,
             }
         }
     ]);
@@ -675,7 +678,7 @@ export const saveUnsavePost = TryCatch(async (req, res) => {
         post._id, 
         { savesCount: actualSavesCount }, 
         { new: true }
-    ).populate("owner", "name username profilePic isPrivate");
+    ).populate("owner", "name username profilePic isPrivate updatedAt");
 
     // Socket: Broadcast naya REAL save count
     try {
@@ -695,7 +698,7 @@ export const saveUnsavePost = TryCatch(async (req, res) => {
 
 export const getPost = TryCatch(async (req, res) => {
     try {
-        const post = await Post.findById(req.params.id).populate("owner", "name username profilePic isPrivate");
+        const post = await Post.findById(req.params.id).populate("owner", "name username profilePic isPrivate updatedAt");
 
         if (!post) {
             return res.status(404).json({
@@ -785,7 +788,7 @@ export const getUserPosts = TryCatch(async (req, res) => {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .populate("owner", "name username profilePic isPrivate")
+        .populate("owner", "name username profilePic isPrivate updatedAt")
         .lean();
 
     const processedPosts = posts.map(p => ({

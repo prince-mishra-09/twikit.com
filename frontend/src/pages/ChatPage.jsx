@@ -7,6 +7,7 @@ import Chat from "../components/chat/Chat";
 import MessageContainer from "../components/chat/MessageContainer";
 import { SocketData } from "../context/SocketContext";
 import { SkeletonUserList } from "../components/Skeleton";
+import { getOptimizedImage } from "../utils/imagekitUtils";
 
 const ChatPage = ({ user }) => {
   const navigate = useNavigate();
@@ -133,7 +134,7 @@ const ChatPage = ({ user }) => {
                     className="flex items-center gap-3 px-3 py-2 hover:bg-[var(--text-primary)]/5 transition-all cursor-pointer"
                   >
                     <img
-                      src={u.profilePic.url}
+                      src={getOptimizedImage(u.profilePic.url, { isProfilePic: true, updatedAt: u.updatedAt, width: 100 })}
                       className="w-10 h-10 rounded-full object-cover border border-[var(--border)]"
                       alt=""
                     />

@@ -122,7 +122,7 @@ io.on("connection", (socket) => {
     try {
       const module = await import("../models/userModel.js");
       const User = module.default;
-      await User.findByIdAndUpdate(userId, { lastSeen: Date.now() });
+      await User.findByIdAndUpdate(userId, { lastSeen: Date.now() }, { timestamps: false });
     } catch (err) {
       // console.log("Error updating lastSeen:", err);
     }

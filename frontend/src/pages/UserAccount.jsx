@@ -23,6 +23,7 @@ import StoryAvatar from "../components/StoryAvatar";
 import ShareModal from "../components/ShareModal";
 import FeedModal from "../components/FeedModal";
 import { useTheme } from "../context/ThemeContext";
+import { getOptimizedImage } from "../utils/imagekitUtils";
 
 const UserAccount = ({ user: loggedInUser }) => {
   const { } = PostData();
@@ -536,7 +537,7 @@ const UserAccount = ({ user: loggedInUser }) => {
             contentId: user._id,
             preview: {
               title: user.name,
-              image: user.profilePic?.url,
+              image: getOptimizedImage(user.profilePic?.url, { isProfilePic: true, updatedAt: user.updatedAt, width: 300 }),
               username: user.username || user.name
             }
           }}

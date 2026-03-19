@@ -4,7 +4,9 @@ import { Link } from "react-router-dom";
 import { LoadingAnimation } from "../components/Loading";
 import { FaSearch, FaCompass } from "react-icons/fa";
 import PostCard from "../components/PostCard";
+import useIntersectionObserver from "../hooks/useIntersectionObserver";
 import { PostData } from "../context/PostContext";
+import { getOptimizedImage } from "../utils/imagekitUtils";
 
 const Search = () => {
   const [users, setUsers] = useState([]);
@@ -125,7 +127,7 @@ const Search = () => {
                 className="flex items-center gap-3 px-2 py-2 hover:bg-[var(--card-bg)]/30 transition-all"
               >
                 <img
-                  src={u?.profilePic?.url || "/default-avatar.png"}
+                  src={getOptimizedImage(u?.profilePic?.url, { isProfilePic: true, updatedAt: u?.updatedAt, width: 100 }) || "/default-avatar.png"}
                   alt="profile"
                   className="w-11 h-11 rounded-full object-cover border border-[var(--border)] shrink-0"
                 />
@@ -171,7 +173,7 @@ const Search = () => {
                     className="flex items-center gap-3 px-2 py-2 hover:bg-[var(--card-bg)]/30 transition-all"
                   >
                     <img
-                      src={u?.profilePic?.url || "/default-avatar.png"}
+                      src={getOptimizedImage(u?.profilePic?.url, { isProfilePic: true, updatedAt: u?.updatedAt, width: 100 }) || "/default-avatar.png"}
                       alt="profile"
                       className="w-11 h-11 rounded-full object-cover border border-[var(--border)] shrink-0"
                     />
@@ -215,7 +217,7 @@ const Search = () => {
                       )}
                       <div className="p-2">
                         <div className="flex items-center gap-2 mb-1">
-                          <img src={item.owner?.profilePic?.url} className="w-5 h-5 rounded-full object-cover shrink-0" />
+                          <img src={getOptimizedImage(item.owner?.profilePic?.url, { isProfilePic: true, updatedAt: item.owner?.updatedAt, width: 100 })} className="w-5 h-5 rounded-full object-cover shrink-0" />
                           <span className="text-xs text-[var(--text-primary)] font-bold truncate max-w-[80px]">{item.owner?.name}</span>
                         </div>
                         {item.caption && <p className="text-[10px] text-[var(--text-secondary)] line-clamp-2 break-all">{item.caption}</p>}
@@ -241,51 +243,37 @@ const Search = () => {
 
 // --- Sub-component for Reel Grid Item with Autoplay ---
 const SearchReelItem = ({ reel }) => {
-  const [isPlaying, setIsPlaying] = React.useState(false);
   const videoRef = React.useRef(null);
+  const isIntersecting = useIntersectionObserver(videoRef, null, { threshold: 0.7 });
 
   React.useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setIsPlaying(true);
-            // Optional: try to play if state updates aren't enough (some browsers block auto-play without user interaction initially, but usually mute works)
-            if (videoRef.current) {
-              videoRef.current.play().catch(e => { /* silent fail for autoplay blocks */ });
-            }
-          } else {
-            setIsPlaying(false);
-            if (videoRef.current) {
-              videoRef.current.pause();
-              videoRef.current.currentTime = 0; // Reset preview
-            }
-          }
-        });
-      },
-      { threshold: 0.7 } // 70% visible
-    );
-
-    if (videoRef.current) observer.observe(videoRef.current);
-    return () => observer.disconnect();
-  }, []);
+    if (!videoRef.current) return;
+    if (isIntersecting) {
+        videoRef.current.play().catch(e => { /* silent fail */ });
+    } else {
+        videoRef.current.pause();
+        videoRef.current.currentTime = 0; // Reset preview for grid
+    }
+  }, [isIntersecting]);
 
   return (
     <Link to={`/reels?id=${reel._id}`} className="relative block aspect-[9/16] rounded-xl overflow-hidden group border border-[var(--border)]">
       <video
         ref={videoRef}
-        src={reel.post.url}
+        src={isIntersecting ? (reel.post.url.includes("?") ? reel.post.url : (reel.updatedAt ? `${reel.post.url}?v=${new Date(reel.updatedAt).getTime()}` : reel.post.url)) : ""}
+        preload={isIntersecting ? "metadata" : "none"}
         className="w-full h-full object-cover"
         muted
-        loop
         playsInline
+        loop
+        crossOrigin="anonymous"
       />
 
       {/* Overlay info */}
       {/* Overlay info */}
       <div className="absolute bottom-0 inset-x-0 p-2 flex flex-col justify-end pointer-events-none">
         <div className="flex items-center gap-1.5 mb-1">
-          <img src={reel.owner?.profilePic?.url} className="w-5 h-5 rounded-full border border-[var(--border)]/30 object-cover shrink-0" alt="" />
+          <img src={getOptimizedImage(reel.owner?.profilePic?.url, { isProfilePic: true, updatedAt: reel.owner?.updatedAt, width: 100 })} className="w-5 h-5 rounded-full border border-[var(--border)]/30 object-cover shrink-0" alt="" />
           <span className="text-white text-[10px] font-bold truncate drop-shadow-md max-w-[80px]">{reel.owner?.name}</span>
         </div>
         {reel.caption && <p className="text-white/90 text-[10px] line-clamp-2 leading-tight drop-shadow-md break-all">{reel.caption}</p>}

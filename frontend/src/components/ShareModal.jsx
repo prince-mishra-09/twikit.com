@@ -5,6 +5,7 @@ import { ChatData } from "../context/ChatContext";
 import { UserData } from "../context/UserContext";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { getOptimizedImage } from "../utils/imagekitUtils";
 
 const ShareModal = ({ isOpen, onClose, content, onShare }) => {
     const { chats, setChats, getAllChats } = ChatData(); // Uses recent chats
@@ -196,7 +197,7 @@ const ShareModal = ({ isOpen, onClose, content, onShare }) => {
                             <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
                                 {selectedUsers.map(u => (
                                     <div key={u._id} className="relative shrink-0">
-                                        <img src={u.profilePic?.url} className="w-8 h-8 rounded-full border border-[var(--border)] aspect-square object-cover" alt="" />
+                                        <img src={getOptimizedImage(u.profilePic?.url, { isProfilePic: true, updatedAt: u.updatedAt, width: 100 })} className="w-8 h-8 rounded-full border border-[var(--border)] aspect-square object-cover" alt="" />
                                         <button
                                             onClick={() => toggleUser(u)}
                                             className="absolute -top-1 -right-1 bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-full w-4 h-4 flex items-center justify-center text-[10px] border border-[var(--border)]"
@@ -240,7 +241,7 @@ const UserItem = ({ user, selected, onSelect, isRestricted }) => (
         {/* Avatar Ring */}
         <div className={`p-1 rounded-full border-2 transition-colors ${selected ? "border-[var(--accent)]" : "border-transparent group-hover:border-[var(--border)]"}`}>
             <div className="relative aspect-square w-14 h-14">
-                <img src={user.profilePic?.url || "/default-avatar.png"} alt="" className="w-full h-full rounded-full object-cover aspect-square shrink-0" />
+                <img src={getOptimizedImage(user.profilePic?.url || "/default-avatar.png", { isProfilePic: true, updatedAt: user.updatedAt, width: 100 })} alt="" className="w-full h-full rounded-full object-cover aspect-square shrink-0" />
                 {selected && (
                     <div className="absolute bottom-0 right-0 bg-[var(--accent)] w-5 h-5 rounded-full border-2 border-[var(--card-bg)] flex items-center justify-center">
                         <svg className="w-3 h-3 text-[var(--text-on-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">

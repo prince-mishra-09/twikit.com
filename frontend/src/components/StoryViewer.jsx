@@ -6,6 +6,7 @@ import { StoriesData } from "../context/StoriesContext";
 import { UserData } from "../context/UserContext";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { getOptimizedImage } from "../utils/imagekitUtils";
 
 const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) => {
     const navigate = useNavigate();
@@ -208,7 +209,7 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
                     }}
                     className="absolute top-8 left-4 z-20 flex items-center gap-3 bg-[var(--surface-glass)] backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-lg cursor-pointer hover:bg-black/30 transition">
                     <img
-                        src={currentUserStories.user.profilePic?.url || "https://placehold.co/400"}
+                        src={getOptimizedImage(currentUserStories.user.profilePic?.url, { isProfilePic: true, updatedAt: currentUserStories.user.updatedAt, width: 100 }) || "https://placehold.co/400"}
                         className="w-8 h-8 rounded-full border border-white/20 object-cover shrink-0"
                     />
                     <div className="flex flex-col gap-0.5">
@@ -318,7 +319,7 @@ const StoryViewer = ({ stories, initialIndex, initialStoryIndex = 0, onClose }) 
                                 .filter(v => v._id !== currentUserStories.user._id)
                                 .map((viewer, idx) => (
                                     <div key={idx} className="flex items-center gap-3 py-2 border-b border-[var(--border)]/20 last:border-0">
-                                        <img src={viewer.profilePic?.url || "https://placehold.co/100"} className="w-10 h-10 rounded-full bg-[var(--bg-secondary)] object-cover shrink-0" />
+                                        <img src={getOptimizedImage(viewer.profilePic?.url, { isProfilePic: true, updatedAt: viewer.updatedAt, width: 100 }) || "https://placehold.co/100"} className="w-10 h-10 rounded-full bg-[var(--bg-secondary)] object-cover shrink-0" />
                                         <span className="text-white font-medium">{viewer.name || "Unknown User"}</span>
                                     </div>
                                 ))

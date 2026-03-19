@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import axios from "axios";
 import { SkeletonUserList } from "../components/Skeleton";
 import toast from "react-hot-toast";
+import { getOptimizedImage, getOptimizedVideoThumbnail } from "../utils/imagekitUtils";
 
 const Notifications = () => {
     const navigate = useNavigate();
@@ -128,7 +129,12 @@ const Notifications = () => {
                             >
                                 <Link to={`/user/${n.sender._id}`} className="shrink-0">
                                     <img
-                                        src={n.sender?.profilePic?.url || "https://cdn-icons-png.flaticon.com/512/1077/1077114.png"}
+                                        src={getOptimizedImage(n.sender?.profilePic?.url, { 
+                                            isProfilePic: true, 
+                                            updatedAt: n.sender?.updatedAt,
+                                            width: 100,
+                                            height: 100
+                                        }) || "https://cdn-icons-png.flaticon.com/512/1077/1077114.png"}
                                         alt=""
                                         className="w-10 h-10 rounded-full object-cover border border-[var(--border)]"
                                     />
@@ -169,10 +175,14 @@ const Notifications = () => {
                                     <Link to={getPostLink(n)}>
                                         {n.postId?.post?.url ? (
                                             n.postId.type === 'reel' ? (
-                                                <video src={n.postId.post.url} className="w-10 h-10 rounded-lg object-cover border border-[var(--border)]/30" muted playsInline loop autoPlay />
+                                                <img 
+                                                    src={getOptimizedVideoThumbnail(n.postId.post.url, { isChatThumbnail: true })} 
+                                                    alt="reel"
+                                                    className="w-10 h-10 rounded-lg object-cover border border-[var(--border)]/30" 
+                                                />
                                             ) : (
                                                 <img
-                                                    src={n.postId.post.url}
+                                                    src={getOptimizedImage(n.postId.post.url, { isChatThumbnail: true })}
                                                     alt="post"
                                                     className="w-10 h-10 rounded-lg object-cover border border-[var(--border)]"
                                                 />

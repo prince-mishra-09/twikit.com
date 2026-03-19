@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { LoadingAnimation } from "./Loading";
 import { Link } from "react-router-dom";
+import { getOptimizedImage } from "../utils/imagekitUtils";
 
 const VibeModal = ({ isOpen, onClose, id }) => {
   if (!isOpen) return null;
@@ -57,7 +58,7 @@ const VibeModal = ({ isOpen, onClose, id }) => {
                   className="flex items-center gap-3 p-2 rounded-xl hover:bg-[var(--text-primary)]/5 transition"
                 >
                   <img
-                    src={e?.profilePic?.url || "https://placehold.co/400"}
+                    src={getOptimizedImage(e?.profilePic?.url, { isProfilePic: true, updatedAt: e?.updatedAt, width: 100 }) || "https://placehold.co/400"}
                     alt=""
                     className="w-9 h-9 rounded-full object-cover"
                   />
